@@ -1,0 +1,40 @@
+.git
+
+.cache/**
+!.cache/.gitkeep
+.secure/**
+!.secure/.gitkeep
+
+vars.auto.tfvars
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules/
+report.*.json
+.npm
+.eslintcache
+
+.terraform
+*terraform.tfstate*
+*terraform.lock.hcl
+*.terraform*
+terraform/main.tf
+
+coverage
+coverageReport.json
+.idea/
+.vscode
+!.vscode/tasks.js
+
+# Misc
+.DS_Store
+tmp/**
+!tmp/.gitkeep
+
+docker_volumes
+
+# charts
+./charts
