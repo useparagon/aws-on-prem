@@ -55,7 +55,17 @@ variable "mfa_enabled" {
   default     = false
 }
 
+variable "ssh_whitelist" {
+  description = "An optional list of IP addresses to whitelist ssh access."
+  type        = string
+  default     = ""
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"
+
+  // get distinct values from comma-separated list, filter empty values and trim them
+  // for `ip_whitelist`, if an ip doesn't contain a range at the end (e.g. `<IP_ADDRESS>/32`), then add `/32` to the end. `1.1.1.1` becomes `1.1.1.1/32`; `2.2.2.2/24` remains unchanged
+  ssh_whitelist = distinct([for value in split(",", var.ssh_whitelist) : "${trimspace(value)}${replace(value, "/", "") != value ? "" : "/32"}" if trimspace(value) != ""])
 }

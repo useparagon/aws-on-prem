@@ -90,3 +90,20 @@ output "minio_private_bucket" {
   value       = module.s3.s3.private_bucket
   sensitive   = true
 }
+
+output "bastion_load_balancer" {
+  description = "The url for the bastion load balancer."
+  value       = module.bastion.load_balancer.public_dns
+  sensitive   = true
+}
+
+output "bastion_private_key" {
+  description = "The private key for the bastion."
+  value       = module.bastion.load_balancer.private_key
+  sensitive   = true
+}
+
+output "cluster_name" {
+  description = "The name of the EKS cluster."
+  value       = module.cluster.eks_cluster.name
+}
