@@ -37,3 +37,13 @@ output "postgres_database" {
   description = "The database of the postgres database."
   value       = module.postgres.rds.database
 }
+
+output "redis_host" {
+  description = "The host of the redis database."
+  value       = module.redis.elasticache.host
+}
+
+output "redis_port" {
+  description = "The port of the redis database."
+  value       = module.redis.elasticache.port
+}

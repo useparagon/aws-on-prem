@@ -31,6 +31,12 @@ variable "rds_instance_class" {
   default     = "db.t3.small"
 }
 
+variable "elasticache_node_type" {
+  description = "The ElastiCache node type used for Redis."
+  type        = string
+  default     = "cache.t4g.medium"
+}
+
 variable "postgres_version" {
   description = "Postgres version for the database."
   type        = string
