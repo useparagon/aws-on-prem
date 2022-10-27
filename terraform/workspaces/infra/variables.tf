@@ -25,6 +25,18 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "rds_instance_class" {
+  description = "The RDS instance class type used for Postgres."
+  type        = string
+  default     = "db.t3.small"
+}
+
+variable "postgres_version" {
+  description = "Postgres version for the database."
+  type        = string
+  default     = "12.7"
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"
