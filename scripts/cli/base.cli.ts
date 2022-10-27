@@ -103,12 +103,12 @@ export abstract class BaseCLI {
 
     const { initialize, plan, apply } = options;
 
-    // await sleep(1000 * 60 * 5);
-
     const env: TerraformEnv = await this.getTerraformEnv();
     await this.configureTerraformToken(env);
     await this.prepareTerraformMainFile(env);
     await this.prepareTerraformVariables(env);
+
+    // await sleep(1000 * 60 * 5);
 
     if (initialize) {
       await this.executeTerraformInit();

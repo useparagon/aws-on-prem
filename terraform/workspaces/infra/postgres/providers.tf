@@ -5,9 +5,10 @@ provider "aws" {
   region     = var.aws_region
   default_tags {
     tags = {
-      Name        = "${var.workspace}-redis"
-      Environment = var.environment
       Creator     = "Terraform"
+      Environment = var.environment
+      Name        = "${var.workspace}-postgres"
+      Workspace   = var.workspace
     }
   }
 }

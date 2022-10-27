@@ -7,7 +7,7 @@ provider "aws" {
     tags = {
       Creator     = "Terraform"
       Environment = var.environment
-      Name        = "${var.workspace}-network"
+      Name        = "${var.workspace}-redis"
       Workspace   = var.workspace
     }
   }

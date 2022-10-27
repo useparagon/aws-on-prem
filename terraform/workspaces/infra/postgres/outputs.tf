@@ -6,4 +6,5 @@ output "rds" {
     password = random_string.postgres_root_password.result
     database = aws_db_instance.postgres.name
   }
+  sensitive = true
 }

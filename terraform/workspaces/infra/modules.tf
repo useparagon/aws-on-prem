@@ -13,6 +13,21 @@ module "network" {
   vpc_cidr = var.vpc_cidr
 }
 
+module "cloudtrail" {
+  source = "./cloudtrail"
+
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  aws_session_token     = var.aws_session_token
+
+  workspace   = local.workspace
+  environment = local.environment
+
+  master_guardduty_account_id = var.master_guardduty_account_id
+  mfa_enabled                 = var.mfa_enabled
+}
+
 module "postgres" {
   source = "./postgres"
 
@@ -43,7 +58,22 @@ module "redis" {
   workspace             = local.workspace
   environment           = local.environment
   elasticache_node_type = var.elasticache_node_type
-  vpc                   = module.network.vpc
-  public_subnet         = module.network.public_subnet
-  private_subnet        = module.network.private_subnet
+
+  vpc            = module.network.vpc
+  public_subnet  = module.network.public_subnet
+  private_subnet = module.network.private_subnet
+}
+
+module "s3" {
+  source = "./s3"
+
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  aws_session_token     = var.aws_session_token
+
+  workspace   = local.workspace
+  environment = local.environment
+
+  cloudtrail_s3_bucket = module.cloudtrail.s3.bucket
 }

@@ -43,6 +43,18 @@ variable "postgres_version" {
   default     = "12.7"
 }
 
+variable "master_guardduty_account_id" {
+  description = "Optional AWS account id to delegate GuardDuty control to."
+  type        = string
+  default     = null
+}
+
+variable "mfa_enabled" {
+  description = "Whether to require MFA for certain configurations (e.g. cloudtrail s3 bucket deletion)"
+  type        = bool
+  default     = false
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"
