@@ -23,6 +23,11 @@ report.*.json
 *.terraform*
 terraform/main.tf
 
+!.terraform-version
+!.terraform.lock.hcl
+
+main.tf
+
 coverage
 coverageReport.json
 .idea/
