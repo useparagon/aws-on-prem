@@ -11,4 +11,4 @@ class ParagonCLI extends BaseCLI {
 }
 
 const cli: ParagonCLI = new ParagonCLI();
-export default cli.program;
+export default cli;

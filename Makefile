@@ -15,6 +15,23 @@ tf-version:
 		bash -c "terraform --version"
 
 ####################
+# Get Terraform state
+####################
+
+state-infra:
+	docker run \
+		-it \
+		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
+		--rm useparagon/aws-self-hosted:latest \
+		ts-node "scripts/cli" state-infra
+
+state-paragon:
+	docker run \
+		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
+		--rm useparagon/aws-self-hosted:latest \
+		ts-node "scripts/cli" state-paragon
+
+####################
 # Deploy
 ####################
 

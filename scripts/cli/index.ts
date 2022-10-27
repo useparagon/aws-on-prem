@@ -1,12 +1,10 @@
-import * as commander from 'commander';
-import { Command } from 'commander';
+import infraCLI from './infra.cli';
+import paragonCLI from './paragon.cli';
+import program from './program';
 
-import infra from './infra.cli';
-import paragon from './paragon.cli';
+infraCLI.configureProgram(program);
+paragonCLI.configureProgram(program);
 
-const program: commander.Command = new Command()
-  .addCommand(infra)
-  .addCommand(paragon)
-  .parse(process.argv);
+program.parse(process.argv);
 
 export default program;

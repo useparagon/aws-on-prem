@@ -11,4 +11,4 @@ class InfraCLI extends BaseCLI {
 }
 
 const cli: InfraCLI = new InfraCLI();
-export default cli.program;
+export default cli;

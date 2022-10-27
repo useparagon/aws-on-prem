@@ -20,86 +20,95 @@ export abstract class BaseCLI {
   abstract workspace: TerraformWorkspace;
 
   /**
-   * commander CLI
-   *
-   * @private
-   * @type {(commander.Command | undefined)}
-   * @memberof BaseCLI
+   * configures the cli program
+   * @param program
    */
-  private _program: commander.Command | undefined;
+  configureProgram(program: commander.Command): void {
+    program
+      .addCommand(
+        new commander.Command(`deploy-${this.workspace}`)
+          .description('Deploy to AWS.')
+          .requiredOption(
+            '--initialize [initialize]',
+            'Run `terraform init` before the deployment',
+            process.env.initialize || 'true',
+          )
+          .requiredOption(
+            '--plan [plan]',
+            'Run `terraform plan` before the deployment',
+            process.env.plan || 'true',
+          )
+          .requiredOption('--apply [apply]', 'Run `terraform apply`', process.env.apply || 'true')
+          .requiredOption(
+            '--target [target]',
+            'Optional target for operation',
+            process.env.target || '',
+          )
+          .requiredOption(
+            '--args [args]',
+            'Optional arguments to pass to the operation',
+            process.env.args ?? '',
+          )
+          .action(async (options: DeployCLIOptions): Promise<void> => {
+            console.log(`ℹ️  Running deploy-${this.workspace}`, options);
+            const {
+              initialize: _initialize = 'true',
+              plan: _plan = 'true',
+              apply: _apply = 'true',
+              target,
+              args: _args,
+            } = options;
+            const initialize: boolean = _initialize === 'false' ? false : true;
+            const plan: boolean = _plan === 'false' ? false : true;
+            const apply: boolean = _apply === 'false' ? false : true;
+            const args: string[] = _args.trim().length ? _args.trim().split(',') : [];
+            const targets: string[] = target
+              .trim()
+              .split(',')
+              .filter((target: string): boolean => target.length > 0)
+              .map((target: string): string => target.trim());
+
+            await this.runDeploy({
+              initialize,
+              plan,
+              apply,
+              args,
+              targets,
+            });
+          }),
+      )
+      .addCommand(
+        new commander.Command(`state-${this.workspace}`)
+          .description('Print the Terraform state as json.')
+          .action(async (): Promise<void> => {
+            await this.runStateOutput();
+          }),
+      );
+  }
 
   /**
-   * prepares the commander CLI
-   *
-   * @readonly
-   * @type {commander.Command}
-   * @memberof BaseCLI
+   * prints the terraform state as json
    */
-  get program(): commander.Command {
-    if (this._program) {
-      return this._program;
-    }
+  async runStateOutput(): Promise<void> {
+    console.log('ℹ️  Executing runStateOutput...');
 
-    this._program = new commander.Command(`deploy-${this.workspace}`)
-      .description('Deploy to AWS.')
-      .requiredOption(
-        '--initialize [initialize]',
-        'Run `terraform init` before the deployment',
-        process.env.initialize || 'true',
-      )
-      .requiredOption(
-        '--plan [plan]',
-        'Run `terraform plan` before the deployment',
-        process.env.plan || 'true',
-      )
-      .requiredOption('--apply [apply]', 'Run `terraform apply`', process.env.apply || 'true')
-      .requiredOption(
-        '--target [target]',
-        'Optional target for operation',
-        process.env.target || '',
-      )
-      .requiredOption(
-        '--args [args]',
-        'Optional arguments to pass to the operation',
-        process.env.args ?? '',
-      )
-      .action(async (options: DeployCLIOptions): Promise<void> => {
-        console.log(`ℹ️  Running deploy-${this.workspace}`, options);
-        const {
-          initialize: _initialize = 'true',
-          plan: _plan = 'true',
-          apply: _apply = 'true',
-          target,
-          args: _args,
-        } = options;
-        const initialize: boolean = _initialize === 'false' ? false : true;
-        const plan: boolean = _plan === 'false' ? false : true;
-        const apply: boolean = _apply === 'false' ? false : true;
-        const args: string[] = _args.trim().length ? _args.trim().split(',') : [];
-        const targets: string[] = target
-          .trim()
-          .split(',')
-          .filter((target: string): boolean => target.length > 0)
-          .map((target: string): string => target.trim());
+    const env: TerraformEnv = await this.getTerraformEnv();
+    await this.configureTerraformToken(env);
+    await this.prepareTerraformMainFile(env);
+    await execAsync(
+      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} output -json`,
+      process.env,
+    );
 
-        await this.run({
-          initialize,
-          plan,
-          apply,
-          args,
-          targets,
-        });
-      });
-
-    return this._program;
+    console.log('✅ Executed runStateOutput.');
   }
 
   /**
    * executes the deployment
    * @param options
    */
-  async run(options: TerraformOptions): Promise<void> {
-    console.log('ℹ️  Executing run...', options);
+  async runDeploy(options: TerraformOptions): Promise<void> {
+    console.log('ℹ️  Executing runDeploy...', options);
 
     const { initialize, plan, apply } = options;
 
