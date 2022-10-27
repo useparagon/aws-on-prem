@@ -1,3 +1,11 @@
+variable "workspace" {
+  description = "The name of the workspace resources are being created in."
+}
+
+variable "environment" {
+  description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
+}
+
 variable "aws_region" {
   description = "The AWS region resources are created in."
 }
@@ -12,20 +20,12 @@ variable "aws_secret_access_key" {
 
 variable "aws_session_token" {
   description = "AWS session token."
-  default     = null
 }
 
 variable "az_count" {
   description = "Number of AZs to cover in a given region."
-  default     = "2"
 }
 
 variable "vpc_cidr" {
   description = "CIDR for the VPC."
-  default     = "10.0.0.0/16"
-}
-
-locals {
-  workspace   = "paragon-enterprise-${random_string.app.result}"
-  environment = "enterprise"
 }
