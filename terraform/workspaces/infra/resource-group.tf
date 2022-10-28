@@ -21,7 +21,7 @@ resource "aws_resourcegroups_group" "app" {
     },
     {
       "Key": "Environment",
-      "Values": ["enterprise"]
+      "Values": ["${local.environment}"]
     }
   ]
 }

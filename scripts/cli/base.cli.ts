@@ -139,11 +139,11 @@ export abstract class BaseCLI {
   }
 
   /**
-   * gets the values from `.secure/.env-tf` as an object
+   * gets the values from `.secure/.env-tf-{infra,paragon}` as an object
    */
   async getTerraformEnv(): Promise<TerraformEnv> {
     const values: TerraformEnv = (await getVariablesFromEnvFile(
-      `${ROOT_DIR}/.secure/.env-tf`,
+      `${ROOT_DIR}/.secure/.env-tf-${this.workspace}`,
     )) as TerraformEnv;
     return values;
   }
@@ -180,14 +180,12 @@ credentials "app.terraform.io" {
    * @param env
    */
   async prepareTerraformMainFile(env: TerraformEnv): Promise<void> {
-    const { TF_ORGANIZATION, TF_INFRA_WORKSPACE, TF_PARAGON_WORKSPACE } = env;
-    const workspace: string =
-      this.workspace === TerraformWorkspace.INFRA ? TF_INFRA_WORKSPACE : TF_PARAGON_WORKSPACE;
+    const { TF_ORGANIZATION, TF_WORKSPACE } = env;
     const templateFilePath: string = `${TERRAFORM_DIR}/templates/main.tpl.tf`;
     const inputFile: string = await fs.readFile(templateFilePath, 'utf8');
     const outputFile: string = inputFile
       .replace(new RegExp('__TF_ORGANIZATION__', 'g'), TF_ORGANIZATION)
-      .replace(new RegExp('__TF_WORKSPACE__', 'g'), workspace);
+      .replace(new RegExp('__TF_WORKSPACE__', 'g'), TF_WORKSPACE);
     const outputFilePath: string = `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/main.tf`;
 
     await fs.writeFile(outputFilePath, outputFile);
@@ -198,16 +196,29 @@ credentials "app.terraform.io" {
    * @param env
    */
   async prepareTerraformVariables(env: TerraformEnv): Promise<void> {
-    const variables: Record<string, string> = Object.keys(env).reduce(
-      (transformed: Record<string, string>, key: string): Record<string, string> => ({
+    const variables: Record<string, any> = Object.keys(env).reduce(
+      (transformed: Record<string, any>, key: string): Record<string, any> => ({
         ...transformed,
-        [key.toLowerCase()]: (env as Record<string, string>)[key] as string,
+        [key.toLowerCase()]: (env as Record<string, any>)[key] as string,
       }),
       {},
     );
+
+    // the helm workspace additionally needs a `helm_values` object
+    if (this.workspace === TerraformWorkspace.PARAGON) {
+      const helmValues: Record<string, any> = await getVariablesFromEnvFile(
+        `${ROOT_DIR}/.secure/.env-helm`,
+      );
+      variables['helm_values'] = helmValues;
+    }
+
     const outputFile: string = Object.keys(variables)
       .map((key: string): string => {
-        return `${key}="${variables[key]}"`;
+        const value: string =
+          typeof variables[key] === 'string'
+            ? `"${variables[key]}"`
+            : JSON.stringify(variables[key], null, 2);
+        return `${key}=${value}`;
       })
       .join('\n');
     await fs.writeFile(

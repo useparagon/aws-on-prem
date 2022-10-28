@@ -1,27 +1,33 @@
 variable "aws_region" {
   description = "The AWS region resources are created in."
+  type        = string
 }
 
 variable "aws_access_key_id" {
   description = "AWS Access Key for AWS account to provision resources on."
+  type        = string
 }
 
 variable "aws_secret_access_key" {
   description = "AWS Secret Access Key for AWS account to provision resources on."
+  type        = string
 }
 
 variable "aws_session_token" {
   description = "AWS session token."
+  type        = string
   default     = null
 }
 
 variable "az_count" {
   description = "Number of AZs to cover in a given region."
-  default     = "2"
+  type        = number
+  default     = 2
 }
 
 variable "vpc_cidr" {
   description = "CIDR for the VPC."
+  type        = string
   default     = "10.0.0.0/16"
 }
 
@@ -34,7 +40,7 @@ variable "rds_instance_class" {
 variable "elasticache_node_type" {
   description = "The ElastiCache node type used for Redis."
   type        = string
-  default     = "cache.t4g.medium"
+  default     = "cache.t4g.small"
 }
 
 variable "postgres_version" {

@@ -1,3 +1,13 @@
+output "workspace" {
+  description = "The resource group that all resources are associated with."
+  value       = local.workspace
+}
+
+output "environment" {
+  description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
+  value       = local.environment
+}
+
 output "vpc_id" {
   description = "The id of the VPC."
   value       = module.network.vpc.id

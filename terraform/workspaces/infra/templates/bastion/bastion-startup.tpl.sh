@@ -35,6 +35,7 @@ sudo apt-get install -y kubectl
 aws configure set region ${aws_region}
 aws eks --region ${aws_region} update-kubeconfig --name ${cluster_name}
 $(eksctl get iamidentitymapping --cluster ${cluster_name} --arn arn:aws:iam::${aws_account_id}/${bastion_role} || eksctl create iamidentitymapping --cluster ${cluster_name} --arn arn:aws:iam::${aws_account_id}/${bastion_role} --group system:masters --username ${bastion_role})
+kubectl config set-context --current --namespace=paragon
 
 # install helm
 curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -

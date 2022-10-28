@@ -37,6 +37,5 @@ export type TerraformEnv = {
   AWS_REGION: string;
   TF_TOKEN: string;
   TF_ORGANIZATION: string;
-  TF_INFRA_WORKSPACE: string;
-  TF_PARAGON_WORKSPACE: string;
+  TF_WORKSPACE: string;
 };
