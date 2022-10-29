@@ -41,6 +41,7 @@ deploy-infra:
 		--env initialize=$(initialize) \
 		--env plan=$(plan) \
 		--env apply=$(apply) \
+		--env destroy=$(destroy) \
 		--env target=$(target) \
 		--env args=$(args) \
 		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
@@ -53,6 +54,7 @@ deploy-paragon:
 		--env initialize=$(initialize) \
 		--env plan=$(plan) \
 		--env apply=$(apply) \
+		--env destroy=$(destroy) \
 		--env target=$(target) \
 		--env args=$(args) \
 		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \

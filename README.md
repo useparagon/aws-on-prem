@@ -1,6 +1,6 @@
 # Paragon - AWS Self-hosted Example
 
-### Overview
+## Overview
 
 This repo is used to demonstrate running Paragon on your own infrastructure. It's separated into two Terraform workspaces:
 
@@ -61,3 +61,22 @@ alb
 - ACM certificate
 - ACM certificate validation
 - Route53 records
+
+## Deploying Paragon
+
+Using the `terraform/workspaces/infra` module is optional.
+
+## Connecting to the Bastion
+
+To debug the Kubernetes cluster, the `infra` workspace provisions a bastion that you can SSH into. After successfully provisioning the workspace:
+
+1. Run `make --silent state-infra`
+2. Copy the value of `bastion_private_key` from the Terraform state into a new file at `.secure/id_rsa`
+3. Run `chmod 600 .secure/id_rsa`
+4. Copy the bastion url from `bastion_load_balancer` from the Terraform state.
+5. Run `ssh -i .secure/id_rsa ubuntu@<BASTION_LOAD_BALANCER_URL>
+
+Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not provisioned correctly, run the following commands. Make sure to replace the placeholders.
+
+> aws eks --region <AWS_REGION> update-kubeconfig --name <CLUSTER_NAME>
+> kubectl config set-context --current --namespace=paragon

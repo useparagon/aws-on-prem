@@ -42,4 +42,6 @@ tmp/**
 docker_volumes
 
 # charts
-./charts
+# ./charts
+terraform/workspaces/paragon/charts
+!terraform/workspaces/paragon/charts/.gitkeep

@@ -48,7 +48,7 @@ resource "aws_key_pair" "bastion" {
 resource "random_string" "bastion_id" {
   length  = 4
   special = false
-  numeric  = false
+  numeric = false
   lower   = true
   upper   = true
 }

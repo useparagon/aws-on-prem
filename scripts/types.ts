@@ -13,6 +13,7 @@ export type DeployCLIOptions = {
   initialize: string;
   plan: string;
   apply: string;
+  destroy: string;
   args: string;
   target: string;
 };
@@ -24,6 +25,7 @@ export type TerraformOptions = {
   initialize: boolean;
   plan: boolean;
   apply: boolean;
+  destroy: boolean;
   args: string[];
   targets: string[];
 };

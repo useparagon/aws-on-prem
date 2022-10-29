@@ -38,7 +38,16 @@ export abstract class BaseCLI {
             'Run `terraform plan` before the deployment',
             process.env.plan || 'true',
           )
-          .requiredOption('--apply [apply]', 'Run `terraform apply`', process.env.apply || 'true')
+          .requiredOption(
+            '--apply [apply]',
+            'Run `terraform apply`',
+            process.env.destroy === 'true' ? 'false' : process.env.apply || 'true',
+          )
+          .requiredOption(
+            '--destroy [destroy]',
+            'Run `terraform destroy`',
+            process.env.destroy || 'false',
+          )
           .requiredOption(
             '--target [target]',
             'Optional target for operation',
@@ -55,12 +64,14 @@ export abstract class BaseCLI {
               initialize: _initialize = 'true',
               plan: _plan = 'true',
               apply: _apply = 'true',
+              destroy: _destroy = 'false',
               target,
               args: _args,
             } = options;
             const initialize: boolean = _initialize === 'false' ? false : true;
             const plan: boolean = _plan === 'false' ? false : true;
             const apply: boolean = _apply === 'false' ? false : true;
+            const destroy: boolean = _destroy === 'true' ? true : false;
             const args: string[] = _args.trim().length ? _args.trim().split(',') : [];
             const targets: string[] = target
               .trim()
@@ -72,6 +83,7 @@ export abstract class BaseCLI {
               initialize,
               plan,
               apply,
+              destroy,
               args,
               targets,
             });
@@ -110,7 +122,7 @@ export abstract class BaseCLI {
   async runDeploy(options: TerraformOptions): Promise<void> {
     console.log('ℹ️  Executing runDeploy...', options);
 
-    const { initialize, plan, apply } = options;
+    const { initialize, plan, apply, destroy } = options;
 
     const env: TerraformEnv = await this.getTerraformEnv();
     await this.configureTerraformToken(env);
@@ -125,13 +137,13 @@ export abstract class BaseCLI {
       console.log('ℹ️  Skipping `terraform init`.');
     }
 
-    if (plan) {
+    if (plan && !destroy) {
       await this.executeTerraformPlan(options);
     } else {
       console.log('ℹ️  Skipping `terraform plan`.');
     }
 
-    if (apply) {
+    if (apply || destroy) {
       await this.executeTerraformApply(options);
     } else {
       console.log('ℹ️  Skipping `terraform apply`.');
@@ -262,7 +274,9 @@ credentials "app.terraform.io" {
    * executes Terraform plan
    */
   async executeTerraformApply(options: TerraformOptions): Promise<void> {
-    console.log('ℹ️  Executing `terraform apply`...');
+    const { destroy } = options;
+    const operation: 'apply' | 'destroy' = destroy ? 'destroy' : 'apply';
+    console.log(`ℹ️  Executing \`terraform ${operation}\`...`);
 
     const { args, targets } = options;
     const formattedArgs: string[] = [
@@ -271,7 +285,7 @@ credentials "app.terraform.io" {
     ];
     await spawnAsync('terraform', [
       `-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`,
-      'apply',
+      operation,
       ...formattedArgs,
     ]);
     console.log('✅ Executed `terraform apply`.');
