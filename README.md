@@ -123,9 +123,9 @@ terraform/
 Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
 
 ```tsx
-.env-helm.example -> .secure/.env-helm
-.env-tf-infra     -> .secure/.env-tf-infra
-.env-tf-paragon   -> .secure/.env-tf-paragon
+> cp .env-helm.example .secure/.env-helm
+> cp .env-tf-infra.example .secure/.env-tf-infra
+> cp .env-tf-paragon.example .secure/.env-tf-paragon
 ```
 
 ### 4. Configure the `.secure/.env-infra` file.
@@ -186,7 +186,7 @@ Configure the environment variables:
 
 `TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
 
-`TF_WORKSPACE`**:** the Terraform workspace for the helm chart. ************************\*\*\*\*************************\*\*************************\*\*\*\*************************Make sure this is different than the infra workspace!************************\*\*\*\*************************\*\*************************\*\*\*\*************************
+`TF_WORKSPACE`**:** the Terraform workspace for the helm chart. \***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***Make sure this is different than the infra workspace!\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***
 
 `AWS_ACCESS_KEY_ID`: your AWS access key id
 
@@ -353,7 +353,7 @@ To debug the Kubernetes cluster, the `infra` workspace provisions a bastion that
 2. Copy the value of `bastion_private_key` from the Terraform state into a new file at `.secure/id_rsa`
 3. Run `chmod 600 .secure/id_rsa`
 4. Copy the bastion url from `bastion_load_balancer` from the Terraform state.
-5. Run `ssh -i .secure/id_rsa ubuntu@<BASTION_LOAD_BALANCER_URL>
+5. Run `ssh -i .secure/id_rsa ubuntu@<BASTION_LOAD_BALANCER_URL>`
 
 Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not configured correctly, run the following commands. Make sure to replace the placeholders.
 
