@@ -184,9 +184,9 @@ Configure the environment variables:
 
 `TF_TOKEN`: your Terraform API key
 
-`TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
+`TF_ORGANIZATION`: the name of the organization your Terraform account belongs to
 
-`TF_WORKSPACE`**:** the Terraform workspace for the helm chart. \***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***Make sure this is different than the infra workspace!\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***\*\*\*\*\***
+`TF_WORKSPACE`: the Terraform workspace for the helm chart. **Make sure this is different than the infra workspace!**
 
 `AWS_ACCESS_KEY_ID`: your AWS access key id
 
