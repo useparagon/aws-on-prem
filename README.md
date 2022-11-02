@@ -246,7 +246,7 @@ These variables should be pulled from the `infra` workspace.
 
 `MINIO_ROOT_USER`: from `minio_root_user` output
 
-`MINIO_ROOT_PASS`: from `minio_root_pass` output
+`MINIO_ROOT_PASSWORD`: from `minio_root_password` output
 
 `MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
 

@@ -56,7 +56,7 @@ output "minio_root_user" {
   sensitive   = true
 }
 
-output "minio_root_pass" {
+output "minio_root_password" {
   description = "The root password for Minio service."
   value       = module.s3.s3.access_key_secret
   sensitive   = true
