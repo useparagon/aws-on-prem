@@ -109,6 +109,3 @@ module "eks_node_group" {
     aws_iam_policy_attachment.AmazonEKS_CNI_Policy
   ]
 }
-
-# Create EKS cluster node group
-

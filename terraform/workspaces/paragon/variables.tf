@@ -68,42 +68,42 @@ variable "helm_values" {
 locals {
   microservices = {
     "cerberus" = {
-      "port"             = 1700
+      "port"             = lookup(var.helm_values, "CERBERUS_PORT", 1700)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "CERBERUS_PUBLIC_URL", "https://cerberus.${var.domain}")
     }
     "connect" = {
-      "port"             = 1707
+      "port"             = lookup(var.helm_values, "CONNECT_PORT", 1707)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "CONNECT_PUBLIC_URL", "https://connect.${var.domain}")
     }
     "dashboard" = {
-      "port"             = 1704
+      "port"             = lookup(var.helm_values, "DASHBOARD_PORT", 1704)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "DASHBOARD_PUBLIC_URL", "https://dashboard.${var.domain}")
     }
     "hercules" = {
-      "port"             = 1701
+      "port"             = lookup(var.helm_values, "HERCULES_PORT", 1701)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "HERCULES_PUBLIC_URL", "https://hercules.${var.domain}")
     }
     "hermes" = {
-      "port"             = 1702
+      "port"             = lookup(var.helm_values, "HERMES_PORT", 1702)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "HERMES_PUBLIC_URL", "https://hermes.${var.domain}")
     }
     "minio" = {
-      "port"             = 9000
+      "port"             = lookup(var.helm_values, "MINIO_PORT", 9000)
       "healthcheck_path" = "/minio/health/live"
       "public_url"       = lookup(var.helm_values, "MINIO_PUBLIC_URL", "https://minio.${var.domain}")
     }
     "passport" = {
-      "port"             = 1706
+      "port"             = lookup(var.helm_values, "PASSPORT_PORT", 1706)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "PASSPORT_PUBLIC_URL", "https://passport.${var.domain}")
     }
     "zeus" = {
-      "port"             = 1703
+      "port"             = lookup(var.helm_values, "ZEUS_PORT", 1703)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(var.helm_values, "ZEUS_PUBLIC_URL", "https://zeus.${var.domain}")
     }
@@ -123,6 +123,8 @@ locals {
   helm_values = {
     for key, value in merge({
       // default values, can be overridden by `.env-helm`
+      NODE_ENV              = "production"
+      PLATFORM_ENV          = "enterprise"
       BRANCH                = "master"
       SENDGRID_API_KEY      = "SG.xxx"
       SENDGRID_FROM_ADDRESS = "not-a-real@email.com"
