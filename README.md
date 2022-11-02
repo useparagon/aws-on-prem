@@ -322,7 +322,7 @@ deploy-infra                # deploys the infrastructure
   apply={true,false}        # (optional) used to skip the `terraform apply` command
   destroy={true,false}      # (optional) used to run `terraform destroy` command
   target                    # (optional) used to specify a target for the Terraform operation
-	args                      # (optional) additional arguments to pass to Terraform
+  args                      # (optional) additional arguments to pass to Terraform
 
 deploy-paragon # deploys the Paragon helm chart
   initialize={true,false}   # (optional) used to skip the `terraform init` command
@@ -330,7 +330,7 @@ deploy-paragon # deploys the Paragon helm chart
   apply={true,false}        # (optional) used to skip the `terraform apply` command
   destroy={true,false}      # (optional) used to run `terraform destroy` command
   target                    # (optional) used to specify a target for the Terraform operation
-	args                      # (optional) additional arguments to pass to Terraform
+  args                      # (optional) additional arguments to pass to Terraform
 ```
 
 **Examples**
