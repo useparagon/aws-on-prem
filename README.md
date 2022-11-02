@@ -308,29 +308,29 @@ To destroy the infrastructure, you’ll need to first destroy the `paragon` work
 This repo comes with a `Makefile` and CLI to execute commands. Here are the commands and their arguments:
 
 ```tsx
-build # builds the docker image
+build                       # builds the docker image
 
-tf-version # echos the terraform version
+tf-version                  # echos the terraform version
 
-state-infra # gets the state of the infra workspace
+state-infra                 # gets the state of the infra workspace
 
-state-paragon # gets the state of the helm workspace
+state-paragon               # gets the state of the helm workspace
 
-deploy-infra # deploys the infrastructure
-  initialize={true,false} # (optional) used to skip the `terraform init` command
-  plan={true,false} # (optional) used to skip the `terraform plan` command
-  apply={true,false} # (optional) used to skip the `terraform apply` command
-  destroy={true,false} # (optional) used to run `terraform destroy` command
-  target # (optional) used to specify a target for the Terraform operation
-	args # (optional) additional arguments to pass to Terraform
+deploy-infra                # deploys the infrastructure
+  initialize={true,false}   # (optional) used to skip the `terraform init` command
+  plan={true,false}         # (optional) used to skip the `terraform plan` command
+  apply={true,false}        # (optional) used to skip the `terraform apply` command
+  destroy={true,false}      # (optional) used to run `terraform destroy` command
+  target                    # (optional) used to specify a target for the Terraform operation
+	args                      # (optional) additional arguments to pass to Terraform
 
-deploy-paragon # deploys the infrastructure
-  initialize={true,false} # (optional) used to skip the `terraform init` command
-  plan={true,false} # (optional) used to skip the `terraform plan` command
-  apply={true,false} # (optional) used to skip the `terraform apply` command
-  destroy={true,false} # (optional) used to run `terraform destroy` command
-  target # (optional) used to specify a target for the Terraform operation
-	args # (optional) additional arguments to pass to Terraform
+deploy-paragon # deploys the Paragon helm chart
+  initialize={true,false}   # (optional) used to skip the `terraform init` command
+  plan={true,false}         # (optional) used to skip the `terraform plan` command
+  apply={true,false}        # (optional) used to skip the `terraform apply` command
+  destroy={true,false}      # (optional) used to run `terraform destroy` command
+  target                    # (optional) used to specify a target for the Terraform operation
+	args                      # (optional) additional arguments to pass to Terraform
 ```
 
 **Examples**
