@@ -81,7 +81,7 @@ A [Route53 zone](https://aws.amazon.com/route53/) will be created to manage the 
 
 ## Usage
 
-If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Postgres, etc), jump to the **Providing your own infrastructure** section.
+If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Postgres, etc), skip steps 4 and 5. Jump to the **Providing your own infrastructure** section to reference the resources you'll need.
 
 ### 1. Clone the repository and build the Docker image.
 
