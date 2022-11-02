@@ -1,82 +1,363 @@
-# Paragon - AWS Self-hosted Example
+<p align="center">
+  <a href="https://www.useparagon.com/" target="blank"><img src="./assets/paragon-logo-dark.png" width="320" alt="Paragon Logo" /></a>
+</p>
+
+<p align="center">
+  <b>
+    The embedded integration platform for developers.
+  </b>
+</p>
 
 ## Overview
 
-This repo is used to demonstrate running Paragon on your own infrastructure. It's separated into two Terraform workspaces:
+This repository is a set of tools to help you run Paragon on your own AWS infrastructure. Paragon comes bundled with a set of docker images, meaning you can run it on AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity. It’s most resilient when running in Kubernetes.
 
-**terraform/workspaces/infra**
+This repo provides tools to deploy it to your own AWS cloud.
 
-This workspace provisions the required infrastructure needed to run Paragon on AWS. It consists of the following modules and resources:
+## Disclaimers
 
-network
+### Modification strongly discouraged.
 
-- VPC
-- public and private subnets
-- elastic IP addresses
-- internet gateway
-- nat gateway
-- routing tables
+We’re constantly deploying new versions of Paragon’s code and infrastructure which often include additional microservices, updates to infrastructure, improved security and more. To ensure new releases of Paragon are compatible with your infrastructure, modifying this repo is strongly discouraged to ensure compatability with future Helm charts and versions of the repo.
 
-redis
+Instead of making changes, either:
 
-- ElastiCache cluster
-- ElastiCache parameter group
+- send a request to our engineering team to modify the repo (preferred)
+- open a pull request with your changes
 
-postgres
+### ⭐️ We offer managed on premise solutions. ⭐️
 
-- RDS instance
-- RDS parameter group
+If you want to deploy Paragon to your own cloud but don’t want to manage the infrastructure, we’ll do it for you. Nearly 100% of our on premise customers use this solution. Benefits include:
 
-s3
+- additional helm charts with dozens of custom built Grafana dashboards to monitor alerts
+- continuous monitoring of infrastructure
+- cost optimizations on resources
 
-- public s3 bucket
-- private s3 bucket
-- IAM user
-- IAM user policy
+We offer managed on premise solutions for AWS, Azure, and GCP. Please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you started.
 
-cluster
+## Getting Started
 
-- EKS cluster
-- node groups
+### Access
 
-bastion
+For this repo to work, you’ll need a few additional things:
 
-- private key
-- key pair
-- EC2 autoscaling group
-- load balancer
+- the Paragon helm chart
+- a Paragon license
+- a [Docker account](https://www.docker.com/) that has been given read access to the Docker repositories
 
-**terraform/workspaces/paragon**
+If you don't already have a license, please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you connected.
 
-This workspace deploys the Paragon helm chart to the kubernetes cluster along with an application load balancer.
+### Additional Resources
 
-helm
+To use this repository and run Paragon, you’ll additionally need:
 
-- kubernetes secret (docker login to pull images)
-- helm release (paragon helm chart)
-- helm release (alb ingress controller)
+- an [AWS account](https://aws.amazon.com/) to provision the resources and deploy the application
+- a [Terraform account](https://www.terraform.io/) for managing the infrastructure state
+- a [SendGrid account](https://sendgrid.com/) to send emails
+- a domain name that the Paragon microservices can be reached at
 
-alb
+AWS Account
 
-- ACM certificate
-- ACM certificate validation
-- Route53 records
+From your AWS account, you’ll need:
 
-## Deploying Paragon
+- access key id
+- access secret key
+- aws region
 
-Using the `terraform/workspaces/infra` module is optional.
+Terraform Account
+
+- organization
+- API token
+- 2 workspaces: one for the infrastructure and a second for the helm chart
+
+SendGrid Account
+
+- API key
+- email: one that has been approved from the SendGrid dashboard to send emails
+
+Domain Name
+
+A [Route53 zone](https://aws.amazon.com/route53/) will be created to manage the nameservers for this domain. Several CNAMEs will be created under this.
+
+## Usage
+
+If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Postgres, etc), jump to the **Providing your own infrastructure** section.
+
+### 1. Clone the repository and build the Docker image.
+
+```tsx
+> git clone git@github.com:useparagon/aws-on-prem-example.git paragon-on-prem
+> cd paragon-on-prem
+> make -s build
+> make -s tf-version
+```
+
+Confirm that when running `make -s tf-version`, you see the following output or similar:
+
+```tsx
+Terraform v1.2.4
+on linux_amd64
+
+Your version of Terraform is out of date! The latest version
+is 1.3.3. You can update by downloading from https://www.terraform.io/downloads.html
+```
+
+### 2. Add the helm chart.
+
+Copy the Helm chart provided into `terraform/workspaces/paragon/charts`. It should look like this:
+
+```tsx
+...
+terraform/
+  workspaces/
+    paragon/
+      charts/
+        paragon-onprem
+          Chart.yaml
+          values.yaml
+          ...
+```
+
+### 3. Copy environment variable files.
+
+Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
+
+```tsx
+.env-helm.example -> .secure/.env-helm
+.env-tf-infra     -> .secure/.env-tf-infra
+.env-tf-paragon   -> .secure/.env-tf-paragon
+```
+
+### 4. Configure the `.secure/.env-infra` file.
+
+**Required**
+
+`TF_TOKEN`: your Terraform API key
+
+`TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
+
+`TF_WORKSPACE`**:** the Terraform workspace for the infrastructure
+
+`AWS_ACCESS_KEY_ID`: your AWS access key id
+
+`AWS_SECRET_ACCESS_KEY`: your AWS secret access key
+
+`AWS_REGION`: the AWS region to deploy resources to
+
+**Optional**
+
+`AWS_SESSION_TOKEN`: the AWS session token for authenticating Terraform
+
+`ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
+
+`RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)
+
+`POSTGRES_VERSION`: the version of Postgres to run
+
+`SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
+
+`MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
+
+### 5. Deploy the infrastructure.
+
+Run the following command to provision the infrastructure:
+
+```tsx
+> make -s deploy-infra
+```
+
+You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure.
+
+Confirm that all the resources are created.
+
+### 6. Configure the `.secure/.env-tf-paragon` file.
+
+Get the state from the infra workspace by running the following command:
+
+```tsx
+> make -s state-infra
+```
+
+Configure the environment variables:
+
+**Required**
+
+`TF_TOKEN`: your Terraform API key
+
+`TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
+
+`TF_WORKSPACE`**:** the Terraform workspace for the helm chart. ************************\*\*\*\*************************\*\*************************\*\*\*\*************************Make sure this is different than the infra workspace!************************\*\*\*\*************************\*\*************************\*\*\*\*************************
+
+`AWS_ACCESS_KEY_ID`: your AWS access key id
+
+`AWS_SECRET_ACCESS_KEY`: your AWS secret access key
+
+`AWS_REGION`: the AWS region to deploy resources to
+
+`DOCKER_USERNAME`: your Docker username
+
+`DOCKER_PASSWORD`: your Docker password
+
+`DOCKER_EMAIL`: your Docker email
+
+`DOMAIN`: your domain name
+
+`ORGANIZATION`: the name of your organization (no spaces, all lowercase)
+
+**Required (from infra workspace):**
+
+These variables should be pulled from the `infra` workspace.
+
+`AWS_WORKSPACE`: retrieve from `workspace` output. Used to configure [resource groups](https://docs.aws.amazon.com/ARG/latest/userguide/resource-groups.html)
+
+`CLUSTER_NAME`: retrieve from `cluster_name` output. Name of your EKS cluster.
+
+**Optional**
+
+`ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
+
+### 7. Configure the `.secure/.env-helm` file.
+
+**Required**
+
+`LICENSE`: your Paragon license
+
+`VERSION`: the version of Paragon you want to run
+
+`SENDGRID_API_KEY`: your SendGrid API key
+
+`SENDGRID_FROM_ADDRESS`: the email to send SendGrid emails from
+
+`CERBERUS_PUBLIC_URL`: url for cerberus microservice, e.g. `https://cerberus.domain.com`
+
+`CONNECT_PUBLIC_URL`: url for connect microservice, e.g. `https://connect.domain.com`
+
+`DASHBOARD_PUBLIC_URL`: url for dashboard microservice, e.g. `https://dashboard.domain.com`
+
+`HERCULES_PUBLIC_URL`: url for hercules microservice, e.g. `https://hercules.domain.com`
+
+`HERMES_PUBLIC_URL`: url for hermes microservice, e.g. `https://hermes.domain.com`
+
+`MINIO_PUBLIC_URL`: url for minio microservice, e.g. `https://minio.domain.com`
+
+`PASSPORT_PUBLIC_URL`: url for passport microservice, e.g. `https://passport.domain.com`
+
+`ZEUS_PUBLIC_URL`: url for zeus microservice, e.g. `https://zeus.domain.com`
+
+**Required (from infra workspace)**
+
+`POSTGRES_HOST`: from `postgres_host` output
+
+`POSTGRES_PORT`: from `postgres_port` output
+
+`POSTGRES_USER`: from `postgres_user` output
+
+`POSTGRES_PASSWORD`: from `postgres_password` output
+
+`POSTGRES_DATABASE`: from `postgres_database` output
+
+`REDIS_HOST`: from `redis_host` output
+
+`REDIS_PORT`: from `redis_port` output
+
+`MINIO_ROOT_USER`: from `minio_root_user` output
+
+`MINIO_ROOT_PASS`: from `minio_root_pass` output
+
+`MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
+
+`MINIO_MICROSERVICE_PASS`: from `minio_microservice_pass` output
+
+`MINIO_PUBLIC_BUCKET`: from `minio_public_bucket` output
+
+`MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
+
+### 8. Deploy the Helm chart.
+
+Deploy the Paragon helm chart to your Kubernetes cluster. Run the following command:
+
+```tsx
+> make -s deploy-paragon
+```
+
+Confirm that Terraform executed successfully.
+
+### 9. Update your nameservers.
+
+You’ll need to update the nameservers for your domain to be able to access the services. Run the following command:
+
+```tsx
+> make -s state-paragon
+```
+
+Go to the website where you registered your domain (e.g. Namecheap, Cloudflare), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
+
+## Providing your own infrastructure
+
+This repository is split into two Terraform workspaces so you can optionally bring your own infrastructure that you can deploy the Paragon helm chart to. If so, you’ll need:
+
+- VPC with public and private subnets ([docs](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html))
+- Kubernetes cluster ([EKS](https://aws.amazon.com/eks/))
+- Redis instance ([ElastiCache](https://aws.amazon.com/elasticache/))
+- Postgres instance ([RDS](https://aws.amazon.com/rds/))
+- 2 S3 buckets:
+  - 1 with public access
+  - 1 with private access
+
+Configuring this is currently outside of the scope of this repository. Please consult the `terraform/workspaces/infra` directory to view the required configuration and use the outputs to configure the variables in `.secure/.env-helm`.
+
+## Destroying the infrastructure.
+
+To destroy the infrastructure, you’ll need to first destroy the `paragon` workspace, then the `infra` workspace.
+
+```tsx
+> make -s deploy-paragon initialize=false plan=false destroy=true
+> make -s deploy-infra initialize=false plan=false destroy=true
+```
+
+## Makefile
+
+This repo comes with a `Makefile` and CLI to execute commands. Here are the commands and their arguments:
+
+```tsx
+build # builds the docker image
+
+tf-version # echos the terraform version
+
+state-infra # gets the state of the infra workspace
+
+state-paragon # gets the state of the helm workspace
+
+deploy-infra # deploys the infrastructure
+  initialize={true,false} # optional, used to skip the `terraform init` command
+  plan={true,false} # optional, used to skip the `terraform plan` command
+  apply={true,false} # optional, used to skip the `terraform apply` command
+  destroy={true,false} # optional, used to run `terraform destroy` command
+  target # used to specify a target for the Terraform operation
+	args # additional arguments to pass to Terraform
+
+deploy-paragon # deploys the infrastructure
+  initialize={true,false} # optional, used to skip the `terraform init` command
+  plan={true,false} # optional, used to skip the `terraform plan` command
+  apply={true,false} # optional, used to skip the `terraform apply` command
+  destroy={true,false} # optional, used to run `terraform destroy` command
+  target # used to specify a target for the Terraform operation
+	args # additional arguments to pass to Terraform
+```
 
 ## Connecting to the Bastion
 
-To debug the Kubernetes cluster, the `infra` workspace provisions a bastion that you can SSH into. After successfully provisioning the workspace:
+To debug the Kubernetes cluster, the `infra` workspace provisions a bastion that you can SSH into. After successfully provisioning the infra workspace:
 
-1. Run `make --silent state-infra`
+1. Run `make -s state-infra`
 2. Copy the value of `bastion_private_key` from the Terraform state into a new file at `.secure/id_rsa`
 3. Run `chmod 600 .secure/id_rsa`
 4. Copy the bastion url from `bastion_load_balancer` from the Terraform state.
 5. Run `ssh -i .secure/id_rsa ubuntu@<BASTION_LOAD_BALANCER_URL>
 
-Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not provisioned correctly, run the following commands. Make sure to replace the placeholders.
+Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not configured correctly, run the following commands. Make sure to replace the placeholders.
 
+```tsx
 > aws eks --region <AWS_REGION> update-kubeconfig --name <CLUSTER_NAME>
 > kubectl config set-context --current --namespace=paragon
+```
