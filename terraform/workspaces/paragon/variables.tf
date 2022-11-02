@@ -70,42 +70,42 @@ locals {
     "cerberus" = {
       "port"             = 1700
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["CERBERUS_PUBLIC_URL"] != null ? var.helm_values["CERBERUS_PUBLIC_URL"] : "https://cerberus.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "CERBERUS_PUBLIC_URL", "https://cerberus.${var.domain}")
     }
     "connect" = {
       "port"             = 1707
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["CONNECT_PUBLIC_URL"] != null ? var.helm_values["CONNECT_PUBLIC_URL"] : "https://connect.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "CONNECT_PUBLIC_URL", "https://connect.${var.domain}")
     }
     "dashboard" = {
       "port"             = 1704
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["DASHBOARD_PUBLIC_URL"] != null ? var.helm_values["DASHBOARD_PUBLIC_URL"] : "https://dashboard.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "DASHBOARD_PUBLIC_URL", "https://dashboard.${var.domain}")
     }
     "hercules" = {
       "port"             = 1701
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["HERCULES_PUBLIC_URL"] != null ? var.helm_values["HERCULES_PUBLIC_URL"] : "https://hercules.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "HERCULES_PUBLIC_URL", "https://hercules.${var.domain}")
     }
     "hermes" = {
       "port"             = 1702
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["HERMES_PUBLIC_URL"] != null ? var.helm_values["HERMES_PUBLIC_URL"] : "https://hermes.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "HERMES_PUBLIC_URL", "https://hermes.${var.domain}")
     }
     "minio" = {
       "port"             = 9000
       "healthcheck_path" = "/minio/health/live"
-      "public_url"       = var.helm_values["MINIO_PUBLIC_URL"] != null ? var.helm_values["MINIO_PUBLIC_URL"] : "https://minio.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "MINIO_PUBLIC_URL", "https://minio.${var.domain}")
     }
     "passport" = {
       "port"             = 1706
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["PASSPORT_PUBLIC_URL"] != null ? var.helm_values["PASSPORT_PUBLIC_URL"] : "https://passport.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "PASSPORT_PUBLIC_URL", "https://passport.${var.domain}")
     }
     "zeus" = {
       "port"             = 1703
       "healthcheck_path" = "/healthz"
-      "public_url"       = var.helm_values["ZEUS_PUBLIC_URL"] != null ? var.helm_values["ZEUS_PUBLIC_URL"] : "https://zeus.${var.domain}"
+      "public_url"       = lookup(var.helm_values, "ZEUS_PUBLIC_URL", "https://zeus.${var.domain}")
     }
   }
 
@@ -126,6 +126,15 @@ locals {
       BRANCH                = "master"
       SENDGRID_API_KEY      = "SG.xxx"
       SENDGRID_FROM_ADDRESS = "not-a-real@email.com"
+
+      CERBERUS_PUBLIC_URL  = local.microservices.cerberus.public_url
+      CONNECT_PUBLIC_URL   = local.microservices.connect.public_url
+      DASHBOARD_PUBLIC_URL = local.microservices.dashboard.public_url
+      HERCULES_PUBLIC_URL  = local.microservices.hercules.public_url
+      HERMES_PUBLIC_URL    = local.microservices.hermes.public_url
+      MINIO_PUBLIC_URL     = local.microservices.minio.public_url
+      PASSPORT_PUBLIC_URL  = local.microservices.passport.public_url
+      ZEUS_PUBLIC_URL      = local.microservices.zeus.public_url
       },
       // custom values provided in `.env-helm`, overrides default values
       var.helm_values,

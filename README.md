@@ -228,22 +228,6 @@ These variables should be pulled from the `infra` workspace.
 
 `SENDGRID_FROM_ADDRESS`: the email to send SendGrid emails from
 
-`CERBERUS_PUBLIC_URL`: url for cerberus microservice, e.g. `https://cerberus.domain.com`
-
-`CONNECT_PUBLIC_URL`: url for connect microservice, e.g. `https://connect.domain.com`
-
-`DASHBOARD_PUBLIC_URL`: url for dashboard microservice, e.g. `https://dashboard.domain.com`
-
-`HERCULES_PUBLIC_URL`: url for hercules microservice, e.g. `https://hercules.domain.com`
-
-`HERMES_PUBLIC_URL`: url for hermes microservice, e.g. `https://hermes.domain.com`
-
-`MINIO_PUBLIC_URL`: url for minio microservice, e.g. `https://minio.domain.com`
-
-`PASSPORT_PUBLIC_URL`: url for passport microservice, e.g. `https://passport.domain.com`
-
-`ZEUS_PUBLIC_URL`: url for zeus microservice, e.g. `https://zeus.domain.com`
-
 **Required (from infra workspace)**
 
 `POSTGRES_HOST`: from `postgres_host` output
@@ -291,6 +275,10 @@ You’ll need to update the nameservers for your domain to be able to access the
 ```
 
 Go to the website where you registered your domain (e.g. Namecheap, Cloudflare), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
+
+### 10. Open the application.
+
+Visit `https://dashboard.<YOUR_DOMAIN>` on your browser to view the dashboard. Register an account and get started!
 
 ## Providing your own infrastructure
 
@@ -360,7 +348,7 @@ make -s deploy-infra
 make -s deploy-infra initialize=false
 make -s deploy-infra destroy=true target=module.cluster args=-auto-approve
 
-make -s deploy-paragon apply=false
+make -s deploy-paragon
 make -s deploy-paragon initialize=false plan=true apply=false target=module.alb
 ```
 
