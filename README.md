@@ -12,7 +12,7 @@
 
 This repository is a set of tools to help you run Paragon on your own AWS infrastructure. Paragon comes bundled with a set of docker images, meaning you can run it on AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity. It’s most resilient when running in Kubernetes.
 
-This repo provides tools to deploy it to your own AWS cloud.
+This repo provides tools to deploy it to your own AWS cloud using AWS EKS (Elastic Kubernetes Service).
 
 ## Disclaimers
 
@@ -56,7 +56,7 @@ To use this repository and run Paragon, you’ll additionally need:
 - a [SendGrid account](https://sendgrid.com/) to send emails
 - a domain name that the Paragon microservices can be reached at
 
-AWS Account
+**AWS Account**
 
 From your AWS account, you’ll need:
 
@@ -64,18 +64,18 @@ From your AWS account, you’ll need:
 - access secret key
 - aws region
 
-Terraform Account
+**Terraform Account**
 
 - organization
 - API token
 - 2 workspaces: one for the infrastructure and a second for the helm chart
 
-SendGrid Account
+**SendGrid Account**
 
 - API key
 - email: one that has been approved from the SendGrid dashboard to send emails
 
-Domain Name
+**Domain Name**
 
 A [Route53 zone](https://aws.amazon.com/route53/) will be created to manage the nameservers for this domain. Several CNAMEs will be created under this.
 
@@ -86,7 +86,7 @@ If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Po
 ### 1. Clone the repository and build the Docker image.
 
 ```tsx
-> git clone git@github.com:useparagon/aws-on-prem-example.git paragon-on-prem
+> git clone git@github.com:useparagon/aws-on-prem.git paragon-on-prem
 > cd paragon-on-prem
 > make -s build
 > make -s tf-version
