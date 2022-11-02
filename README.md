@@ -329,20 +329,39 @@ state-infra # gets the state of the infra workspace
 state-paragon # gets the state of the helm workspace
 
 deploy-infra # deploys the infrastructure
-  initialize={true,false} # optional, used to skip the `terraform init` command
-  plan={true,false} # optional, used to skip the `terraform plan` command
-  apply={true,false} # optional, used to skip the `terraform apply` command
-  destroy={true,false} # optional, used to run `terraform destroy` command
-  target # used to specify a target for the Terraform operation
-	args # additional arguments to pass to Terraform
+  initialize={true,false} # (optional) used to skip the `terraform init` command
+  plan={true,false} # (optional) used to skip the `terraform plan` command
+  apply={true,false} # (optional) used to skip the `terraform apply` command
+  destroy={true,false} # (optional) used to run `terraform destroy` command
+  target # (optional) used to specify a target for the Terraform operation
+	args # (optional) additional arguments to pass to Terraform
 
 deploy-paragon # deploys the infrastructure
-  initialize={true,false} # optional, used to skip the `terraform init` command
-  plan={true,false} # optional, used to skip the `terraform plan` command
-  apply={true,false} # optional, used to skip the `terraform apply` command
-  destroy={true,false} # optional, used to run `terraform destroy` command
-  target # used to specify a target for the Terraform operation
-	args # additional arguments to pass to Terraform
+  initialize={true,false} # (optional) used to skip the `terraform init` command
+  plan={true,false} # (optional) used to skip the `terraform plan` command
+  apply={true,false} # (optional) used to skip the `terraform apply` command
+  destroy={true,false} # (optional) used to run `terraform destroy` command
+  target # (optional) used to specify a target for the Terraform operation
+	args # (optional) additional arguments to pass to Terraform
+```
+
+**Examples**
+
+```tsx
+make -s build
+
+make -s tf-version
+
+make -s state-infra
+
+make -s state-paragon
+
+make -s deploy-infra
+make -s deploy-infra initialize=false
+make -s deploy-infra destroy=true target=module.cluster args=-auto-approve
+
+make -s deploy-paragon apply=false
+make -s deploy-paragon initialize=false plan=true apply=false target=module.alb
 ```
 
 ## Connecting to the Bastion
