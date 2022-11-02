@@ -1,8 +1,8 @@
 {
-  "name": "@useparagon/aws-self-hosted-example",
+  "name": "@useparagon/aws-on-prem-example",
   "version": "0.0.0",
   "description": "Example for running Paragon on your AWS account",
-  "repository": "git@github.com:useparagon/aws-self-hosted-example.git",
+  "repository": "git@github.com:useparagon/aws-on-prem-example.git",
   "author": "Paragon Engineering",
   "scripts": {
     "build": "yarn -s build:scripts && yarn -s build:docker",
