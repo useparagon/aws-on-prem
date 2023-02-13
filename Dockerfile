@@ -21,8 +21,6 @@ RUN apk add --update nodejs=~14 nodejs-npm yarn=~1.22 && \
 
 WORKDIR /usr/src/app
 
-ADD . .
-
-COPY  ../ .
+COPY  . .
 
 RUN yarn install

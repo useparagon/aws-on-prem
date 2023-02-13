@@ -1,6 +1,6 @@
 {
   "name": "@useparagon/aws-on-prem",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Deploy Paragon to your own AWS cloud.",
   "repository": "git@github.com:useparagon/aws-on-prem.git",
   "author": "Paragon Engineering",
