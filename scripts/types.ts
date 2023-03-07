@@ -41,3 +41,12 @@ export type TerraformEnv = {
   TF_ORGANIZATION: string;
   TF_WORKSPACE: string;
 };
+
+/**
+ * type used by the helmcharts to specify whether subcharts are enabled
+ */
+export type SubchartEnablementOverrides = {
+  [key: string]: {
+    enabled: boolean;
+  };
+};

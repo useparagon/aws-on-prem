@@ -80,15 +80,24 @@ resource "helm_release" "paragon_on_prem" {
   atomic           = true
   verify           = false
 
+  values = [
+    // map `var.helm_values` but remove `global.env`, as we'll map it below
+    yamlencode(merge(nonsensitive(var.helm_values), {
+      global = merge(nonsensitive(var.helm_values).global, {
+        env = {}
+      })
+    }))
+  ]
+
   # used to determine which version of paragon microservices to pull
   set {
     name  = "global.paragon_version"
-    value = var.helm_values["VERSION"]
+    value = var.helm_values.global.env["VERSION"]
   }
 
   # used to load environment variables into microservices
   dynamic "set_sensitive" {
-    for_each = nonsensitive(merge(var.helm_values))
+    for_each = nonsensitive(merge(var.helm_values.global.env))
     content {
       name  = "global.env.${set_sensitive.key}"
       value = set_sensitive.value
@@ -110,7 +119,7 @@ resource "helm_release" "paragon_on_prem" {
     for_each = var.microservices
 
     content {
-      name  = "${set.key}.acm_certificate_arn"
+      name  = "${set.key}.ingress.acm_certificate_arn"
       value = var.acm_certificate_arn
     }
   }
@@ -120,9 +129,14 @@ resource "helm_release" "paragon_on_prem" {
     for_each = var.microservices
 
     content {
-      name  = "${set.key}.load_balancer_name"
+      name  = "${set.key}.ingress.load_balancer_name"
       value = var.aws_workspace
     }
+  }
+
+  set {
+    name  = "global.env.K8_VERSION"
+    value = "1.22"
   }
 
   depends_on = [
