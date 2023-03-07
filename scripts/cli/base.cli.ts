@@ -3,10 +3,17 @@ import * as path from 'path';
 
 import chalk from 'chalk';
 import * as commander from 'commander';
+import { compareVersions } from 'compare-versions';
 import * as fs from 'fs-extra';
 
 import { ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
-import { DeployCLIOptions, TerraformEnv, TerraformOptions, TerraformWorkspace } from '../types';
+import {
+  DeployCLIOptions,
+  SubchartEnablementOverrides,
+  TerraformEnv,
+  TerraformOptions,
+  TerraformWorkspace,
+} from '../types';
 import { execAsync, getVariablesFromEnvFile, isDocker, spawnAsync } from '../utils';
 
 export abstract class BaseCLI {
@@ -221,7 +228,12 @@ credentials "app.terraform.io" {
       const helmValues: Record<string, any> = await getVariablesFromEnvFile(
         `${ROOT_DIR}/.secure/.env-helm`,
       );
-      variables['helm_values'] = helmValues;
+      variables['helm_values'] = {
+        subchart: this.getSubchartEnablementOverrides(helmValues.VERSION),
+        global: {
+          env: helmValues,
+        },
+      };
     }
 
     const outputFile: string = Object.keys(variables)
@@ -237,6 +249,30 @@ credentials "app.terraform.io" {
       `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/vars.auto.tfvars`,
       outputFile,
     );
+  }
+
+  /**
+   * configuration for whether subcharts are enabled based on semver
+   */
+  getSubchartEnablementOverrides(version: string | undefined): SubchartEnablementOverrides {
+    const LATEST_VERSION: 'latest' = 'latest';
+    const _version: string = version ?? LATEST_VERSION;
+    const isLatestVersion: boolean = _version === LATEST_VERSION;
+
+    return {
+      chronos: {
+        enabled: isLatestVersion || compareVersions(_version, '2.57.0') >= 0,
+      },
+      hades: {
+        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
+      },
+      pheme: {
+        enabled: isLatestVersion || compareVersions(_version, '2.64.1') >= 0,
+      },
+      plato: {
+        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
+      },
+    };
   }
 
   /**

@@ -35,8 +35,15 @@ variable "docker_email" {
 
 variable "helm_values" {
   description = "Object containing values values to pass to the helm chart."
-  type        = map(any)
-  sensitive   = true
+  type = object({
+    subchart = map(object({
+      enabled = bool
+    }))
+    global = object({
+      env = map(string)
+    })
+  })
+  sensitive = true
 }
 
 variable "acm_certificate_arn" {

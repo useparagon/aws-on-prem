@@ -104,6 +104,7 @@ export async function getVariablesFromEnvFile(filePath: string): Promise<Record<
   inputFile
     .split('\n')
     .filter((line: string): boolean => !!line.trim().length)
+    .filter((line: string): boolean => !line.startsWith('#'))
     .filter((line: string): boolean => {
       const parts: string[] = line.split('=');
       if (parts.length < 2) {
