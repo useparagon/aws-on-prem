@@ -45,6 +45,12 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "acm_certificate_arn" {
+  description = "Optional ACM certificate ARN of an existing certificate to use with the load balancer."
+  type        = string
+  default     = null
+}
+
 variable "docker_username" {
   description = "Docker username to pull images."
   type        = string

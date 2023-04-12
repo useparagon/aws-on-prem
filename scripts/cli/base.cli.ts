@@ -174,7 +174,7 @@ export abstract class BaseCLI {
   async configureTerraformToken(env: TerraformEnv): Promise<void> {
     console.log('ℹ️  Configuring Terraform token...');
 
-    if (!isDocker()) {
+    if (!env.DISABLE_DOCKER_VERIFICATION && !isDocker()) {
       const errorMessage: string = chalk.red(
         'Please run this within docker to prevent overwriting your Terraform token.',
       );

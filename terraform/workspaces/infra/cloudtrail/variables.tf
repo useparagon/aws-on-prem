@@ -32,6 +32,11 @@ variable "mfa_enabled" {
   type        = bool
 }
 
+variable "disable_cloudtrail" {
+  description = "Used to specify that Cloudtrail is disabled."
+  type        = bool
+}
+
 locals {
   cloudtrail_name           = "${var.workspace}-cloudtrail"
   cloudwatch_log_group_name = "${var.workspace}-cloudtrail-events"

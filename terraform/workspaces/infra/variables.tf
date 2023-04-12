@@ -31,6 +31,12 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "vpc_cidr_newbits" {
+  description = "Optional configuration for newbits used for calculating subnets."
+  type        = number
+  default     = 8
+}
+
 variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
   type        = string
@@ -65,6 +71,12 @@ variable "ssh_whitelist" {
   description = "An optional list of IP addresses to whitelist ssh access."
   type        = string
   default     = ""
+}
+
+variable "disable_cloudtrail" {
+  description = "Used to specify that Cloudtrail is disabled."
+  type        = bool
+  default     = false
 }
 
 locals {

@@ -8,6 +8,11 @@ variable "domain" {
   type        = string
 }
 
+variable "acm_certificate_arn" {
+  description = "Optional ACM certificate ARN of an existing certificate to use with the load balancer."
+  type        = string
+}
+
 variable "microservices" {
   description = "The microservices running within the system."
   type = map(object({

@@ -1,10 +1,11 @@
 module "alb" {
   source = "./alb"
 
-  aws_workspace   = var.aws_workspace
-  domain          = var.domain
-  microservices   = local.microservices
-  public_monitors = local.public_monitors
+  aws_workspace       = var.aws_workspace
+  domain              = var.domain
+  microservices       = local.microservices
+  public_monitors     = local.public_monitors
+  acm_certificate_arn = var.acm_certificate_arn
 
   release_ingress         = module.helm.release_ingress
   release_paragon_on_prem = module.helm.release_paragon_on_prem

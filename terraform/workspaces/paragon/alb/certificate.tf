@@ -1,4 +1,5 @@
 module "acm_request_certificate" {
+  count   = var.acm_certificate_arn == null ? 1 : 0
   source  = "cloudposse/acm-request-certificate/aws"
   version = "0.17.0"
 
