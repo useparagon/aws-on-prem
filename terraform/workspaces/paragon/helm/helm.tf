@@ -69,6 +69,24 @@ resource "helm_release" "ingress" {
   ]
 }
 
+# metrics server for hpa
+resource "helm_release" "metricsserver" {
+  name        = "metricsserver"
+  description = "AWS Metrics Server"
+
+  repository       = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart            = "metrics-server"
+  namespace        = "paragon"
+  create_namespace = true
+  cleanup_on_fail  = true
+  atomic           = true
+  verify           = false
+
+  depends_on = [
+    helm_release.ingress
+  ]
+}
+
 # microservices deployment
 resource "helm_release" "paragon_on_prem" {
   name             = "paragon-on-prem"
@@ -142,6 +160,23 @@ resource "helm_release" "paragon_on_prem" {
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login
+  ]
+}
+
+# paragon logging stack fluent bit , kibana , elasticsearch
+resource "helm_release" "paragon_logging" {
+  name             = "paragon-logging"
+  description      = "Paragon logging services"
+  chart            = "./charts/paragon-logging"
+  namespace        = "paragon"
+  create_namespace = true
+  cleanup_on_fail  = true
+  atomic           = true
+  verify           = false
+
+  depends_on = [
+    helm_release.ingress,
+    kubernetes_secret.docker_login,
   ]
 }
 
