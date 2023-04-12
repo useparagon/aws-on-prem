@@ -6,10 +6,11 @@ module "network" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace   = local.workspace
-  environment = local.environment
-  az_count    = var.az_count
-  vpc_cidr    = var.vpc_cidr
+  workspace        = local.workspace
+  environment      = local.environment
+  az_count         = var.az_count
+  vpc_cidr         = var.vpc_cidr
+  vpc_cidr_newbits = var.vpc_cidr_newbits
 }
 
 module "cloudtrail" {
@@ -24,6 +25,7 @@ module "cloudtrail" {
   environment                 = local.environment
   master_guardduty_account_id = var.master_guardduty_account_id
   mfa_enabled                 = var.mfa_enabled
+  disable_cloudtrail          = var.disable_cloudtrail
 }
 
 module "postgres" {

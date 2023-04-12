@@ -1,5 +1,6 @@
 # https://github.com/trussworks/terraform-aws-cloudtrail
 module "aws_cloudtrail" {
+  count   = var.disable_cloudtrail ? 0 : 1
   source  = "trussworks/cloudtrail/aws"
   version = "4.4.0"
 

@@ -158,6 +158,12 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 
 `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
 
+`DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
+
+`DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
+
+`VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
+
 ### 5. Deploy the infrastructure.
 
 Run the following command to provision the infrastructure:
@@ -215,6 +221,10 @@ These variables should be pulled from the `infra` workspace.
 **Optional**
 
 `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
+
+`DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
+
+`ACM_CERTIFICATE_ARN`: Use to provide your own existing certificate ACM certificate ARN for use with the load balancer
 
 ### 7. Configure the `.secure/.env-helm` file.
 

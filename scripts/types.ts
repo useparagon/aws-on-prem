@@ -40,6 +40,7 @@ export type TerraformEnv = {
   TF_TOKEN: string;
   TF_ORGANIZATION: string;
   TF_WORKSPACE: string;
+  DISABLE_DOCKER_VERIFICATION: string;
 };
 
 /**
