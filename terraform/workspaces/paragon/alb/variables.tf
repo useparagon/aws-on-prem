@@ -17,6 +17,14 @@ variable "microservices" {
   }))
 }
 
+variable "public_monitors" {
+  description = "The monitors running within the system exposed to the load balancer"
+  type = map(object({
+    port       = number
+    public_url = string
+  }))
+}
+
 variable "release_ingress" {
   description = "The helm release for the ingress."
 }

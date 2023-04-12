@@ -60,6 +60,18 @@ variable "docker_email" {
   type        = string
 }
 
+variable "monitors_enabled" {
+  description = "Specifies that monitors are enabled."
+  type        = bool
+  default     = false
+}
+
+variable "monitor_version" {
+  description = "The version of the monitors to install."
+  type        = string
+  default     = "1.0.0"
+}
+
 variable "helm_values" {
   description = "Object containing values values to pass to the helm chart."
   type = object({
@@ -147,6 +159,46 @@ locals {
     if !contains(local.microservices_to_remove, microservice)
   }
 
+  monitors = {
+    "beethoven-exporter" = {
+      "port"       = 8002
+      "public_url" = null
+    }
+    "bull-exporter" = {
+      "port"       = 9538
+      "public_url" = null
+    }
+    "grafana" = {
+      "port"       = 4500
+      "public_url" = lookup(var.helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
+    }
+    "pgadmin" = {
+      "port"       = 5050
+      "public_url" = null
+    }
+    "prometheus" = {
+      "port"       = 9090
+      "public_url" = null
+    }
+    "postgres-exporter" = {
+      "port"       = 9187
+      "public_url" = null
+    }
+    "redis-exporter" = {
+      "port"       = 9121
+      "public_url" = null
+    }
+    "redis-insight" = {
+      "port"       = 8500
+      "public_url" = null
+    }
+  }
+
+  public_monitors = var.monitors_enabled ? {
+    for monitor, config in local.monitors :
+    monitor => config
+    if lookup(config, "public_url", null) != null
+  } : {}
 
   helm_keys_to_remove = [
     "POSTGRES_HOST",
@@ -181,6 +233,11 @@ locals {
           PHEME_PUBLIC_URL     = try(local.microservices.pheme.public_url, null)
           PLATO_PUBLIC_URL     = try(local.microservices.plato.public_url, null)
           ZEUS_PUBLIC_URL      = try(local.microservices.zeus.public_url, null)
+
+          MONITOR_GRAFANA_SLACK_CANARY_CHANNEL          = "<PLACEHOLDER>"
+          MONITOR_GRAFANA_SLACK_CANARY_BETA_CHANNEL     = "<PLACEHOLDER>"
+          MONITOR_GRAFANA_SLACK_CANARY_WEBHOOK_URL      = "<PLACEHOLDER>"
+          MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
           },
           // custom values provided in `.env-helm`, overrides default values
           var.helm_values.global.env,
@@ -265,6 +322,33 @@ locals {
             PHEME_PRIVATE_URL     = try("http://pheme:${local.microservices.pheme.port}", null)
             PLATO_PRIVATE_URL     = try("http://plato:${local.microservices.plato.port}", null)
             ZEUS_PRIVATE_URL      = try("http://zeus:${local.microservices.zeus.port}", null)
+
+            MONITOR_BEETHOVEN_EXPORTER_HOST         = "http://beethoven-exporter"
+            MONITOR_BEETHOVEN_EXPORTER_PORT         = try(local.monitors["beethoven-exporter"].port, null)
+            MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
+            MONITOR_BULL_EXPORTER_PORT              = try(local.monitors["bull-exporter"].port, null)
+            MONITOR_GRAFANA_AWS_ACCESS_ID           = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
+            MONITOR_GRAFANA_AWS_SECRET_KEY          = var.monitors_enabled ? module.monitors[0].grafana_aws_secret_access_key : null
+            MONITOR_GRAFANA_SERVER_DOMAIN           = try(local.monitors["grafana"].public_url, null)
+            MONITOR_GRAFANA_SECURITY_ADMIN_USER     = var.monitors_enabled ? module.monitors[0].grafana_admin_email : null
+            MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
+            MONITOR_GRAFANA_HOST                    = "http://grafana"
+            MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
+            MONITOR_PGADMIN_HOST                    = "http://pgadmin"
+            MONITOR_PGADMIN_PORT                    = try(local.monitors["pgadmin"].port, null)
+            MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
+            MONITOR_PGADMIN_PASSWORD                = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
+            MONITOR_PGADMIN_SSL_MODE                = "disable"
+            MONITOR_QUEUE_REDIS_TARGET              = replace(element(split(".", var.helm_values.global.env.REDIS_HOST), 0), "redis://", "")
+            MONITOR_POSTGRES_EXPORTER_HOST          = "http://postgres-exporter"
+            MONITOR_POSTGRES_EXPORTER_PORT          = try(local.monitors["postgres-exporter"].port, null)
+            MONITOR_POSTGRES_EXPORTER_SSL_MODE      = "disable"
+            MONITOR_PROMETHEUS_HOST                 = "http://prometheus"
+            MONITOR_PROMETHEUS_PORT                 = try(local.monitors["prometheus"].port, null)
+            MONITOR_REDIS_EXPORTER_HOST             = "http://redis-exporter"
+            MONITOR_REDIS_EXPORTER_PORT             = try(local.monitors["redis-exporter"].port, null)
+            MONITOR_REDIS_INSIGHT_HOST              = "http://redis-insight"
+            MONITOR_REDIS_INSIGHT_PORT              = try(local.monitors["redis-insight"].port, null)
         }) : key => value if !contains(local.helm_keys_to_remove, key) && value != null
       })
     })

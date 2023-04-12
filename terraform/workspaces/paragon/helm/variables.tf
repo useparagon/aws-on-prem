@@ -59,3 +59,29 @@ variable "microservices" {
     public_url       = string
   }))
 }
+
+variable "monitors_enabled" {
+  description = "Specifies that monitors are enabled."
+  type        = bool
+}
+
+variable "monitor_version" {
+  description = "The version of the monitors to install."
+  type        = string
+}
+
+variable "monitors" {
+  description = "The monitors running within the system."
+  type = map(object({
+    port       = number
+    public_url = string
+  }))
+}
+
+variable "public_monitors" {
+  description = "The monitors running within the system exposed to the load balancer"
+  type = map(object({
+    port       = number
+    public_url = string
+  }))
+}
