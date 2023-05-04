@@ -90,6 +90,12 @@ variable "helm_values" {
   })
 }
 
+variable "ingress_scheme" {
+  description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
+  type        = string
+  default     = "internet-facing"
+}
+
 locals {
   _microservices = {
     "cerberus" = {
