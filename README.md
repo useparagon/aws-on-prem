@@ -90,6 +90,7 @@ If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Po
 > cd paragon-on-prem
 > make -s build
 > make -s tf-version
+> yarn install
 ```
 
 Confirm that when running `make -s tf-version`, you see the following output or similar:
@@ -172,7 +173,9 @@ Run the following command to provision the infrastructure:
 > make -s deploy-infra
 ```
 
-You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure.
+You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure. 
+
+Note that if this is a new account or workspace that you may have to approve it in the web UI also. This can be bypassed in the future by selecting "Auto apply" under the general workspace settings.
 
 Confirm that all the resources are created.
 
