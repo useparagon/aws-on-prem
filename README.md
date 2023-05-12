@@ -327,6 +327,7 @@ state-infra                 # gets the state of the infra workspace
 state-paragon               # gets the state of the helm workspace
 
 deploy-infra                # deploys the infrastructure
+  debug={true,false}        # (optional) print additional debugging information
   initialize={true,false}   # (optional) used to skip the `terraform init` command
   plan={true,false}         # (optional) used to skip the `terraform plan` command
   apply={true,false}        # (optional) used to skip the `terraform apply` command
@@ -335,6 +336,7 @@ deploy-infra                # deploys the infrastructure
   args                      # (optional) additional arguments to pass to Terraform
 
 deploy-paragon # deploys the Paragon helm chart
+  debug={true,false}        # (optional) print additional debugging information
   initialize={true,false}   # (optional) used to skip the `terraform init` command
   plan={true,false}         # (optional) used to skip the `terraform plan` command
   apply={true,false}        # (optional) used to skip the `terraform apply` command

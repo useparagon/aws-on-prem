@@ -27,7 +27,7 @@ export function execAsync(
       const childProcess: ChildProcess = exec(command, { env });
 
       childProcess.on('exit', (code: number) => {
-        if (code !== 0 || stderrStream.toString().length) {
+        if (code !== 0) {
           return reject(new Error(stderrStream.toString().trim()));
         }
 

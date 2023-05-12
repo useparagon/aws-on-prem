@@ -7,9 +7,10 @@ export enum TerraformWorkspace {
 }
 
 /**
- * configuration options for aws and azure deploy clis
+ * configuration options for deploy command
  */
 export type DeployCLIOptions = {
+  debug: string;
   initialize: string;
   plan: string;
   apply: string;
@@ -22,6 +23,7 @@ export type DeployCLIOptions = {
  * configuration options for terraform
  */
 export type TerraformOptions = {
+  debug: boolean;
   initialize: boolean;
   plan: boolean;
   apply: boolean;
