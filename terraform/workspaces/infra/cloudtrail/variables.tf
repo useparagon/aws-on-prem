@@ -37,6 +37,11 @@ variable "disable_cloudtrail" {
   type        = bool
 }
 
+variable "force_destroy" {
+  description = "Whether to enable force destroy."
+  type        = bool
+}
+
 locals {
   cloudtrail_name           = "${var.workspace}-cloudtrail"
   cloudwatch_log_group_name = "${var.workspace}-cloudtrail-events"

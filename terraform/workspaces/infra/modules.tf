@@ -26,6 +26,7 @@ module "cloudtrail" {
   master_guardduty_account_id = var.master_guardduty_account_id
   mfa_enabled                 = var.mfa_enabled
   disable_cloudtrail          = var.disable_cloudtrail
+  force_destroy               = var.disable_deletion_protection
 }
 
 module "postgres" {
@@ -36,10 +37,11 @@ module "postgres" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace          = local.workspace
-  environment        = local.environment
-  postgres_version   = var.postgres_version
-  rds_instance_class = var.rds_instance_class
+  workspace                   = local.workspace
+  environment                 = local.environment
+  postgres_version            = var.postgres_version
+  rds_instance_class          = var.rds_instance_class
+  disable_deletion_protection = var.disable_deletion_protection
 
   vpc                = module.network.vpc
   public_subnet      = module.network.public_subnet
@@ -76,6 +78,7 @@ module "s3" {
   environment = local.environment
 
   cloudtrail_s3_bucket = module.cloudtrail.s3.bucket
+  force_destroy        = var.disable_deletion_protection
 }
 
 module "cluster" {
@@ -112,4 +115,5 @@ module "bastion" {
   private_subnet      = module.network.private_subnet
   eks_cluster         = module.cluster.eks_cluster
   cluster_super_admin = module.cluster.cluster_super_admin
+  force_destroy       = var.disable_deletion_protection
 }

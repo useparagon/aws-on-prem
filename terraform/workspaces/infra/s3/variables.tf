@@ -26,3 +26,7 @@ variable "cloudtrail_s3_bucket" {
   description = "s3 bucket created by cloudtrail"
 }
 
+variable "force_destroy" {
+  description = "Whether to enable force destroy."
+  type        = bool
+}

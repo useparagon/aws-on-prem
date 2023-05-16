@@ -46,3 +46,8 @@ variable "postgres_version" {
 variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
 }
+
+variable "disable_deletion_protection" {
+  description = "Whether to disable deletion protection."
+  type        = bool
+}

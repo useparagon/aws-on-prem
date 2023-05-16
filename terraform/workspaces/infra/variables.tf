@@ -79,6 +79,12 @@ variable "disable_cloudtrail" {
   default     = false
 }
 
+variable "disable_deletion_protection" {
+  description = "Used to disable deletion protection on RDS and S3 resources."
+  type        = bool
+  default     = false
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"

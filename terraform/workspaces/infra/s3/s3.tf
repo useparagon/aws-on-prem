@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "app" {
   bucket        = var.workspace
   acl           = "private"
-  force_destroy = false
+  force_destroy = var.force_destroy
 
   logging {
     target_bucket = var.cloudtrail_s3_bucket
@@ -24,7 +24,7 @@ resource "aws_s3_bucket" "app" {
 resource "aws_s3_bucket" "cdn" {
   bucket        = "${var.workspace}-cdn"
   acl           = "public-read"
-  force_destroy = false
+  force_destroy = var.force_destroy
 
   logging {
     target_bucket = var.cloudtrail_s3_bucket

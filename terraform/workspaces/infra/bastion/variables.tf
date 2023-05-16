@@ -39,6 +39,12 @@ variable "ssh_whitelist" {
   type        = list(string)
 }
 
+variable "force_destroy" {
+  description = "Whether to enable force destroy."
+  type        = bool
+  default     = false
+}
+
 variable "eks_cluster" {
   description = "The EKS cluster that node groups and resources should be deployed to."
   type = object({
