@@ -66,6 +66,12 @@ variable "docker_email" {
   type        = string
 }
 
+variable "lb_logs_bucket" {
+  description = "Bucket to store load balancer logs."
+  type        = string
+  default     = ""
+}
+
 variable "monitors_enabled" {
   description = "Specifies that monitors are enabled."
   type        = bool

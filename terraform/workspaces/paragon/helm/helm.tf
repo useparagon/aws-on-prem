@@ -152,6 +152,16 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
+  # configures load balancer bucket for logging
+  dynamic "set" {
+    for_each = var.microservices
+
+    content {
+      name  = "${set.key}.ingress.logs_bucket"
+      value = var.lb_logs_bucket 
+    }
+  }
+
   set {
     name  = "global.env.K8_VERSION"
     value = "1.22"

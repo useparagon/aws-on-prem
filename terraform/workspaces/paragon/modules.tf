@@ -14,20 +14,20 @@ module "alb" {
 module "helm" {
   source = "./helm"
 
-  aws_region       = var.aws_region
-  aws_workspace    = var.aws_workspace
-  cluster_name     = var.cluster_name
-  docker_username  = var.docker_username
-  docker_password  = var.docker_password
-  docker_email     = var.docker_email
-  helm_values      = local.helm_values
-  microservices    = local.microservices
-  monitors         = local.monitors
-  public_monitors  = local.public_monitors
-  monitors_enabled = var.monitors_enabled
-  monitor_version  = var.monitor_version
-
   acm_certificate_arn = module.alb.acm_certificate_arn
+  aws_region          = var.aws_region
+  aws_workspace       = var.aws_workspace
+  cluster_name        = var.cluster_name
+  docker_email        = var.docker_email
+  docker_password     = var.docker_password
+  docker_username     = var.docker_username
+  helm_values         = local.helm_values
+  lb_logs_bucket      = var.lb_logs_bucket
+  microservices       = local.microservices
+  monitor_version     = var.monitor_version
+  monitors            = local.monitors
+  monitors_enabled    = var.monitors_enabled
+  public_monitors     = local.public_monitors
 }
 
 module "monitors" {

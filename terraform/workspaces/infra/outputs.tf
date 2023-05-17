@@ -50,6 +50,12 @@ output "redis_port" {
   sensitive   = true
 }
 
+output "lb_logs_bucket" {
+  description = "The bucket used to store load balancer logs."
+  value       = module.s3.s3.lb_logs_bucket
+  sensitive   = true
+}
+
 output "minio_root_user" {
   description = "The root username for Minio service."
   value       = module.s3.s3.access_key_id

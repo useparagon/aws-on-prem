@@ -33,8 +33,13 @@ variable "docker_email" {
   type        = string
 }
 
+variable "lb_logs_bucket" {
+  description = "Bucket to store load balancer logs."
+  type        = string
+}
+
 variable "helm_values" {
-  description = "Object containing values values to pass to the helm chart."
+  description = "Object containing values to pass to the helm chart."
   type = object({
     subchart = map(object({
       enabled = bool

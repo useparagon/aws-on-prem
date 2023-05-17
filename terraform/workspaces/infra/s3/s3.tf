@@ -53,6 +53,20 @@ resource "aws_s3_bucket" "cdn" {
   }
 }
 
+resource "aws_s3_bucket" "lb_logs" {
+  bucket        = "${var.workspace}-lb-logs"
+  acl           = "private"
+  force_destroy = var.force_destroy
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
 data "aws_iam_policy_document" "app_bucket_policy" {
   statement {
     sid       = "AllowSSLRequestsOnly"
@@ -92,14 +106,35 @@ data "aws_iam_policy_document" "cdn_bucket_policy" {
   # NOTE: Insecure (non-SSL) requests are allowed for this bucket otherwise requests from Minio fail
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_elb_service_account" "main" {}
+
+data "aws_iam_policy_document" "lb_logs_bucket_policy" {
+  statement {
+    sid       = "AllowPutObjects"
+    actions   = ["s3:PutObject"]
+    effect    = "Allow"
+    resources = [
+      "${aws_s3_bucket.lb_logs.arn}",
+      "${aws_s3_bucket.lb_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+    ]
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_elb_service_account.main.arn]
+    }
+  }
+}
+
 resource "aws_s3_bucket_policy" "app_bucket" {
   bucket = aws_s3_bucket.app.id
   policy = data.aws_iam_policy_document.app_bucket_policy.json
 }
 
-resource "aws_s3_bucket_policy" "cdn_bucket" {
-  bucket = aws_s3_bucket.cdn.id
-  policy = data.aws_iam_policy_document.cdn_bucket_policy.json
+resource "aws_s3_bucket_policy" "lb_logs_bucket" {
+  bucket = aws_s3_bucket.lb_logs.id
+  policy = data.aws_iam_policy_document.lb_logs_bucket_policy.json
 }
 
 resource "aws_iam_user" "app" {
