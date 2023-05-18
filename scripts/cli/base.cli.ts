@@ -5,11 +5,12 @@ import chalk from 'chalk';
 import * as commander from 'commander';
 import { compareVersions } from 'compare-versions';
 import * as fs from 'fs-extra';
+import { load as parseYaml } from 'js-yaml';
 
-import { ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
+import { Microservice, ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
 import {
   DeployCLIOptions,
-  SubchartEnablementOverrides,
+  HelmValues,
   TerraformEnv,
   TerraformOptions,
   TerraformWorkspace,
@@ -129,17 +130,16 @@ export abstract class BaseCLI {
   async runDeploy(options: TerraformOptions): Promise<void> {
     console.log('ℹ️  Executing runDeploy...', options);
 
-    const { initialize, plan, apply, destroy } = options;
+    const { initialize, plan, apply, destroy, args } = options;
 
     const env: TerraformEnv = await this.getTerraformEnv();
     await this.configureTerraformToken(env);
     await this.prepareTerraformMainFile(env);
     await this.prepareTerraformVariables(env);
 
-    // await sleep(1000 * 60 * 5);
-
     if (initialize) {
-      await this.executeTerraformInit();
+      const upgrade: boolean = args.includes('-upgrade');
+      await this.executeTerraformInit(upgrade);
     } else {
       console.log('ℹ️  Skipping `terraform init`.');
     }
@@ -225,15 +225,23 @@ credentials "app.terraform.io" {
 
     // the helm workspace additionally needs a `helm_values` object
     if (this.workspace === TerraformWorkspace.PARAGON) {
-      const helmValues: Record<string, any> = await getVariablesFromEnvFile(
-        `${ROOT_DIR}/.secure/.env-helm`,
-      );
-      variables['helm_values'] = {
-        subchart: this.getSubchartEnablementOverrides(helmValues.VERSION),
-        global: {
-          env: helmValues,
-        },
-      };
+      const helmValuesPath: string = `${ROOT_DIR}/.secure/values.yaml`;
+      const helmValuesExists: boolean = await fs
+        .stat(helmValuesPath)
+        .then(() => true)
+        .catch(() => false);
+      if (helmValuesExists) {
+        const helmValues: string = await fs.readFile(helmValuesPath, 'utf-8');
+        variables['helm_values'] = Buffer.from(helmValues).toString('base64');
+
+        // periodically new microservices are introduced or removed
+        // we need to provide which microservices are supported in the current version
+        const paragonVersion: string | undefined = (parseYaml(helmValues) as HelmValues).global?.env
+          ?.VERSION;
+        variables['supported_microservices'] = this.getSupportedMicroservices(
+          paragonVersion ? paragonVersion : 'latest',
+        );
+      }
     }
 
     const outputFile: string = Object.keys(variables)
@@ -252,36 +260,52 @@ credentials "app.terraform.io" {
   }
 
   /**
-   * configuration for whether subcharts are enabled based on semver
+   * returns the microservices supported in the current Paragon version
+   * @param paragonVersion the current Paragon version being deployed
    */
-  getSubchartEnablementOverrides(version: string | undefined): SubchartEnablementOverrides {
-    const LATEST_VERSION: 'latest' = 'latest';
-    const _version: string = version ?? LATEST_VERSION;
-    const isLatestVersion: boolean = _version === LATEST_VERSION;
+  getSupportedMicroservices(paragonVersion: string): Microservice[] {
+    // if deploying a release candidate (e.g. `v2.77.0-rc-abc3d3`) or unstable version (e.g. `v2.77.0-unstable-abc3d3`)
+    // we need to strip the end to compare the version
+    const LATEST: 'LATEST' = 'LATEST';
+    const isLatest: boolean = paragonVersion === LATEST;
+    const sanitizedParagonVersion: string = paragonVersion.split('-rc')[0].split('-unstable')[0];
+    const microservices: Microservice[] = Object.values(Microservice);
+    return microservices.filter((microservice: Microservice): boolean => {
+      // hades, pheme and plato expected to be added in v2.67.0 in non-GCP environments
+      // delete the charts if version is before that and not in GCP
+      const hasHadesAndPlatoAndPheme: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.67.0') >= 0;
 
-    return {
-      chronos: {
-        enabled: isLatestVersion || compareVersions(_version, '2.57.0') >= 0,
-      },
-      hades: {
-        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
-      },
-      pheme: {
-        enabled: isLatestVersion || compareVersions(_version, '2.64.1') >= 0,
-      },
-      plato: {
-        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
-      },
-    };
+      // filter unused microservices
+      if (
+        !hasHadesAndPlatoAndPheme &&
+        [Microservice.HADES, Microservice.PLATO].includes(microservice)
+      ) {
+        return false;
+      }
+
+      // in v2.77.0, hercules was replaced with `worker-actions`, `worker-credentials`, etc
+      const hasWorkers: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
+      if (!hasWorkers && microservice.includes('worker-')) {
+        return false;
+      } else if (hasWorkers && microservice === Microservice.HERCULES) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   /**
    * initializes the terraform workspace
    */
-  async executeTerraformInit(): Promise<void> {
+  async executeTerraformInit(upgrade: boolean): Promise<void> {
     console.log('ℹ️  Executing `terraform init`...');
     await execAsync(
-      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init`,
+      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init${
+        upgrade ? ' -upgrade' : ''
+      }`,
       process.env,
     );
     console.log('✅ Executed `terraform init`.');
@@ -295,7 +319,7 @@ credentials "app.terraform.io" {
 
     const { args, targets } = options;
     const formattedArgs: string[] = [
-      ...args,
+      ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
     await spawnAsync('terraform', [
@@ -316,7 +340,7 @@ credentials "app.terraform.io" {
 
     const { args, targets } = options;
     const formattedArgs: string[] = [
-      ...args,
+      ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
     await spawnAsync('terraform', [

@@ -75,94 +75,122 @@ variable "monitors_enabled" {
 variable "monitor_version" {
   description = "The version of the monitors to install."
   type        = string
-  default     = "1.0.0"
+  default     = null
+}
+
+variable "supported_microservices" {
+  description = "The microservices supported in the current Paragon version."
+  type        = list(string)
 }
 
 variable "helm_values" {
-  description = "Object containing values values to pass to the helm chart."
-  type = object({
-    subchart = map(object({
-      enabled = bool
-    }))
-    global = object({
-      env = map(string)
-    })
-  })
+  description = "Custom `values.yaml` file."
+  type        = string
 }
 
 locals {
+  base_helm_values = yamldecode(
+    base64decode(var.helm_values),
+  )
+
   _microservices = {
     "cerberus" = {
-      "port"             = lookup(var.helm_values.global.env, "CERBERUS_PORT", 1700)
+      "port"             = lookup(local.base_helm_values.global.env, "CERBERUS_PORT", 1700)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "CERBERUS_PUBLIC_URL", "https://cerberus.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "CERBERUS_PUBLIC_URL", "https://cerberus.${var.domain}")
     }
     "chronos" = {
-      "port"             = lookup(var.helm_values.global.env, "CHRONOS_PORT", 1708)
+      "port"             = lookup(local.base_helm_values.global.env, "CHRONOS_PORT", 1708)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "CHRONOS_PUBLIC_URL", "https://chronos.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "CHRONOS_PUBLIC_URL", "https://chronos.${var.domain}")
     }
     "connect" = {
-      "port"             = lookup(var.helm_values.global.env, "CONNECT_PORT", 1707)
+      "port"             = lookup(local.base_helm_values.global.env, "CONNECT_PORT", 1707)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "CONNECT_PUBLIC_URL", "https://connect.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "CONNECT_PUBLIC_URL", "https://connect.${var.domain}")
     }
     "dashboard" = {
-      "port"             = lookup(var.helm_values.global.env, "DASHBOARD_PORT", 1704)
+      "port"             = lookup(local.base_helm_values.global.env, "DASHBOARD_PORT", 1704)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "DASHBOARD_PUBLIC_URL", "https://dashboard.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "DASHBOARD_PUBLIC_URL", "https://dashboard.${var.domain}")
     }
     "hades" = {
-      "port"             = lookup(var.helm_values.global.env, "HADES_PORT", 1710)
+      "port"             = lookup(local.base_helm_values.global.env, "HADES_PORT", 1710)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "HADES_PUBLIC_URL", "https://hades.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "HADES_PUBLIC_URL", "https://hades.${var.domain}")
     }
     "hercules" = {
-      "port"             = lookup(var.helm_values.global.env, "HERCULES_PORT", 1701)
+      "port"             = lookup(local.base_helm_values.global.env, "HERCULES_PORT", 1701)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "HERCULES_PUBLIC_URL", "https://hercules.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "HERCULES_PUBLIC_URL", "https://hercules.${var.domain}")
     }
     "hermes" = {
-      "port"             = lookup(var.helm_values.global.env, "HERMES_PORT", 1702)
+      "port"             = lookup(local.base_helm_values.global.env, "HERMES_PORT", 1702)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "HERMES_PUBLIC_URL", "https://hermes.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "HERMES_PUBLIC_URL", "https://hermes.${var.domain}")
     }
     "minio" = {
-      "port"             = lookup(var.helm_values.global.env, "MINIO_PORT", 9000)
+      "port"             = lookup(local.base_helm_values.global.env, "MINIO_PORT", 9000)
       "healthcheck_path" = "/minio/health/live"
-      "public_url"       = lookup(var.helm_values.global.env, "MINIO_PUBLIC_URL", "https://minio.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "MINIO_PUBLIC_URL", "https://minio.${var.domain}")
     }
     "passport" = {
-      "port"             = lookup(var.helm_values.global.env, "PASSPORT_PORT", 1706)
+      "port"             = lookup(local.base_helm_values.global.env, "PASSPORT_PORT", 1706)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "PASSPORT_PUBLIC_URL", "https://passport.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "PASSPORT_PUBLIC_URL", "https://passport.${var.domain}")
     }
     "pheme" = {
-      "port"             = lookup(var.helm_values.global.env, "PHEME_PORT", 1709)
+      "port"             = lookup(local.base_helm_values.global.env, "PHEME_PORT", 1709)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "PHEME_PUBLIC_URL", "https://pheme.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "PHEME_PUBLIC_URL", "https://pheme.${var.domain}")
     }
     "plato" = {
-      "port"             = lookup(var.helm_values.global.env, "PLATO_PORT", 1711)
+      "port"             = lookup(local.base_helm_values.global.env, "PLATO_PORT", 1711)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "PLATO_PUBLIC_URL", "https://plato.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "PLATO_PUBLIC_URL", "https://plato.${var.domain}")
     }
     "zeus" = {
-      "port"             = lookup(var.helm_values.global.env, "ZEUS_PORT", 1703)
+      "port"             = lookup(local.base_helm_values.global.env, "ZEUS_PORT", 1703)
       "healthcheck_path" = "/healthz"
-      "public_url"       = lookup(var.helm_values.global.env, "ZEUS_PUBLIC_URL", "https://zeus.${var.domain}")
+      "public_url"       = lookup(local.base_helm_values.global.env, "ZEUS_PUBLIC_URL", "https://zeus.${var.domain}")
+    }
+
+    "worker-actions" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_ACTIONS_PORT", 1712)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_ACTIONS_PUBLIC_URL", "https://worker-actions.${var.domain}")
+    }
+    "worker-credentials" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_CREDENTIALS_PORT", 1713)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_CREDENTIALS_PUBLIC_URL", "https://worker-credentials.${var.domain}")
+    }
+    "worker-crons" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_CRONS_PORT", 1714)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_CRONS_PUBLIC_URL", "https://worker-crons.${var.domain}")
+    }
+    "worker-proxy" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_PROXY_PORT", 1715)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_PROXY_PUBLIC_URL", "https://worker-proxy.${var.domain}")
+    }
+    "worker-triggers" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_TRIGGERS_PORT", 1716)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_TRIGGERS_PUBLIC_URL", "https://worker-triggers.${var.domain}")
+    }
+    "worker-workflows" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_WORKFLOWS_PORT", 1717)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_WORKFLOWS_PUBLIC_URL", "https://worker-workflows.${var.domain}")
     }
   }
-
-  microservices_to_remove = [
-    for microservice, config in var.helm_values.subchart : microservice
-    if config.enabled == false
-  ]
 
   microservices = {
     for microservice, config in local._microservices :
     microservice => config
-    if !contains(local.microservices_to_remove, microservice)
+    if contains(var.supported_microservices, microservice)
   }
 
   monitors = {
@@ -176,7 +204,7 @@ locals {
     }
     "grafana" = {
       "port"       = 4500
-      "public_url" = lookup(var.helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
+      "public_url" = lookup(local.base_helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
     }
     "pgadmin" = {
       "port"       = 5050
@@ -216,9 +244,9 @@ locals {
     "REDIS_PORT",
   ]
 
-  helm_values = merge(var.helm_values, {
-    global = merge(var.helm_values.global, {
-      env = merge(var.helm_values.global.env, {
+  helm_values = merge(local.base_helm_values, {
+    global = merge(local.base_helm_values.global, {
+      env = merge(local.base_helm_values.global.env, {
         for key, value in merge({
           // default values, can be overridden by `.env-helm`
           NODE_ENV              = "production"
@@ -246,7 +274,7 @@ locals {
           MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
           },
           // custom values provided in `.env-helm`, overrides default values
-          var.helm_values.global.env,
+          local.base_helm_values.global.env,
           {
             // transformations, take priority over `.env-helm`
             AWS_REGION   = var.aws_region
@@ -258,40 +286,40 @@ locals {
             HERCULES_CLUSTER_MAX_INSTANCES = 1
             HERCULES_CLUSTER_DISABLED      = true
 
-            ADMIN_BASIC_AUTH_USERNAME = var.helm_values.global.env["LICENSE"]
-            ADMIN_BASIC_AUTH_PASSWORD = var.helm_values.global.env["LICENSE"]
+            ADMIN_BASIC_AUTH_USERNAME = local.base_helm_values.global.env["LICENSE"]
+            ADMIN_BASIC_AUTH_PASSWORD = local.base_helm_values.global.env["LICENSE"]
 
-            BEETHOVEN_POSTGRES_HOST     = var.helm_values.global.env["POSTGRES_HOST"]
-            BEETHOVEN_POSTGRES_PORT     = var.helm_values.global.env["POSTGRES_PORT"]
-            BEETHOVEN_POSTGRES_USERNAME = var.helm_values.global.env["POSTGRES_USER"]
-            BEETHOVEN_POSTGRES_PASSWORD = var.helm_values.global.env["POSTGRES_PASSWORD"]
-            BEETHOVEN_POSTGRES_DATABASE = var.helm_values.global.env["POSTGRES_DATABASE"]
-            CERBERUS_POSTGRES_HOST      = var.helm_values.global.env["POSTGRES_HOST"]
-            CERBERUS_POSTGRES_PORT      = var.helm_values.global.env["POSTGRES_PORT"]
-            CERBERUS_POSTGRES_USERNAME  = var.helm_values.global.env["POSTGRES_USER"]
-            CERBERUS_POSTGRES_PASSWORD  = var.helm_values.global.env["POSTGRES_PASSWORD"]
-            CERBERUS_POSTGRES_DATABASE  = var.helm_values.global.env["POSTGRES_DATABASE"]
-            HERMES_POSTGRES_HOST        = var.helm_values.global.env["POSTGRES_HOST"]
-            HERMES_POSTGRES_PORT        = var.helm_values.global.env["POSTGRES_PORT"]
-            HERMES_POSTGRES_USERNAME    = var.helm_values.global.env["POSTGRES_USER"]
-            HERMES_POSTGRES_PASSWORD    = var.helm_values.global.env["POSTGRES_PASSWORD"]
-            HERMES_POSTGRES_DATABASE    = var.helm_values.global.env["POSTGRES_DATABASE"]
-            PHEME_POSTGRES_HOST         = var.helm_values.global.env["POSTGRES_HOST"]
-            PHEME_POSTGRES_PORT         = var.helm_values.global.env["POSTGRES_PORT"]
-            PHEME_POSTGRES_USERNAME     = var.helm_values.global.env["POSTGRES_USER"]
-            PHEME_POSTGRES_PASSWORD     = var.helm_values.global.env["POSTGRES_PASSWORD"]
-            PHEME_POSTGRES_DATABASE     = var.helm_values.global.env["POSTGRES_DATABASE"]
-            ZEUS_POSTGRES_HOST          = var.helm_values.global.env["POSTGRES_HOST"]
-            ZEUS_POSTGRES_PORT          = var.helm_values.global.env["POSTGRES_PORT"]
-            ZEUS_POSTGRES_USERNAME      = var.helm_values.global.env["POSTGRES_USER"]
-            ZEUS_POSTGRES_PASSWORD      = var.helm_values.global.env["POSTGRES_PASSWORD"]
-            ZEUS_POSTGRES_DATABASE      = var.helm_values.global.env["POSTGRES_DATABASE"]
+            BEETHOVEN_POSTGRES_HOST     = local.base_helm_values.global.env["POSTGRES_HOST"]
+            BEETHOVEN_POSTGRES_PORT     = local.base_helm_values.global.env["POSTGRES_PORT"]
+            BEETHOVEN_POSTGRES_USERNAME = local.base_helm_values.global.env["POSTGRES_USER"]
+            BEETHOVEN_POSTGRES_PASSWORD = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
+            BEETHOVEN_POSTGRES_DATABASE = local.base_helm_values.global.env["POSTGRES_DATABASE"]
+            CERBERUS_POSTGRES_HOST      = local.base_helm_values.global.env["POSTGRES_HOST"]
+            CERBERUS_POSTGRES_PORT      = local.base_helm_values.global.env["POSTGRES_PORT"]
+            CERBERUS_POSTGRES_USERNAME  = local.base_helm_values.global.env["POSTGRES_USER"]
+            CERBERUS_POSTGRES_PASSWORD  = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
+            CERBERUS_POSTGRES_DATABASE  = local.base_helm_values.global.env["POSTGRES_DATABASE"]
+            HERMES_POSTGRES_HOST        = local.base_helm_values.global.env["POSTGRES_HOST"]
+            HERMES_POSTGRES_PORT        = local.base_helm_values.global.env["POSTGRES_PORT"]
+            HERMES_POSTGRES_USERNAME    = local.base_helm_values.global.env["POSTGRES_USER"]
+            HERMES_POSTGRES_PASSWORD    = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
+            HERMES_POSTGRES_DATABASE    = local.base_helm_values.global.env["POSTGRES_DATABASE"]
+            PHEME_POSTGRES_HOST         = local.base_helm_values.global.env["POSTGRES_HOST"]
+            PHEME_POSTGRES_PORT         = local.base_helm_values.global.env["POSTGRES_PORT"]
+            PHEME_POSTGRES_USERNAME     = local.base_helm_values.global.env["POSTGRES_USER"]
+            PHEME_POSTGRES_PASSWORD     = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
+            PHEME_POSTGRES_DATABASE     = local.base_helm_values.global.env["POSTGRES_DATABASE"]
+            ZEUS_POSTGRES_HOST          = local.base_helm_values.global.env["POSTGRES_HOST"]
+            ZEUS_POSTGRES_PORT          = local.base_helm_values.global.env["POSTGRES_PORT"]
+            ZEUS_POSTGRES_USERNAME      = local.base_helm_values.global.env["POSTGRES_USER"]
+            ZEUS_POSTGRES_PASSWORD      = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
+            ZEUS_POSTGRES_DATABASE      = local.base_helm_values.global.env["POSTGRES_DATABASE"]
 
-            REDIS_URL                      = "${var.helm_values.global.env["REDIS_HOST"]}:${var.helm_values.global.env["REDIS_PORT"]}/0"
-            CACHE_REDIS_URL                = "${var.helm_values.global.env["REDIS_HOST"]}:${var.helm_values.global.env["REDIS_PORT"]}/0"
-            SYSTEM_REDIS_URL               = "${var.helm_values.global.env["REDIS_HOST"]}:${var.helm_values.global.env["REDIS_PORT"]}/0"
-            QUEUE_REDIS_URL                = "${var.helm_values.global.env["REDIS_HOST"]}:${var.helm_values.global.env["REDIS_PORT"]}/0"
-            WORKFLOW_REDIS_URL             = "${var.helm_values.global.env["REDIS_HOST"]}:${var.helm_values.global.env["REDIS_PORT"]}/0"
+            REDIS_URL                      = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
+            CACHE_REDIS_URL                = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
+            SYSTEM_REDIS_URL               = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
+            QUEUE_REDIS_URL                = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
+            WORKFLOW_REDIS_URL             = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
             CACHE_REDIS_CLUSTER_ENABLED    = "false"
             SYSTEM_REDIS_CLUSTER_ENABLED   = "false"
             QUEUE_REDIS_CLUSTER_ENABLED    = "false"
@@ -316,10 +344,18 @@ locals {
             PLATO_PORT     = try(local.microservices.plato.port, null)
             ZEUS_PORT      = try(local.microservices.zeus.port, null)
 
+            WORKER_ACTIONS_PORT     = try(local.microservices["worker-actions"].port, null)
+            WORKER_CREDENTIALS_PORT = try(local.microservices["worker-credentials"].port, null)
+            WORKER_CRONS_PORT       = try(local.microservices["worker-crons"].port, null)
+            WORKER_PROXY_PORT       = try(local.microservices["worker-proxy"].port, null)
+            WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
+            WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
+
             CERBERUS_PRIVATE_URL  = try("http://cerberus:${local.microservices.cerberus.port}", null)
             CHRONOS_PRIVATE_URL   = try("http://chronos:${local.microservices.chronos.port}", null)
             CONNECT_PRIVATE_URL   = try("http://connect:${local.microservices.connect.port}", null)
             DASHBOARD_PRIVATE_URL = try("http://dashboard:${local.microservices.dashboard.port}", null)
+            EMBASSY_PRIVATE_URL   = "http://embassy:1705"
             HADES_PRIVATE_URL     = try("http://hades:${local.microservices.hades.port}", null)
             HERCULES_PRIVATE_URL  = try("http://hercules:${local.microservices.hercules.port}", null)
             HERMES_PRIVATE_URL    = try("http://hermes:${local.microservices.hermes.port}", null)
@@ -328,6 +364,13 @@ locals {
             PHEME_PRIVATE_URL     = try("http://pheme:${local.microservices.pheme.port}", null)
             PLATO_PRIVATE_URL     = try("http://plato:${local.microservices.plato.port}", null)
             ZEUS_PRIVATE_URL      = try("http://zeus:${local.microservices.zeus.port}", null)
+
+            WORKER_ACTIONS_PRIVATE_URL     = try("http://worker-actions:${local.microservices["worker-actions"].port}", null)
+            WORKER_CREDENTIALS_PRIVATE_URL = try("http://worker-credentials:${local.microservices["worker-credentials"].port}", null)
+            WORKER_CRONS_PRIVATE_URL       = try("http://worker-crons:${local.microservices["worker-crons"].port}", null)
+            WORKER_PROXY_PRIVATE_URL       = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
+            WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
+            WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
 
             MONITOR_BEETHOVEN_EXPORTER_HOST         = "http://beethoven-exporter"
             MONITOR_BEETHOVEN_EXPORTER_PORT         = try(local.monitors["beethoven-exporter"].port, null)
@@ -345,7 +388,7 @@ locals {
             MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
             MONITOR_PGADMIN_PASSWORD                = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
             MONITOR_PGADMIN_SSL_MODE                = "disable"
-            MONITOR_QUEUE_REDIS_TARGET              = replace(element(split(".", var.helm_values.global.env.REDIS_HOST), 0), "redis://", "")
+            MONITOR_QUEUE_REDIS_TARGET              = replace(element(split(".", local.base_helm_values.global.env.REDIS_HOST), 0), "redis://", "")
             MONITOR_POSTGRES_EXPORTER_HOST          = "http://postgres-exporter"
             MONITOR_POSTGRES_EXPORTER_PORT          = try(local.monitors["postgres-exporter"].port, null)
             MONITOR_POSTGRES_EXPORTER_SSL_MODE      = "disable"
@@ -359,4 +402,6 @@ locals {
       })
     })
   })
+
+  monitor_version = var.monitor_version != null ? var.monitor_version : try(local.helm_values.global.env["VERSION"], "latest")
 }
