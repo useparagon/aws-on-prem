@@ -1,6 +1,6 @@
 import { ChildProcess, exec, spawn } from 'child_process';
+import * as fs from 'fs';
 
-import * as fs from 'fs-extra';
 import { WritableStream } from 'memory-streams';
 
 export type ExecResult = {
@@ -100,7 +100,7 @@ export function spawnAsync(
  */
 export async function getVariablesFromEnvFile(filePath: string): Promise<Record<string, string>> {
   const variables: Record<string, string> = {};
-  const inputFile: string = await fs.readFile(filePath, 'utf-8');
+  const inputFile: string = await fs.promises.readFile(filePath, 'utf-8');
   inputFile
     .split('\n')
     .filter((line: string): boolean => !!line.trim().length)

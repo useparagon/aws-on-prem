@@ -1,10 +1,10 @@
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
 import chalk from 'chalk';
 import * as commander from 'commander';
 import { compareVersions } from 'compare-versions';
-import * as fs from 'fs-extra';
 import { load as parseYaml } from 'js-yaml';
 
 import { Microservice, ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
@@ -195,8 +195,8 @@ credentials "app.terraform.io" {
 }
     `.trim();
     const filePath: string = path.join(os.homedir(), '/.terraformrc');
-    await fs.createFile(filePath);
-    await fs.writeFile(filePath, file, { encoding: 'utf8' });
+    await fs.promises.writeFile(filePath, '');
+    await fs.promises.writeFile(filePath, file, { encoding: 'utf8' });
 
     console.log('✅ Configured Terraform token.');
   }
@@ -208,13 +208,13 @@ credentials "app.terraform.io" {
   async prepareTerraformMainFile(env: TerraformEnv): Promise<void> {
     const { TF_ORGANIZATION, TF_WORKSPACE } = env;
     const templateFilePath: string = `${TERRAFORM_DIR}/templates/main.tpl.tf`;
-    const inputFile: string = await fs.readFile(templateFilePath, 'utf8');
+    const inputFile: string = await fs.promises.readFile(templateFilePath, 'utf8');
     const outputFile: string = inputFile
       .replace(new RegExp('__TF_ORGANIZATION__', 'g'), TF_ORGANIZATION)
       .replace(new RegExp('__TF_WORKSPACE__', 'g'), TF_WORKSPACE);
     const outputFilePath: string = `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/main.tf`;
 
-    await fs.writeFile(outputFilePath, outputFile);
+    await fs.promises.writeFile(outputFilePath, outputFile);
   }
 
   /**
@@ -233,12 +233,9 @@ credentials "app.terraform.io" {
     // the helm workspace additionally needs a `helm_values` object
     if (this.workspace === TerraformWorkspace.PARAGON) {
       const helmValuesPath: string = `${ROOT_DIR}/.secure/values.yaml`;
-      const helmValuesExists: boolean = await fs
-        .stat(helmValuesPath)
-        .then(() => true)
-        .catch(() => false);
+      const helmValuesExists: boolean = fs.existsSync(helmValuesPath);
       if (helmValuesExists) {
-        const helmValues: string = await fs.readFile(helmValuesPath, 'utf-8');
+        const helmValues: string = await fs.promises.readFile(helmValuesPath, 'utf-8');
         variables['helm_values'] = Buffer.from(helmValues).toString('base64');
 
         // periodically new microservices are introduced or removed
@@ -260,7 +257,7 @@ credentials "app.terraform.io" {
         return `${key}=${value}`;
       })
       .join('\n');
-    await fs.writeFile(
+    await fs.promises.writeFile(
       `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/vars.auto.tfvars`,
       outputFile,
     );
@@ -286,7 +283,7 @@ credentials "app.terraform.io" {
       // filter unused microservices
       if (
         !hasHadesAndPlatoAndPheme &&
-        [Microservice.HADES, Microservice.PLATO].includes(microservice)
+        [Microservice.HADES, Microservice.PHEME, Microservice.PLATO].includes(microservice)
       ) {
         return false;
       }
