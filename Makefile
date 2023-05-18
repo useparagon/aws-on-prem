@@ -38,6 +38,7 @@ state-paragon:
 deploy-infra:
 	docker run \
 		-it \
+		--env debug=$(debug) \
 		--env initialize=$(initialize) \
 		--env plan=$(plan) \
 		--env apply=$(apply) \
@@ -51,6 +52,7 @@ deploy-infra:
 deploy-paragon:
 	docker run \
 		-it \
+		--env debug=$(debug) \
 		--env initialize=$(initialize) \
 		--env plan=$(plan) \
 		--env apply=$(apply) \
