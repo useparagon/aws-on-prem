@@ -152,6 +152,12 @@ resource "helm_release" "paragon_on_prem" {
     }))
   ]
 
+  # force redeploy when Chart.yaml changes
+  set {
+    name  = "chartHash"
+    value = filesha256("./charts/paragon-onprem/Chart.yaml")
+  }
+
   # used to determine which version of paragon microservices to pull
   set {
     name  = "global.paragon_version"
@@ -278,6 +284,12 @@ resource "helm_release" "paragon_monitoring" {
       })
     }))
   ]
+
+  # force redeploy when Chart.yaml changes
+  set {
+    name  = "chartHash"
+    value = filesha256("./charts/paragon-monitoring/Chart.yaml")
+  }
 
   # used to determine which version of paragon microservices to pull
   set {
