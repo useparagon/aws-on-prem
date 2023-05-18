@@ -33,7 +33,7 @@ locals {
 resource "aws_s3_bucket" "cloudtrail" {
   bucket        = local.cloudtrail_name
   acl           = "log-delivery-write"
-  force_destroy = false
+  force_destroy = var.force_destroy
 
   logging {
     target_bucket = local.cloudtrail_name
@@ -77,8 +77,6 @@ resource "aws_s3_bucket" "cloudtrail" {
             "Action": "s3:GetBucketAcl",
             "Resource": "arn:aws:s3:::${local.cloudtrail_name}"
         },
-        
-
         {
             "Effect": "Allow",
             "Principal": {

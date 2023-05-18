@@ -97,7 +97,7 @@ resource "aws_db_instance" "postgres" {
   db_subnet_group_name      = aws_db_subnet_group.postgres.id
   vpc_security_group_ids    = [aws_security_group.postgres.id]
   publicly_accessible       = false
-  deletion_protection       = true
+  deletion_protection       = !var.disable_deletion_protection
   skip_final_snapshot       = false
   final_snapshot_identifier = var.workspace
   storage_encrypted         = true

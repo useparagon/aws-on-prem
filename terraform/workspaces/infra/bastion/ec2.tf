@@ -79,4 +79,5 @@ module "bastion" {
   bastion_iam_role_name        = local.resource_group
   bastion_launch_template_name = "paragon-bastion-${random_string.bastion_id.result}" # 32 character limit for `name_prefix` arguments, like load balancer and iam_policy
   extra_user_data_content      = data.template_file.startup.rendered
+  bucket_force_destroy         = var.force_destroy
 }
