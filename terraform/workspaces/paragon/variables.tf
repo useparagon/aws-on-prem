@@ -254,7 +254,7 @@ locals {
     global = merge(local.base_helm_values.global, {
       env = merge(local.base_helm_values.global.env, {
         for key, value in merge({
-          // default values, can be overridden by `.env-helm`
+          // default values, can be overridden by `values.yaml -> global.env`
           NODE_ENV              = "production"
           PLATFORM_ENV          = "enterprise"
           BRANCH                = "master"
@@ -279,10 +279,10 @@ locals {
           MONITOR_GRAFANA_SLACK_CANARY_WEBHOOK_URL      = "<PLACEHOLDER>"
           MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
           },
-          // custom values provided in `.env-helm`, overrides default values
+          // custom values provided in `values.yaml`, overrides default values
           local.base_helm_values.global.env,
           {
-            // transformations, take priority over `.env-helm`
+            // transformations, take priority over `values.yaml` -> global.env
             AWS_REGION   = var.aws_region
             REGION       = var.aws_region
             ORGANIZATION = var.organization
@@ -295,41 +295,41 @@ locals {
             ADMIN_BASIC_AUTH_USERNAME = local.base_helm_values.global.env["LICENSE"]
             ADMIN_BASIC_AUTH_PASSWORD = local.base_helm_values.global.env["LICENSE"]
 
-            BEETHOVEN_POSTGRES_HOST     = local.base_helm_values.global.env["POSTGRES_HOST"]
-            BEETHOVEN_POSTGRES_PORT     = local.base_helm_values.global.env["POSTGRES_PORT"]
-            BEETHOVEN_POSTGRES_USERNAME = local.base_helm_values.global.env["POSTGRES_USER"]
-            BEETHOVEN_POSTGRES_PASSWORD = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
-            BEETHOVEN_POSTGRES_DATABASE = local.base_helm_values.global.env["POSTGRES_DATABASE"]
-            CERBERUS_POSTGRES_HOST      = local.base_helm_values.global.env["POSTGRES_HOST"]
-            CERBERUS_POSTGRES_PORT      = local.base_helm_values.global.env["POSTGRES_PORT"]
-            CERBERUS_POSTGRES_USERNAME  = local.base_helm_values.global.env["POSTGRES_USER"]
-            CERBERUS_POSTGRES_PASSWORD  = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
-            CERBERUS_POSTGRES_DATABASE  = local.base_helm_values.global.env["POSTGRES_DATABASE"]
-            HERMES_POSTGRES_HOST        = local.base_helm_values.global.env["POSTGRES_HOST"]
-            HERMES_POSTGRES_PORT        = local.base_helm_values.global.env["POSTGRES_PORT"]
-            HERMES_POSTGRES_USERNAME    = local.base_helm_values.global.env["POSTGRES_USER"]
-            HERMES_POSTGRES_PASSWORD    = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
-            HERMES_POSTGRES_DATABASE    = local.base_helm_values.global.env["POSTGRES_DATABASE"]
-            PHEME_POSTGRES_HOST         = local.base_helm_values.global.env["POSTGRES_HOST"]
-            PHEME_POSTGRES_PORT         = local.base_helm_values.global.env["POSTGRES_PORT"]
-            PHEME_POSTGRES_USERNAME     = local.base_helm_values.global.env["POSTGRES_USER"]
-            PHEME_POSTGRES_PASSWORD     = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
-            PHEME_POSTGRES_DATABASE     = local.base_helm_values.global.env["POSTGRES_DATABASE"]
-            ZEUS_POSTGRES_HOST          = local.base_helm_values.global.env["POSTGRES_HOST"]
-            ZEUS_POSTGRES_PORT          = local.base_helm_values.global.env["POSTGRES_PORT"]
-            ZEUS_POSTGRES_USERNAME      = local.base_helm_values.global.env["POSTGRES_USER"]
-            ZEUS_POSTGRES_PASSWORD      = local.base_helm_values.global.env["POSTGRES_PASSWORD"]
-            ZEUS_POSTGRES_DATABASE      = local.base_helm_values.global.env["POSTGRES_DATABASE"]
+            BEETHOVEN_POSTGRES_HOST     = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            BEETHOVEN_POSTGRES_PORT     = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            BEETHOVEN_POSTGRES_USERNAME = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            BEETHOVEN_POSTGRES_PASSWORD = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            BEETHOVEN_POSTGRES_DATABASE = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            CERBERUS_POSTGRES_HOST      = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            CERBERUS_POSTGRES_PORT      = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            CERBERUS_POSTGRES_USERNAME  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            CERBERUS_POSTGRES_PASSWORD  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            CERBERUS_POSTGRES_DATABASE  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            HERMES_POSTGRES_HOST        = try(local.base_helm_values.global.env["HERMES_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            HERMES_POSTGRES_PORT        = try(local.base_helm_values.global.env["HERMES_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            HERMES_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["HERMES_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            HERMES_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["HERMES_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            HERMES_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["HERMES_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            PHEME_POSTGRES_HOST         = try(local.base_helm_values.global.env["PHEME_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            PHEME_POSTGRES_PORT         = try(local.base_helm_values.global.env["PHEME_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            PHEME_POSTGRES_USERNAME     = try(local.base_helm_values.global.env["PHEME_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            PHEME_POSTGRES_PASSWORD     = try(local.base_helm_values.global.env["PHEME_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            PHEME_POSTGRES_DATABASE     = try(local.base_helm_values.global.env["PHEME_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            ZEUS_POSTGRES_HOST          = try(local.base_helm_values.global.env["ZEUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            ZEUS_POSTGRES_PORT          = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            ZEUS_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            ZEUS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            ZEUS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
 
-            REDIS_URL                      = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
-            CACHE_REDIS_URL                = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
-            SYSTEM_REDIS_URL               = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
-            QUEUE_REDIS_URL                = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
-            WORKFLOW_REDIS_URL             = "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0"
-            CACHE_REDIS_CLUSTER_ENABLED    = "false"
-            SYSTEM_REDIS_CLUSTER_ENABLED   = "false"
-            QUEUE_REDIS_CLUSTER_ENABLED    = "false"
-            WORKFLOW_REDIS_CLUSTER_ENABLED = "false"
+            REDIS_URL                      = try(local.base_helm_values.global.env["REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            CACHE_REDIS_URL                = try(local.base_helm_values.global.env["CACHE_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            SYSTEM_REDIS_URL               = try(local.base_helm_values.global.env["SYSTEM_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            QUEUE_REDIS_URL                = try(local.base_helm_values.global.env["QUEUE_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            WORKFLOW_REDIS_URL             = try(local.base_helm_values.global.env["WORKFLOW_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            CACHE_REDIS_CLUSTER_ENABLED    = try(local.base_helm_values.global.env["CACHE_REDIS_CLUSTER_ENABLED"], "false")
+            SYSTEM_REDIS_CLUSTER_ENABLED   = try(local.base_helm_values.global.env["SYSTEM_REDIS_CLUSTER_ENABLED"], "false")
+            QUEUE_REDIS_CLUSTER_ENABLED    = try(local.base_helm_values.global.env["QUEUE_REDIS_CLUSTER_ENABLED"], "false")
+            WORKFLOW_REDIS_CLUSTER_ENABLED = try(local.base_helm_values.global.env["WORKFLOW_REDIS_CLUSTER_ENABLED"], "false")
 
             MINIO_BROWSER        = "off"
             MINIO_NGINX_PROXY    = "on"
