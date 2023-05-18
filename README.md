@@ -90,6 +90,7 @@ If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Po
 > cd paragon-on-prem
 > make -s build
 > make -s tf-version
+> yarn install
 ```
 
 Confirm that when running `make -s tf-version`, you see the following output or similar:
@@ -172,7 +173,9 @@ Run the following command to provision the infrastructure:
 > make -s deploy-infra
 ```
 
-You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure.
+You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure. 
+
+Note that if this is a new account or workspace that you may have to approve it in the web UI also. This can be bypassed in the future by selecting "Auto apply" under the general workspace settings.
 
 Confirm that all the resources are created.
 
@@ -327,6 +330,7 @@ state-infra                 # gets the state of the infra workspace
 state-paragon               # gets the state of the helm workspace
 
 deploy-infra                # deploys the infrastructure
+  debug={true,false}        # (optional) print additional debugging information
   initialize={true,false}   # (optional) used to skip the `terraform init` command
   plan={true,false}         # (optional) used to skip the `terraform plan` command
   apply={true,false}        # (optional) used to skip the `terraform apply` command
@@ -335,6 +339,7 @@ deploy-infra                # deploys the infrastructure
   args                      # (optional) additional arguments to pass to Terraform
 
 deploy-paragon # deploys the Paragon helm chart
+  debug={true,false}        # (optional) print additional debugging information
   initialize={true,false}   # (optional) used to skip the `terraform init` command
   plan={true,false}         # (optional) used to skip the `terraform plan` command
   apply={true,false}        # (optional) used to skip the `terraform apply` command

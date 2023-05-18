@@ -37,6 +37,11 @@ export abstract class BaseCLI {
         new commander.Command(`deploy-${this.workspace}`)
           .description('Deploy to AWS.')
           .requiredOption(
+            '--debug [debug]',
+            'Print additional debugging information',
+            process.env.debug ?? 'false',
+          )
+          .requiredOption(
             '--initialize [initialize]',
             'Run `terraform init` before the deployment',
             process.env.initialize || 'true',
@@ -69,6 +74,7 @@ export abstract class BaseCLI {
           .action(async (options: DeployCLIOptions): Promise<void> => {
             console.log(`ℹ️  Running deploy-${this.workspace}`, options);
             const {
+              debug: _debug = 'false',
               initialize: _initialize = 'true',
               plan: _plan = 'true',
               apply: _apply = 'true',
@@ -76,6 +82,7 @@ export abstract class BaseCLI {
               target,
               args: _args,
             } = options;
+            const debug: boolean = _debug === 'true' ? true : false;
             const initialize: boolean = _initialize === 'false' ? false : true;
             const plan: boolean = _plan === 'false' ? false : true;
             const apply: boolean = _apply === 'false' ? false : true;
@@ -88,6 +95,7 @@ export abstract class BaseCLI {
               .map((target: string): string => target.trim());
 
             await this.runDeploy({
+              debug,
               initialize,
               plan,
               apply,
@@ -130,7 +138,7 @@ export abstract class BaseCLI {
   async runDeploy(options: TerraformOptions): Promise<void> {
     console.log('ℹ️  Executing runDeploy...', options);
 
-    const { initialize, plan, apply, destroy, args } = options;
+    const { initialize, plan, apply, destroy } = options;
 
     const env: TerraformEnv = await this.getTerraformEnv();
     await this.configureTerraformToken(env);
@@ -138,8 +146,7 @@ export abstract class BaseCLI {
     await this.prepareTerraformVariables(env);
 
     if (initialize) {
-      const upgrade: boolean = args.includes('-upgrade');
-      await this.executeTerraformInit(upgrade);
+      await this.executeTerraformInit(options);
     } else {
       console.log('ℹ️  Skipping `terraform init`.');
     }
@@ -297,16 +304,21 @@ credentials "app.terraform.io" {
     });
   }
 
+  private terraformEnv(debug: boolean): NodeJS.ProcessEnv {
+    return debug ? { ...process.env, TF_LOG: 'DEBUG' } : process.env;
+  }
+
   /**
    * initializes the terraform workspace
    */
-  async executeTerraformInit(upgrade: boolean): Promise<void> {
+  async executeTerraformInit(options: TerraformOptions): Promise<void> {
+    const upgrade: boolean = options.args.includes('-upgrade');
     console.log('ℹ️  Executing `terraform init`...');
     await execAsync(
       `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init${
         upgrade ? ' -upgrade' : ''
       }`,
-      process.env,
+      this.terraformEnv(options.debug),
     );
     console.log('✅ Executed `terraform init`.');
   }
@@ -322,11 +334,11 @@ credentials "app.terraform.io" {
       ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
-    await spawnAsync('terraform', [
-      `-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`,
-      'plan',
-      ...formattedArgs,
-    ]);
+    await spawnAsync(
+      'terraform',
+      [`-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`, 'plan', ...formattedArgs],
+      this.terraformEnv(options.debug),
+    );
     console.log('✅ Executed `terraform plan`.');
   }
 
@@ -343,11 +355,11 @@ credentials "app.terraform.io" {
       ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
-    await spawnAsync('terraform', [
-      `-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`,
-      operation,
-      ...formattedArgs,
-    ]);
+    await spawnAsync(
+      'terraform',
+      [`-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`, operation, ...formattedArgs],
+      this.terraformEnv(options.debug),
+    );
     console.log('✅ Executed `terraform apply`.');
   }
 }

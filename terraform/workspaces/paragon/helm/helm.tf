@@ -206,6 +206,16 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.microservices
+
+    content {
+      name  = "${set.key}.ingress.schema"
+      value = var.ingress_scheme
+    }
+  }
+
   set {
     name  = "global.env.K8_VERSION"
     value = "1.22"
@@ -311,6 +321,16 @@ resource "helm_release" "paragon_monitoring" {
     content {
       name  = "${set.key}.ingress.load_balancer_name"
       value = var.aws_workspace
+    }
+  }
+
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.public_monitors
+
+    content {
+      name  = "${set.key}.ingress.schema"
+      value = var.ingress_scheme
     }
   }
 

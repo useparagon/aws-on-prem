@@ -88,6 +88,12 @@ variable "helm_values" {
   type        = string
 }
 
+variable "ingress_scheme" {
+  description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
+  type        = string
+  default     = "internet-facing"
+}
+
 locals {
   base_helm_values = yamldecode(
     base64decode(var.helm_values),

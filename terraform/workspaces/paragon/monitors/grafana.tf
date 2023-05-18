@@ -66,7 +66,7 @@ resource "random_string" "grafana_admin_password" {
   length      = 16
   min_upper   = 2
   min_lower   = 2
-  min_special = 2
+  min_special = 0
   numeric     = true
   special     = false
   lower       = true

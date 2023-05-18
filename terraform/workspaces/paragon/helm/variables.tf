@@ -78,3 +78,8 @@ variable "public_monitors" {
     public_url = string
   }))
 }
+
+variable "ingress_scheme" {
+  description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
+  type        = string
+}
