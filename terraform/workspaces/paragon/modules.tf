@@ -25,7 +25,7 @@ module "helm" {
   monitors         = local.monitors
   public_monitors  = local.public_monitors
   monitors_enabled = var.monitors_enabled
-  monitor_version  = var.monitor_version
+  monitor_version  = local.monitor_version
   ingress_scheme   = var.ingress_scheme
 
   acm_certificate_arn = module.alb.acm_certificate_arn
@@ -36,10 +36,10 @@ module "monitors" {
   count  = var.monitors_enabled ? 1 : 0
 
   aws_workspace                 = var.aws_workspace
-  grafana_aws_access_key_id     = try(var.helm_values.global.env["MONITOR_GRAFANA_AWS_ACCESS_ID"], null)
-  grafana_aws_secret_access_key = try(var.helm_values.global.env["MONITOR_GRAFANA_AWS_SECRET_KEY"], null)
-  grafana_admin_email           = try(var.helm_values.global.env["MONITOR_GRAFANA_SECURITY_ADMIN_USER"], null)
-  grafana_admin_password        = try(var.helm_values.global.env["MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD"], null)
-  pgadmin_admin_email           = try(var.helm_values.global.env["MONITOR_PGADMIN_EMAIL"], null)
-  pgadmin_admin_password        = try(var.helm_values.global.env["MONITOR_PGADMIN_PASSWORD"], null)
+  grafana_aws_access_key_id     = try(local.base_helm_values.global.env["MONITOR_GRAFANA_AWS_ACCESS_ID"], null)
+  grafana_aws_secret_access_key = try(local.base_helm_values.global.env["MONITOR_GRAFANA_AWS_SECRET_KEY"], null)
+  grafana_admin_email           = try(local.base_helm_values.global.env["MONITOR_GRAFANA_SECURITY_ADMIN_USER"], null)
+  grafana_admin_password        = try(local.base_helm_values.global.env["MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD"], null)
+  pgadmin_admin_email           = try(local.base_helm_values.global.env["MONITOR_PGADMIN_EMAIL"], null)
+  pgadmin_admin_password        = try(local.base_helm_values.global.env["MONITOR_PGADMIN_PASSWORD"], null)
 }
