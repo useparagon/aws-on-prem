@@ -211,7 +211,7 @@ resource "helm_release" "paragon_on_prem" {
     for_each = var.microservices
 
     content {
-      name  = "${set.key}.ingress.schema"
+      name  = "${set.key}.ingress.scheme"
       value = var.ingress_scheme
     }
   }
@@ -329,7 +329,7 @@ resource "helm_release" "paragon_monitoring" {
     for_each = var.public_monitors
 
     content {
-      name  = "${set.key}.ingress.schema"
+      name  = "${set.key}.ingress.scheme"
       value = var.ingress_scheme
     }
   }
