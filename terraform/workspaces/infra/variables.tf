@@ -85,6 +85,12 @@ variable "disable_deletion_protection" {
   default     = false
 }
 
+variable "disable_logs" {
+  description = "Whether to disable system level log gathering."
+  type        = bool
+  default     = false
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"

@@ -22,7 +22,7 @@ module "helm" {
   docker_password     = var.docker_password
   docker_username     = var.docker_username
   helm_values         = local.helm_values
-  lb_logs_bucket      = var.lb_logs_bucket
+  logs_bucket         = var.logs_bucket
   microservices       = local.microservices
   monitor_version     = var.monitor_version
   monitors            = local.monitors

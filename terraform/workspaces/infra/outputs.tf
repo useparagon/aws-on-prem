@@ -50,9 +50,9 @@ output "redis_port" {
   sensitive   = true
 }
 
-output "lb_logs_bucket" {
-  description = "The bucket used to store load balancer logs."
-  value       = module.s3.s3.lb_logs_bucket
+output "logs_bucket" {
+  description = "The bucket used to store system logs."
+  value       = module.s3.s3.logs_bucket
   sensitive   = true
 }
 

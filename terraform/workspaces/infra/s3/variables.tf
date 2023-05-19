@@ -30,3 +30,8 @@ variable "force_destroy" {
   description = "Whether to enable force destroy."
   type        = bool
 }
+
+variable "disable_logs" {
+  description = "Whether to disable system level log gathering."
+  type        = bool
+}

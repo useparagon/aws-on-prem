@@ -158,7 +158,7 @@ resource "helm_release" "paragon_on_prem" {
 
     content {
       name  = "${set.key}.ingress.logs_bucket"
-      value = var.lb_logs_bucket 
+      value = var.logs_bucket 
     }
   }
 

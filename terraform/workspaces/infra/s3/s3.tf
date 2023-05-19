@@ -53,8 +53,10 @@ resource "aws_s3_bucket" "cdn" {
   }
 }
 
-resource "aws_s3_bucket" "lb_logs" {
-  bucket        = "${var.workspace}-lb-logs"
+resource "aws_s3_bucket" "logs" {
+  count = var.disable_logs ? 0 : 1
+
+  bucket        = "${var.workspace}-logs"
   acl           = "private"
   force_destroy = var.force_destroy
 
@@ -110,14 +112,16 @@ data "aws_caller_identity" "current" {}
 
 data "aws_elb_service_account" "main" {}
 
-data "aws_iam_policy_document" "lb_logs_bucket_policy" {
+data "aws_iam_policy_document" "logs_bucket_policy" {
+  count = var.disable_logs ? 0 : 1
+
   statement {
-    sid       = "AllowPutObjects"
-    actions   = ["s3:PutObject"]
-    effect    = "Allow"
+    sid     = "AllowPutObjects"
+    actions = ["s3:PutObject"]
+    effect  = "Allow"
     resources = [
-      "${aws_s3_bucket.lb_logs.arn}",
-      "${aws_s3_bucket.lb_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+      "${aws_s3_bucket.logs[0].arn}",
+      "${aws_s3_bucket.logs[0].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
     ]
 
     principals {
@@ -132,9 +136,12 @@ resource "aws_s3_bucket_policy" "app_bucket" {
   policy = data.aws_iam_policy_document.app_bucket_policy.json
 }
 
-resource "aws_s3_bucket_policy" "lb_logs_bucket" {
-  bucket = aws_s3_bucket.lb_logs.id
-  policy = data.aws_iam_policy_document.lb_logs_bucket_policy.json
+
+resource "aws_s3_bucket_policy" "logs_bucket" {
+  count = var.disable_logs ? 0 : 1
+
+  bucket = aws_s3_bucket.logs[0].id
+  policy = data.aws_iam_policy_document.logs_bucket_policy[0].json
 }
 
 resource "aws_iam_user" "app" {

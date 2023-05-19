@@ -79,6 +79,7 @@ module "s3" {
 
   cloudtrail_s3_bucket = module.cloudtrail.s3.bucket
   force_destroy        = var.disable_deletion_protection
+  disable_logs         = var.disable_logs
 }
 
 module "cluster" {
