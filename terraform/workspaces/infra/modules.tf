@@ -77,9 +77,10 @@ module "s3" {
   workspace   = local.workspace
   environment = local.environment
 
-  cloudtrail_s3_bucket = module.cloudtrail.s3.bucket
-  force_destroy        = var.disable_deletion_protection
-  disable_logs         = var.disable_logs
+  cloudtrail_s3_bucket  = module.cloudtrail.s3.bucket
+  force_destroy         = var.disable_deletion_protection
+  app_bucket_expiration = var.app_bucket_expiration
+  disable_logs          = var.disable_logs
 }
 
 module "cluster" {

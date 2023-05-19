@@ -40,15 +40,8 @@ variable "logs_bucket" {
 
 variable "helm_values" {
   description = "Object containing values to pass to the helm chart."
-  type = object({
-    subchart = map(object({
-      enabled = bool
-    }))
-    global = object({
-      env = map(string)
-    })
-  })
-  sensitive = true
+  type        = any
+  sensitive   = true
 }
 
 variable "acm_certificate_arn" {
@@ -89,4 +82,9 @@ variable "public_monitors" {
     port       = number
     public_url = string
   }))
+}
+
+variable "ingress_scheme" {
+  description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
+  type        = string
 }

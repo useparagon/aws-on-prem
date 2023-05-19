@@ -1,15 +1,16 @@
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
 import chalk from 'chalk';
 import * as commander from 'commander';
 import { compareVersions } from 'compare-versions';
-import * as fs from 'fs-extra';
+import { load as parseYaml } from 'js-yaml';
 
-import { ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
+import { Microservice, ROOT_DIR, TERRAFORM_DIR, TERRAFORM_WORKSPACES_DIR } from '../constants';
 import {
   DeployCLIOptions,
-  SubchartEnablementOverrides,
+  HelmValues,
   TerraformEnv,
   TerraformOptions,
   TerraformWorkspace,
@@ -144,8 +145,6 @@ export abstract class BaseCLI {
     await this.prepareTerraformMainFile(env);
     await this.prepareTerraformVariables(env);
 
-    // await sleep(1000 * 60 * 5);
-
     if (initialize) {
       await this.executeTerraformInit(options);
     } else {
@@ -196,8 +195,8 @@ credentials "app.terraform.io" {
 }
     `.trim();
     const filePath: string = path.join(os.homedir(), '/.terraformrc');
-    await fs.createFile(filePath);
-    await fs.writeFile(filePath, file, { encoding: 'utf8' });
+    await fs.promises.writeFile(filePath, '');
+    await fs.promises.writeFile(filePath, file, { encoding: 'utf8' });
 
     console.log('✅ Configured Terraform token.');
   }
@@ -209,13 +208,13 @@ credentials "app.terraform.io" {
   async prepareTerraformMainFile(env: TerraformEnv): Promise<void> {
     const { TF_ORGANIZATION, TF_WORKSPACE } = env;
     const templateFilePath: string = `${TERRAFORM_DIR}/templates/main.tpl.tf`;
-    const inputFile: string = await fs.readFile(templateFilePath, 'utf8');
+    const inputFile: string = await fs.promises.readFile(templateFilePath, 'utf8');
     const outputFile: string = inputFile
       .replace(new RegExp('__TF_ORGANIZATION__', 'g'), TF_ORGANIZATION)
       .replace(new RegExp('__TF_WORKSPACE__', 'g'), TF_WORKSPACE);
     const outputFilePath: string = `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/main.tf`;
 
-    await fs.writeFile(outputFilePath, outputFile);
+    await fs.promises.writeFile(outputFilePath, outputFile);
   }
 
   /**
@@ -233,15 +232,20 @@ credentials "app.terraform.io" {
 
     // the helm workspace additionally needs a `helm_values` object
     if (this.workspace === TerraformWorkspace.PARAGON) {
-      const helmValues: Record<string, any> = await getVariablesFromEnvFile(
-        `${ROOT_DIR}/.secure/.env-helm`,
-      );
-      variables['helm_values'] = {
-        subchart: this.getSubchartEnablementOverrides(helmValues.VERSION),
-        global: {
-          env: helmValues,
-        },
-      };
+      const helmValuesPath: string = `${ROOT_DIR}/.secure/values.yaml`;
+      const helmValuesExists: boolean = fs.existsSync(helmValuesPath);
+      if (helmValuesExists) {
+        const helmValues: string = await fs.promises.readFile(helmValuesPath, 'utf-8');
+        variables['helm_values'] = Buffer.from(helmValues).toString('base64');
+
+        // periodically new microservices are introduced or removed
+        // we need to provide which microservices are supported in the current version
+        const paragonVersion: string | undefined = (parseYaml(helmValues) as HelmValues).global?.env
+          ?.VERSION;
+        variables['supported_microservices'] = this.getSupportedMicroservices(
+          paragonVersion ? paragonVersion : 'latest',
+        );
+      }
     }
 
     const outputFile: string = Object.keys(variables)
@@ -253,47 +257,64 @@ credentials "app.terraform.io" {
         return `${key}=${value}`;
       })
       .join('\n');
-    await fs.writeFile(
+    await fs.promises.writeFile(
       `${TERRAFORM_WORKSPACES_DIR}/${this.workspace}/vars.auto.tfvars`,
       outputFile,
     );
   }
 
   /**
-   * configuration for whether subcharts are enabled based on semver
+   * returns the microservices supported in the current Paragon version
+   * @param paragonVersion the current Paragon version being deployed
    */
-  getSubchartEnablementOverrides(version: string | undefined): SubchartEnablementOverrides {
-    const LATEST_VERSION: 'latest' = 'latest';
-    const _version: string = version ?? LATEST_VERSION;
-    const isLatestVersion: boolean = _version === LATEST_VERSION;
+  getSupportedMicroservices(paragonVersion: string): Microservice[] {
+    // if deploying a release candidate (e.g. `v2.77.0-rc-abc3d3`) or unstable version (e.g. `v2.77.0-unstable-abc3d3`)
+    // we need to strip the end to compare the version
+    const LATEST: 'LATEST' = 'LATEST';
+    const isLatest: boolean = paragonVersion === LATEST;
+    const sanitizedParagonVersion: string = paragonVersion.split('-rc')[0].split('-unstable')[0];
+    const microservices: Microservice[] = Object.values(Microservice);
+    return microservices.filter((microservice: Microservice): boolean => {
+      // hades, pheme and plato expected to be added in v2.67.0 in non-GCP environments
+      // delete the charts if version is before that and not in GCP
+      const hasHadesAndPlatoAndPheme: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.67.0') >= 0;
 
-    return {
-      chronos: {
-        enabled: isLatestVersion || compareVersions(_version, '2.57.0') >= 0,
-      },
-      hades: {
-        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
-      },
-      pheme: {
-        enabled: isLatestVersion || compareVersions(_version, '2.64.1') >= 0,
-      },
-      plato: {
-        enabled: isLatestVersion || compareVersions(_version, '2.67.0') >= 0,
-      },
-    };
+      // filter unused microservices
+      if (
+        !hasHadesAndPlatoAndPheme &&
+        [Microservice.HADES, Microservice.PHEME, Microservice.PLATO].includes(microservice)
+      ) {
+        return false;
+      }
+
+      // in v2.77.0, hercules was replaced with `worker-actions`, `worker-credentials`, etc
+      const hasWorkers: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
+      if (!hasWorkers && microservice.includes('worker-')) {
+        return false;
+      } else if (hasWorkers && microservice === Microservice.HERCULES) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   private terraformEnv(debug: boolean): NodeJS.ProcessEnv {
-    return debug ? { ...process.env, 'TF_LOG': 'DEBUG' } : process.env;
+    return debug ? { ...process.env, TF_LOG: 'DEBUG' } : process.env;
   }
 
   /**
    * initializes the terraform workspace
    */
   async executeTerraformInit(options: TerraformOptions): Promise<void> {
+    const upgrade: boolean = options.args.includes('-upgrade');
     console.log('ℹ️  Executing `terraform init`...');
     await execAsync(
-      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init`,
+      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init${
+        upgrade ? ' -upgrade' : ''
+      }`,
       this.terraformEnv(options.debug),
     );
     console.log('✅ Executed `terraform init`.');
@@ -307,14 +328,14 @@ credentials "app.terraform.io" {
 
     const { args, targets } = options;
     const formattedArgs: string[] = [
-      ...args,
+      ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
-    await spawnAsync('terraform', [
-      `-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`,
-      'plan',
-      ...formattedArgs,
-    ], this.terraformEnv(options.debug));
+    await spawnAsync(
+      'terraform',
+      [`-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`, 'plan', ...formattedArgs],
+      this.terraformEnv(options.debug),
+    );
     console.log('✅ Executed `terraform plan`.');
   }
 
@@ -328,14 +349,14 @@ credentials "app.terraform.io" {
 
     const { args, targets } = options;
     const formattedArgs: string[] = [
-      ...args,
+      ...args.filter((arg: string): boolean => arg !== '-upgrade'),
       ...targets.map((target: string): string => `-target=${target}`),
     ];
-    await spawnAsync('terraform', [
-      `-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`,
-      operation,
-      ...formattedArgs,
-    ], this.terraformEnv(options.debug));
+    await spawnAsync(
+      'terraform',
+      [`-chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace}`, operation, ...formattedArgs],
+      this.terraformEnv(options.debug),
+    );
     console.log('✅ Executed `terraform apply`.');
   }
 }

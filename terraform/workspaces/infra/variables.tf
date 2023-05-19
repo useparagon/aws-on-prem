@@ -91,6 +91,11 @@ variable "disable_logs" {
   default     = false
 }
 
+variable "app_bucket_expiration" {
+  description = "The number of days to retain S3 app data before deleting"
+  type        = number
+  default     = 365
+}
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"

@@ -1,3 +1,45 @@
+locals {
+  supported_microservices_values = <<EOF
+subchart:
+  cerberus:
+    enabled: ${contains(keys(var.microservices), "cerberus")}
+  chronos:
+    enabled: ${contains(keys(var.microservices), "chronos")}
+  connect:
+    enabled: ${contains(keys(var.microservices), "connect")}
+  dashboard:
+    enabled: ${contains(keys(var.microservices), "dashboard")}
+  hades:
+    enabled: ${contains(keys(var.microservices), "hades")}
+  hercules:
+    enabled: ${contains(keys(var.microservices), "hercules")}
+  hermes:
+    enabled: ${contains(keys(var.microservices), "hermes")}
+  minio:
+    enabled: ${contains(keys(var.microservices), "minio")}
+  passport:
+    enabled: ${contains(keys(var.microservices), "passport")}
+  plato:
+    enabled: ${contains(keys(var.microservices), "plato")}
+  pheme:
+    enabled: ${contains(keys(var.microservices), "pheme")}
+  zeus:
+    enabled: ${contains(keys(var.microservices), "zeus")}
+  worker-actions:
+    enabled: ${contains(keys(var.microservices), "worker-actions")}
+  worker-credentials:
+    enabled: ${contains(keys(var.microservices), "worker-credentials")}
+  worker-crons:
+    enabled: ${contains(keys(var.microservices), "worker-crons")}
+  worker-proxy:
+    enabled: ${contains(keys(var.microservices), "worker-proxy")}
+  worker-triggers:
+    enabled: ${contains(keys(var.microservices), "worker-triggers")}
+  worker-workflows:
+    enabled: ${contains(keys(var.microservices), "worker-workflows")}
+EOF
+}
+
 # creates the `paragon` namespace
 resource "kubernetes_namespace" "paragon" {
   metadata {
@@ -97,8 +139,11 @@ resource "helm_release" "paragon_on_prem" {
   create_namespace = false
   atomic           = true
   verify           = false
+  timeout          = 900 # 15 minutes
 
   values = [
+    local.supported_microservices_values,
+
     // map `var.helm_values` but remove `global.env`, as we'll map it below
     yamlencode(merge(nonsensitive(var.helm_values), {
       global = merge(nonsensitive(var.helm_values).global, {
@@ -106,6 +151,12 @@ resource "helm_release" "paragon_on_prem" {
       })
     }))
   ]
+
+  # force redeploy when Chart.yaml changes
+  set {
+    name  = "chartHash"
+    value = filesha256("./charts/paragon-onprem/Chart.yaml")
+  }
 
   # used to determine which version of paragon microservices to pull
   set {
@@ -132,6 +183,15 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
+  dynamic "set" {
+    for_each = var.microservices
+
+    content {
+      name  = "${set.key}.env.SERVICE"
+      value = set.key
+    }
+  }
+
   # configures the ssl cert to the load balancer
   dynamic "set" {
     for_each = var.microservices
@@ -149,6 +209,16 @@ resource "helm_release" "paragon_on_prem" {
     content {
       name  = "${set.key}.ingress.load_balancer_name"
       value = var.aws_workspace
+    }
+  }
+
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.microservices
+
+    content {
+      name  = "${set.key}.ingress.schema"
+      value = var.ingress_scheme
     }
   }
 
@@ -184,6 +254,17 @@ resource "helm_release" "paragon_logging" {
   atomic           = true
   verify           = false
 
+  values = [
+    local.supported_microservices_values,
+
+    // map `var.helm_values` but remove `global.env`, as we'll map it below
+    yamlencode(merge(nonsensitive(var.helm_values), {
+      global = merge(nonsensitive(var.helm_values).global, {
+        env = {}
+      })
+    }))
+  ]
+
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login,
@@ -202,6 +283,23 @@ resource "helm_release" "paragon_monitoring" {
   create_namespace = false
   atomic           = true
   verify           = false
+
+  values = [
+    local.supported_microservices_values,
+
+    // map `var.helm_values` but remove `global.env`, as we'll map it below
+    yamlencode(merge(nonsensitive(var.helm_values), {
+      global = merge(nonsensitive(var.helm_values).global, {
+        env = {}
+      })
+    }))
+  ]
+
+  # force redeploy when Chart.yaml changes
+  set {
+    name  = "chartHash"
+    value = filesha256("./charts/paragon-monitoring/Chart.yaml")
+  }
 
   # used to determine which version of paragon microservices to pull
   set {
@@ -245,6 +343,16 @@ resource "helm_release" "paragon_monitoring" {
     content {
       name  = "${set.key}.ingress.load_balancer_name"
       value = var.aws_workspace
+    }
+  }
+
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.public_monitors
+
+    content {
+      name  = "${set.key}.ingress.schema"
+      value = var.ingress_scheme
     }
   }
 

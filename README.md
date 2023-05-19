@@ -35,6 +35,20 @@ If you want to deploy Paragon to your own cloud but don’t want to manage the i
 
 We offer managed on premise solutions for AWS, Azure, and GCP. Please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you started.
 
+## Migrations
+
+### `1.x` to >= `2.x`
+
+Copy the `values.yaml.example` file into `.secure/values.yaml`
+
+```tsx
+> cp values.yaml.example .secure/values.yaml
+```
+
+Copy the values from your `.secure/.env-helm` into `.secure/values.yaml` inside the `global.env` object.
+
+Delete your `.secure/.env-helm` file.
+
 ## Getting Started
 
 ### Access
@@ -90,6 +104,7 @@ If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Po
 > cd paragon-on-prem
 > make -s build
 > make -s tf-version
+> yarn install
 ```
 
 Confirm that when running `make -s tf-version`, you see the following output or similar:
@@ -123,7 +138,7 @@ terraform/
 Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
 
 ```tsx
-> cp .env-helm.example .secure/.env-helm
+> cp values.yaml.example .secure/values.yaml
 > cp .env-tf-infra.example .secure/.env-tf-infra
 > cp .env-tf-paragon.example .secure/.env-tf-paragon
 ```
@@ -162,6 +177,8 @@ Run the following command to provision the infrastructure:
 ```
 
 You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure.
+
+Note that if this is a new account or workspace that you may have to approve it in the web UI also. This can be bypassed in the future by selecting "Auto apply" under the general workspace settings.
 
 Confirm that all the resources are created.
 
@@ -203,7 +220,7 @@ These variables should be pulled from the `infra` workspace.
  - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
  - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
 
-### 7. Configure the `.secure/.env-helm` file.
+### 7. Configure the `.secure/values.yaml` file.
 
 **Required**
 
@@ -264,7 +281,7 @@ This repository is split into two Terraform workspaces so you can optionally bri
   - 1 with public access
   - 1 with private access
 
-Configuring this is currently outside of the scope of this repository. Please consult the `terraform/workspaces/infra` directory to view the required configuration and use the outputs to configure the variables in `.secure/.env-helm`.
+Configuring this is currently outside of the scope of this repository. Please consult the `terraform/workspaces/infra` directory to view the required configuration and use the outputs to configure the variables in `.secure/values.yaml`.
 
 ## Destroying the infrastructure.
 

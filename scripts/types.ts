@@ -46,10 +46,11 @@ export type TerraformEnv = {
 };
 
 /**
- * type used by the helmcharts to specify whether subcharts are enabled
+ * format for helm values file
  */
-export type SubchartEnablementOverrides = {
-  [key: string]: {
-    enabled: boolean;
+export type HelmValues = {
+  global?: {
+    env?: Record<string, string>;
   };
+  [key: string]: any;
 };
