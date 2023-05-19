@@ -99,6 +99,7 @@ module "eks_node_group" {
   namespace                  = "paragon"
   node_role_arn              = [aws_iam_role.node_role.arn]
   cluster_autoscaler_enabled = true
+  resources_to_tag           = ["instance", "volume", "elastic-gpu", "spot-instances-request"]
 
   depends_on = [
     module.eks,

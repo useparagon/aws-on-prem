@@ -21,6 +21,20 @@ resource "aws_s3_bucket" "app" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "expiration" {
+  bucket = aws_s3_bucket.app.id
+
+  rule {
+    id = "expiration"
+
+    expiration {
+      days = var.app_bucket_expiration
+    }
+
+    status = "Enabled"
+  }
+}
+
 resource "aws_s3_bucket" "cdn" {
   bucket        = "${var.workspace}-cdn"
   acl           = "public-read"
