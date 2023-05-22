@@ -71,14 +71,21 @@ resource "aws_s3_bucket" "logs" {
   count = var.disable_logs ? 0 : 1
 
   bucket        = "${var.workspace}-logs"
-  acl           = "private"
   force_destroy = var.force_destroy
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_acl" "logs" {
+  count  = var.disable_logs ? 0 : 1
+  bucket = aws_s3_bucket.logs[count.index].id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
+  count  = var.disable_logs ? 0 : 1
+  bucket = aws_s3_bucket.logs[count.index].id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
