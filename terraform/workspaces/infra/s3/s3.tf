@@ -141,8 +141,8 @@ data "aws_iam_policy_document" "logs_bucket_policy" {
     actions = ["s3:PutObject"]
     effect  = "Allow"
     resources = [
-      "${aws_s3_bucket.logs[0].arn}",
-      "${aws_s3_bucket.logs[0].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+      "${aws_s3_bucket.logs[count.index].arn}",
+      "${aws_s3_bucket.logs[count.index].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
     ]
 
     principals {
@@ -161,8 +161,8 @@ resource "aws_s3_bucket_policy" "app_bucket" {
 resource "aws_s3_bucket_policy" "logs_bucket" {
   count = var.disable_logs ? 0 : 1
 
-  bucket = aws_s3_bucket.logs[0].id
-  policy = data.aws_iam_policy_document.logs_bucket_policy[0].json
+  bucket = aws_s3_bucket.logs[count.index].id
+  policy = data.aws_iam_policy_document.logs_bucket_policy[count.index].json
 }
 
 resource "aws_iam_user" "app" {
