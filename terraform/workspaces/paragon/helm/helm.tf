@@ -273,6 +273,7 @@ resource "helm_release" "paragon_monitoring" {
   create_namespace = false
   atomic           = true
   verify           = false
+  timeout          = 600 # 10 minutes
 
   values = [
     local.supported_microservices_values,
