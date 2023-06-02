@@ -38,6 +38,12 @@ variable "bastion_role_arn" {
   description = "IAM role arn of bastion instance"
 }
 
+variable "eks_addon_ebs_csi_driver_enabled" {
+  # Should be on for Kubernetes >= 1.23, but optional for backwards compatability for manually migrated installations.
+  description = "Whether or not to enable AWS CSI Driver addon."
+  type        = bool
+}
+
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string

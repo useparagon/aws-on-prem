@@ -167,6 +167,7 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
 - `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
+- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
 
 ### 5. Deploy the infrastructure.
 

@@ -27,6 +27,15 @@ module "eks" {
       groups   = ["system:masters"]
     }
   ]
+
+  cluster_addons = merge(var.eks_addon_ebs_csi_driver_enabled ? {
+    aws-ebs-csi-driver = {
+      resolve_conflicts = "OVERWRITE"
+    }
+    } : {}
+    , {
+      # additional addons go here
+  })
 }
 
 resource "aws_iam_role" "node_role" {
