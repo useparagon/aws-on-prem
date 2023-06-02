@@ -92,6 +92,7 @@ module "cluster" {
 
   workspace   = local.workspace
   environment = local.environment
+  k8_version  = var.k8_version
 
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet

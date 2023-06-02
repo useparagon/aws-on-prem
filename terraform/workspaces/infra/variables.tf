@@ -91,6 +91,12 @@ variable "app_bucket_expiration" {
   default     = 365
 }
 
+variable "k8_version" {
+  description = "The version of Kubernetes to run in the cluster."
+  type        = string
+  default     = "1.25"
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"

@@ -4,7 +4,7 @@ module "eks" {
   version = "18.24.1"
 
   cluster_name    = var.workspace
-  cluster_version = "1.22"
+  cluster_version = var.k8_version
   subnet_ids      = var.private_subnet.*.id
 
   vpc_id                    = var.vpc.id
@@ -95,7 +95,7 @@ module "eks_node_group" {
   desired_size               = 3  # TODO: decrease desired size
   cluster_name               = var.workspace
   create_before_destroy      = true
-  kubernetes_version         = ["1.22"]
+  kubernetes_version         = [var.k8_version]
   namespace                  = "paragon"
   node_role_arn              = [aws_iam_role.node_role.arn]
   cluster_autoscaler_enabled = true

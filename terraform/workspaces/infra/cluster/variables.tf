@@ -37,3 +37,8 @@ variable "private_subnet" {
 variable "bastion_role_arn" {
   description = "IAM role arn of bastion instance"
 }
+
+variable "k8_version" {
+  description = "The version of Kubernetes to run in the cluster."
+  type        = string
+}
