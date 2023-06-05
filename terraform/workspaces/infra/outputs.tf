@@ -38,15 +38,9 @@ output "postgres_database" {
   sensitive   = true
 }
 
-output "redis_host" {
-  description = "The host of the redis database."
-  value       = module.redis.elasticache.host
-  sensitive   = true
-}
-
-output "redis_port" {
-  description = "The port of the redis database."
-  value       = module.redis.elasticache.port
+output "redis" {
+  description = "Connection information for redis."
+  value       = module.redis.elasticache
   sensitive   = true
 }
 

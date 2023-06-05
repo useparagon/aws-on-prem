@@ -60,6 +60,8 @@ module "redis" {
   workspace             = local.workspace
   environment           = local.environment
   elasticache_node_type = var.elasticache_node_type
+  multi_az_enabled      = var.multi_az_enabled
+  multi_redis           = var.multi_redis
 
   vpc            = module.network.vpc
   public_subnet  = module.network.public_subnet

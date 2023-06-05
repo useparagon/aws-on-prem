@@ -91,6 +91,18 @@ variable "app_bucket_expiration" {
   default     = 365
 }
 
+variable "multi_az_enabled" {
+  description = "Whether or not to enable multi-az."
+  type        = bool
+  default     = true
+}
+
+variable "multi_redis" {
+  description = "Whether or not to create multiple Redis instances. Used for high-volume installations."
+  type        = bool
+  default     = false
+}
+
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
