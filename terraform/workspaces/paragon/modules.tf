@@ -27,6 +27,7 @@ module "helm" {
   monitors_enabled = var.monitors_enabled
   monitor_version  = local.monitor_version
   ingress_scheme   = var.ingress_scheme
+  k8_version       = var.k8_version
 
   acm_certificate_arn = module.alb.acm_certificate_arn
 }

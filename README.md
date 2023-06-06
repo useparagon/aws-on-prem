@@ -147,25 +147,27 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 
 **Required**
 
- - `AWS_ACCESS_KEY_ID`: your AWS access key id
- - `AWS_REGION`: the AWS region to deploy resources to
- - `AWS_SECRET_ACCESS_KEY`: your AWS secret access key
- - `TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
- - `TF_TOKEN`: your Terraform API key
- - `TF_WORKSPACE`**:** the Terraform workspace for the infrastructure
+- `AWS_ACCESS_KEY_ID`: your AWS access key id
+- `AWS_REGION`: the AWS region to deploy resources to
+- `AWS_SECRET_ACCESS_KEY`: your AWS secret access key
+- `TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
+- `TF_TOKEN`: your Terraform API key
+- `TF_WORKSPACE`**:** the Terraform workspace for the infrastructure
 
 **Optional**
 
- - `AWS_SESSION_TOKEN`: the AWS session token for authenticating Terraform
- - `DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
- - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
- - `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
- - `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
- - `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
- - `POSTGRES_VERSION`: the version of Postgres to run
- - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)
- - `SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
- - `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
+- `AWS_SESSION_TOKEN`: the AWS session token for authenticating Terraform
+- `DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
+- `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
+- `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
+- `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
+- `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
+- `POSTGRES_VERSION`: the version of Postgres to run
+- `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)
+- `SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
+- `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
+- `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
+- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
 
 ### 5. Deploy the infrastructure.
 
@@ -193,55 +195,56 @@ Configure the environment variables:
 
 **Required**
 
- - `AWS_ACCESS_KEY_ID`: your AWS access key id
- - `AWS_REGION`: the AWS region to deploy resources to
- - `AWS_SECRET_ACCESS_KEY`: your AWS secret access key
- - `DOCKER_EMAIL`: your Docker email
- - `DOCKER_PASSWORD`: your Docker password
- - `DOCKER_USERNAME`: your Docker username
- - `DOMAIN`: your domain name
- - `ORGANIZATION`: the name of your organization (no spaces, all lowercase)
- - `TF_ORGANIZATION`: the name of the organization your Terraform account belongs to
- - `TF_TOKEN`: your Terraform API key
- - `TF_WORKSPACE`: the Terraform workspace for the helm chart. **Make sure this is different than the infra workspace!**
+- `AWS_ACCESS_KEY_ID`: your AWS access key id
+- `AWS_REGION`: the AWS region to deploy resources to
+- `AWS_SECRET_ACCESS_KEY`: your AWS secret access key
+- `DOCKER_EMAIL`: your Docker email
+- `DOCKER_PASSWORD`: your Docker password
+- `DOCKER_USERNAME`: your Docker username
+- `DOMAIN`: your domain name
+- `ORGANIZATION`: the name of your organization (no spaces, all lowercase)
+- `TF_ORGANIZATION`: the name of the organization your Terraform account belongs to
+- `TF_TOKEN`: your Terraform API key
+- `TF_WORKSPACE`: the Terraform workspace for the helm chart. **Make sure this is different than the infra workspace!**
 
 **Required (from infra workspace):**
 
 These variables should be pulled from the `infra` workspace.
 
- - `AWS_WORKSPACE`: retrieve from `workspace` output. Used to configure [resource groups](https://docs.aws.amazon.com/ARG/latest/userguide/resource-groups.html)
- - `CLUSTER_NAME`: retrieve from `cluster_name` output. Name of your EKS cluster.
+- `AWS_WORKSPACE`: retrieve from `workspace` output. Used to configure [resource groups](https://docs.aws.amazon.com/ARG/latest/userguide/resource-groups.html)
+- `CLUSTER_NAME`: retrieve from `cluster_name` output. Name of your EKS cluster.
 
 **Optional**
 
- - `ACM_CERTIFICATE_ARN`: Use to provide your own existing certificate ACM certificate ARN for use with the load balancer
- - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
- - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
+- `ACM_CERTIFICATE_ARN`: Use to provide your own existing certificate ACM certificate ARN for use with the load balancer
+- `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
+- `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
+- `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 
 ### 7. Configure the `.secure/values.yaml` file.
 
 **Required**
 
- - `LICENSE`: your Paragon license
- - `SENDGRID_API_KEY`: your SendGrid API key
- - `SENDGRID_FROM_ADDRESS`: the email to send SendGrid emails from
- - `VERSION`: the version of Paragon you want to run
+- `LICENSE`: your Paragon license
+- `SENDGRID_API_KEY`: your SendGrid API key
+- `SENDGRID_FROM_ADDRESS`: the email to send SendGrid emails from
+- `VERSION`: the version of Paragon you want to run
 
 **Required (from infra workspace)**
 
- - `MINIO_MICROSERVICE_PASS`: from `minio_microservice_pass` output
- - `MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
- - `MINIO_PUBLIC_BUCKET`: from `minio_public_bucket` output
- - `MINIO_ROOT_PASSWORD`: from `minio_root_password` output
- - `MINIO_ROOT_USER`: from `minio_root_user` output
- - `MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
- - `POSTGRES_DATABASE`: from `postgres_database` output
- - `POSTGRES_HOST`: from `postgres_host` output
- - `POSTGRES_PASSWORD`: from `postgres_password` output
- - `POSTGRES_PORT`: from `postgres_port` output
- - `POSTGRES_USER`: from `postgres_user` output
- - `REDIS_HOST`: from `redis_host` output
- - `REDIS_PORT`: from `redis_port` output
+- `MINIO_MICROSERVICE_PASS`: from `minio_microservice_pass` output
+- `MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
+- `MINIO_PUBLIC_BUCKET`: from `minio_public_bucket` output
+- `MINIO_ROOT_PASSWORD`: from `minio_root_password` output
+- `MINIO_ROOT_USER`: from `minio_root_user` output
+- `MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
+- `POSTGRES_DATABASE`: from `postgres_database` output
+- `POSTGRES_HOST`: from `postgres_host` output
+- `POSTGRES_PASSWORD`: from `postgres_password` output
+- `POSTGRES_PORT`: from `postgres_port` output
+- `POSTGRES_USER`: from `postgres_user` output
+- `REDIS_HOST`: from `redis_host` output
+- `REDIS_PORT`: from `redis_port` output
 
 ### 8. Deploy the Helm chart.
 

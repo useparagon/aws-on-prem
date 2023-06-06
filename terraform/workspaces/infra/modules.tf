@@ -90,8 +90,10 @@ module "cluster" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace   = local.workspace
-  environment = local.environment
+  workspace                        = local.workspace
+  environment                      = local.environment
+  k8_version                       = var.k8_version
+  eks_addon_ebs_csi_driver_enabled = var.eks_addon_ebs_csi_driver_enabled
 
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet

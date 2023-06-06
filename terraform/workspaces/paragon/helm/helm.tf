@@ -224,7 +224,7 @@ resource "helm_release" "paragon_on_prem" {
 
   set {
     name  = "global.env.K8_VERSION"
-    value = "1.22"
+    value = var.k8_version
   }
 
   depends_on = [
@@ -358,7 +358,7 @@ resource "helm_release" "paragon_monitoring" {
 
   set {
     name  = "global.env.K8_VERSION"
-    value = "1.22"
+    value = var.k8_version
   }
 
   depends_on = [
