@@ -217,7 +217,7 @@ resource "helm_release" "paragon_on_prem" {
     for_each = var.microservices
 
     content {
-      name  = "${set.key}.ingress.schema"
+      name  = "${set.key}.ingress.scheme"
       value = var.ingress_scheme
     }
   }
@@ -234,7 +234,7 @@ resource "helm_release" "paragon_on_prem" {
 
   set {
     name  = "global.env.K8_VERSION"
-    value = "1.22"
+    value = var.k8_version
   }
 
   depends_on = [
@@ -283,6 +283,7 @@ resource "helm_release" "paragon_monitoring" {
   create_namespace = false
   atomic           = true
   verify           = false
+  timeout          = 600 # 10 minutes
 
   values = [
     local.supported_microservices_values,
@@ -351,7 +352,7 @@ resource "helm_release" "paragon_monitoring" {
     for_each = var.public_monitors
 
     content {
-      name  = "${set.key}.ingress.schema"
+      name  = "${set.key}.ingress.scheme"
       value = var.ingress_scheme
     }
   }
@@ -367,7 +368,7 @@ resource "helm_release" "paragon_monitoring" {
 
   set {
     name  = "global.env.K8_VERSION"
-    value = "1.22"
+    value = var.k8_version
   }
 
   depends_on = [

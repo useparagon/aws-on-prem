@@ -100,6 +100,12 @@ variable "ingress_scheme" {
   default     = "internet-facing"
 }
 
+variable "k8_version" {
+  description = "The version of Kubernetes to run in the cluster."
+  type        = string
+  default     = "1.25"
+}
+
 locals {
   base_helm_values = yamldecode(
     base64decode(var.helm_values),
@@ -327,7 +333,10 @@ locals {
             ZEUS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
             ZEUS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
 
-            REDIS_URL                      = try(local.base_helm_values.global.env["REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+            REDIS_URL = try(
+              local.base_helm_values.global.env["REDIS_URL"],
+              try("${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0", null),
+            )
             CACHE_REDIS_URL                = try(local.base_helm_values.global.env["CACHE_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
             SYSTEM_REDIS_URL               = try(local.base_helm_values.global.env["SYSTEM_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
             QUEUE_REDIS_URL                = try(local.base_helm_values.global.env["QUEUE_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
@@ -400,16 +409,19 @@ locals {
             MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
             MONITOR_PGADMIN_PASSWORD                = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
             MONITOR_PGADMIN_SSL_MODE                = "disable"
-            MONITOR_QUEUE_REDIS_TARGET              = replace(element(split(".", local.base_helm_values.global.env.REDIS_HOST), 0), "redis://", "")
-            MONITOR_POSTGRES_EXPORTER_HOST          = "http://postgres-exporter"
-            MONITOR_POSTGRES_EXPORTER_PORT          = try(local.monitors["postgres-exporter"].port, null)
-            MONITOR_POSTGRES_EXPORTER_SSL_MODE      = "disable"
-            MONITOR_PROMETHEUS_HOST                 = "http://prometheus"
-            MONITOR_PROMETHEUS_PORT                 = try(local.monitors["prometheus"].port, null)
-            MONITOR_REDIS_EXPORTER_HOST             = "http://redis-exporter"
-            MONITOR_REDIS_EXPORTER_PORT             = try(local.monitors["redis-exporter"].port, null)
-            MONITOR_REDIS_INSIGHT_HOST              = "http://redis-insight"
-            MONITOR_REDIS_INSIGHT_PORT              = try(local.monitors["redis-insight"].port, null)
+            MONITOR_QUEUE_REDIS_TARGET = replace(element(split(".", try(
+              local.base_helm_values.global.env["REDIS_HOST"],
+              local.base_helm_values.global.env["QUEUE_REDIS_URL"]
+            )), 0), "redis://", "")
+            MONITOR_POSTGRES_EXPORTER_HOST     = "http://postgres-exporter"
+            MONITOR_POSTGRES_EXPORTER_PORT     = try(local.monitors["postgres-exporter"].port, null)
+            MONITOR_POSTGRES_EXPORTER_SSL_MODE = "disable"
+            MONITOR_PROMETHEUS_HOST            = "http://prometheus"
+            MONITOR_PROMETHEUS_PORT            = try(local.monitors["prometheus"].port, null)
+            MONITOR_REDIS_EXPORTER_HOST        = "http://redis-exporter"
+            MONITOR_REDIS_EXPORTER_PORT        = try(local.monitors["redis-exporter"].port, null)
+            MONITOR_REDIS_INSIGHT_HOST         = "http://redis-insight"
+            MONITOR_REDIS_INSIGHT_PORT         = try(local.monitors["redis-insight"].port, null)
         }) : key => value if !contains(local.helm_keys_to_remove, key) && value != null
       })
     })

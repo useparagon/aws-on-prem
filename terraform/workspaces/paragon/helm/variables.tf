@@ -88,3 +88,8 @@ variable "ingress_scheme" {
   description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
   type        = string
 }
+
+variable "k8_version" {
+  description = "The version of Kubernetes to run in the cluster."
+  type        = string
+}
