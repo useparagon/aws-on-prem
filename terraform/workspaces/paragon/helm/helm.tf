@@ -183,6 +183,16 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.microservices
+
+    content {
+      name  = "${set.key}.ingress.scheme"
+      value = var.ingress_scheme
+    }
+  }
+
   dynamic "set" {
     for_each = var.microservices
 
@@ -212,15 +222,6 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
-  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
-  dynamic "set" {
-    for_each = var.microservices
-
-    content {
-      name  = "${set.key}.ingress.scheme"
-      value = var.ingress_scheme
-    }
-  }
 
   # configures load balancer bucket for logging
   dynamic "set" {
@@ -228,7 +229,7 @@ resource "helm_release" "paragon_on_prem" {
 
     content {
       name  = "${set.key}.ingress.logs_bucket"
-      value = var.logs_bucket 
+      value = var.logs_bucket
     }
   }
 
@@ -327,6 +328,16 @@ resource "helm_release" "paragon_monitoring" {
     }
   }
 
+  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
+  dynamic "set" {
+    for_each = var.public_monitors
+
+    content {
+      name  = "${set.key}.ingress.scheme"
+      value = var.ingress_scheme
+    }
+  }
+
   # configures the ssl cert to the load balancer
   dynamic "set" {
     for_each = var.public_monitors
@@ -347,22 +358,22 @@ resource "helm_release" "paragon_monitoring" {
     }
   }
 
-  # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
-  dynamic "set" {
-    for_each = var.public_monitors
-
-    content {
-      name  = "${set.key}.ingress.scheme"
-      value = var.ingress_scheme
-    }
-  }
-
   dynamic "set" {
     for_each = var.monitors
 
     content {
       name  = "${set.key}.image.tag"
       value = var.monitor_version
+    }
+  }
+
+  # configures load balancer bucket for logging
+  dynamic "set" {
+    for_each = var.monitors
+
+    content {
+      name  = "${set.key}.ingress.logs_bucket"
+      value = var.logs_bucket
     }
   }
 

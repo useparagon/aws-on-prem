@@ -25,6 +25,15 @@ resource "aws_s3_bucket" "app" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "app" {
+  bucket = aws_s3_bucket.app.bucket
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "expiration" {
   bucket = aws_s3_bucket.app.id
 
@@ -145,6 +154,7 @@ resource "aws_s3_bucket" "cdn" {
     target_bucket = var.cloudtrail_s3_bucket
     target_prefix = "${var.workspace}-cdn/"
   }
+
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["HEAD", "POST"]
@@ -296,7 +306,7 @@ resource "random_string" "minio_microservice_user" {
 resource "random_string" "minio_microservice_pass" {
   length  = 10
   special = false
-  numeric = false
+  numeric = true
   lower   = true
   upper   = false
 }
