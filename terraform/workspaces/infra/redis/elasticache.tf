@@ -74,7 +74,7 @@ resource "aws_elasticache_replication_group" "redis" {
 
   replication_group_id          = "${var.workspace}-redis-cache"
   replication_group_description = "Redis cluster for caching & workflows."
-  apply_immediately             = false
+  apply_immediately             = true
   node_type                     = local.redis_instances.cache.size
   engine_version                = local.redis_version
   port                          = 6379
@@ -87,7 +87,7 @@ resource "aws_elasticache_replication_group" "redis" {
   subnet_group_name          = aws_elasticache_subnet_group.main.name
   security_group_ids         = [aws_security_group.elasticache.id]
   multi_az_enabled           = var.multi_az_enabled
-  automatic_failover_enabled = false
+  automatic_failover_enabled = true
   num_node_groups            = 1
   replicas_per_node_group    = var.multi_az_enabled ? 1 : 0
 
@@ -126,7 +126,7 @@ resource "aws_elasticache_cluster" "redis" {
   parameter_group_name = aws_elasticache_parameter_group.redis["standalone"].name
   engine_version       = local.redis_version
   port                 = 6379
-  apply_immediately    = false
+  apply_immediately    = true
 
   snapshot_retention_limit = 5
   snapshot_window          = "12:00-13:00"
@@ -161,10 +161,6 @@ resource "aws_elasticache_cluster" "redis" {
 resource "aws_cloudwatch_log_group" "redis" {
   name_prefix       = "${var.workspace}-redis"
   retention_in_days = 365
-
-  tags = {
-    Name = "${var.workspace}-redis"
-  }
 }
 
 ########################################
@@ -172,9 +168,7 @@ resource "aws_cloudwatch_log_group" "redis" {
 ########################################
 
 resource "aws_appautoscaling_target" "cache" {
-  # Only upto 2xlarge is supported for autoscaling
-  # https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoScaling.html
-  count = var.multi_redis ? 1 : 0
+  count = local.cache_autoscaling_enabled ? 1 : 0
 
   resource_id        = "replication-group/${aws_elasticache_replication_group.redis[0].replication_group_id}"
   service_namespace  = "elasticache"
@@ -184,9 +178,7 @@ resource "aws_appautoscaling_target" "cache" {
 }
 
 resource "aws_appautoscaling_policy" "cache_memory" {
-  # Only upto 2xlarge is supported for autoscaling
-  # https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoScaling.html
-  count = var.multi_redis ? 1 : 0
+  count = local.cache_autoscaling_enabled ? 1 : 0
 
   resource_id        = aws_appautoscaling_target.cache[count.index].resource_id
   service_namespace  = aws_appautoscaling_target.cache[count.index].service_namespace
@@ -207,9 +199,7 @@ resource "aws_appautoscaling_policy" "cache_memory" {
 }
 
 resource "aws_appautoscaling_policy" "cache_cpu" {
-  # Only upto 2xlarge is supported for autoscaling
-  # https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoScaling.html
-  count = var.multi_redis ? 1 : 0
+  count = local.cache_autoscaling_enabled ? 1 : 0
 
   resource_id        = aws_appautoscaling_target.cache[count.index].resource_id
   service_namespace  = aws_appautoscaling_target.cache[count.index].service_namespace

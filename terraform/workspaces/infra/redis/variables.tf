@@ -51,7 +51,7 @@ variable "multi_az_enabled" {
 }
 
 variable "multi_redis" {
-  description = "Whether or not to create multiple redis instances."
+  description = "Whether or not to create multiple Redis instances."
   type        = bool
 }
 
@@ -75,6 +75,13 @@ locals {
       size    = var.elasticache_node_type
     }
   }
+
+  # https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoScaling.html
+  # only R5, R6g, M5, M6g families supported
+  cache_autoscaling_supports_family = contains(["r5", "r6g", "m5", "m6g"], element(split(".", lower(var.elasticache_node_type)), 1))
+  # only large, xlarge, and 2xlarge supported
+  cache_autoscaling_supports_size = contains(["large", "xlarge", "2xlarge"], element(split(".", lower(var.elasticache_node_type)), 2))
+  cache_autoscaling_enabled       = var.multi_redis && local.cache_autoscaling_supports_family && local.cache_autoscaling_supports_size
 
   redis_instances_standalone = {
     for key, value in local.redis_instances :

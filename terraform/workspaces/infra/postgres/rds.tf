@@ -3,6 +3,8 @@ locals {
 }
 
 resource "random_string" "postgres_root_username" {
+  for_each = local.postgres_instances
+
   length  = 16
   special = false
   numeric = false
@@ -11,6 +13,8 @@ resource "random_string" "postgres_root_username" {
 }
 
 resource "random_string" "postgres_root_password" {
+  for_each = local.postgres_instances
+
   length    = 16
   min_upper = 2
   min_lower = 2
@@ -69,11 +73,13 @@ resource "aws_db_parameter_group" "postgres" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier = var.workspace
+  for_each = local.postgres_instances
+
+  identifier = each.value.name
   name       = "postgres"
   port       = "5432"
-  username   = random_string.postgres_root_username.result
-  password   = random_string.postgres_root_password.result
+  username   = random_string.postgres_root_username[each.key].result
+  password   = random_string.postgres_root_password[each.key].result
 
   engine               = "postgres"
   engine_version       = var.postgres_version
@@ -84,12 +90,12 @@ resource "aws_db_instance" "postgres" {
 
   allocated_storage           = 20
   max_allocated_storage       = 1000
-  allow_major_version_upgrade = true
+  allow_major_version_upgrade = false
   auto_minor_version_upgrade  = true
   availability_zone           = var.availability_zones.names[0]
   backup_retention_period     = 7
   monitoring_interval         = 15
-  multi_az                    = false
+  multi_az                    = var.multi_az_enabled
   monitoring_role_arn         = aws_iam_role.rds_enhanced_monitoring.arn
   backup_window               = "06:00-07:00"
   maintenance_window          = "Tue:04:00-Tue:05:00"
@@ -98,8 +104,8 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids    = [aws_security_group.postgres.id]
   publicly_accessible       = false
   deletion_protection       = !var.disable_deletion_protection
-  skip_final_snapshot       = false
-  final_snapshot_identifier = var.workspace
+  skip_final_snapshot       = var.disable_deletion_protection
+  final_snapshot_identifier = var.disable_deletion_protection ? null : each.value.name
   storage_encrypted         = true
 
   performance_insights_enabled          = true

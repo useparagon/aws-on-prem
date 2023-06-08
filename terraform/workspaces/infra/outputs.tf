@@ -8,38 +8,14 @@ output "environment" {
   value       = local.environment
 }
 
-output "postgres_host" {
-  description = "The host of the postgres database."
-  value       = module.postgres.rds.host
-  sensitive   = true
-}
-
-output "postgres_port" {
-  description = "The port of the postgres database."
-  value       = module.postgres.rds.port
-  sensitive   = true
-}
-
-output "postgres_user" {
-  description = "The username of the postgres database."
-  value       = module.postgres.rds.user
-  sensitive   = true
-}
-
-output "postgres_password" {
-  description = "The password of the postgres database."
-  value       = module.postgres.rds.password
-  sensitive   = true
-}
-
-output "postgres_database" {
-  description = "The database of the postgres database."
-  value       = module.postgres.rds.database
+output "postgres" {
+  description = "Connection info for Postgres."
+  value       = module.postgres.rds
   sensitive   = true
 }
 
 output "redis" {
-  description = "Connection information for redis."
+  description = "Connection information for Redis."
   value       = module.redis.elasticache
   sensitive   = true
 }

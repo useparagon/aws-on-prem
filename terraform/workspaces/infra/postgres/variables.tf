@@ -1,25 +1,31 @@
 variable "workspace" {
   description = "The name of the workspace resources are being created in."
+  type        = string
 }
 
 variable "environment" {
   description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
+  type        = string
 }
 
 variable "aws_region" {
   description = "The AWS region resources are created in."
+  type        = string
 }
 
 variable "aws_access_key_id" {
   description = "AWS Access Key for AWS account to provision resources on."
+  type        = string
 }
 
 variable "aws_secret_access_key" {
   description = "AWS Secret Access Key for AWS account to provision resources on."
+  type        = string
 }
 
 variable "aws_session_token" {
   description = "AWS session token."
+  type        = string
 }
 
 variable "vpc" {
@@ -50,4 +56,40 @@ variable "rds_instance_class" {
 variable "disable_deletion_protection" {
   description = "Whether to disable deletion protection."
   type        = bool
+}
+
+variable "multi_az_enabled" {
+  description = "Whether or not multi-az is enabled."
+  type        = bool
+}
+
+variable "multi_postgres" {
+  description = "Whether or not to create multiple Postgres instances."
+  type        = bool
+}
+
+locals {
+  postgres_instances = var.multi_postgres ? {
+    beethoven = {
+      name = "${var.workspace}-beethoven"
+      size = var.rds_instance_class
+    }
+    cerberus = {
+      name = "${var.workspace}-cerberus"
+      size = "db.t4g.micro"
+    }
+    hermes = {
+      name = "${var.workspace}-hermes"
+      size = var.rds_instance_class
+    }
+    zeus = {
+      name = "${var.workspace}-zeus"
+      size = var.rds_instance_class
+    }
+  } : {
+    paragon = {
+      name = "${var.workspace}"
+      size = var.rds_instance_class
+    }
+  }
 }
