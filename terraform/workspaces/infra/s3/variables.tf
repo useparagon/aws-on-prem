@@ -34,3 +34,8 @@ variable "force_destroy" {
 variable "app_bucket_expiration" {
   description = "The number of days to retain S3 app data before deleting"
 }
+
+variable "disable_logs" {
+  description = "Whether to disable system level log gathering."
+  type        = bool
+}
