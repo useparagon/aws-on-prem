@@ -32,7 +32,6 @@ locals {
 
 resource "aws_s3_bucket" "cloudtrail" {
   bucket        = local.cloudtrail_name
-  acl           = "log-delivery-write"
   force_destroy = var.force_destroy
 
   logging {
@@ -47,7 +46,27 @@ resource "aws_s3_bucket" "cloudtrail" {
     # aws s3api put-bucket-versioning --bucket <BUCKET_NAME> --versioning-configuration '{"MFADelete":"Enabled","Status":"Enabled"}' --mfa '<MFA_DEVICE_ARN> <MFA_CODE>'
     mfa_delete = var.mfa_enabled
   }
+}
 
+resource "aws_s3_bucket_ownership_controls" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
+
+resource "aws_s3_bucket_acl" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+  acl    = "private"
+
+  depends_on = [
+    aws_s3_bucket_ownership_controls.cloudtrail
+  ]
+}
+
+resource "aws_s3_bucket_policy" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -125,7 +144,13 @@ resource "aws_s3_bucket" "cloudtrail" {
     ]
 }
 POLICY
+
+  depends_on = [
+    aws_s3_bucket_ownership_controls.cloudtrail,
+    aws_s3_bucket_acl.cloudtrail,
+  ]
 }
+
 
 resource "aws_s3_bucket_public_access_block" "cloudtrail" {
   bucket = aws_s3_bucket.cloudtrail.id

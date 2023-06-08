@@ -37,7 +37,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "expiration" {
 
 resource "aws_s3_bucket" "cdn" {
   bucket        = "${var.workspace}-cdn"
-  acl           = "public-read"
   force_destroy = var.force_destroy
 
   logging {
@@ -114,6 +113,28 @@ resource "aws_s3_bucket_policy" "app_bucket" {
 resource "aws_s3_bucket_policy" "cdn_bucket" {
   bucket = aws_s3_bucket.cdn.id
   policy = data.aws_iam_policy_document.cdn_bucket_policy.json
+
+  depends_on = [
+    aws_s3_bucket_acl.cdn,
+  ]
+}
+
+resource "aws_s3_bucket_public_access_block" "cdn" {
+  bucket = aws_s3_bucket.cdn.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "cdn" {
+  bucket = aws_s3_bucket.cdn.id
+  acl    = "public-read"
+
+  depends_on = [
+    aws_s3_bucket_public_access_block.cdn,
+  ]
 }
 
 resource "aws_iam_user" "app" {
@@ -183,6 +204,12 @@ resource "aws_iam_user_policy" "app" {
   ]
 }
 EOF
+
+  depends_on = [
+    # aws_s3_bucket_ownership_controls.cdn,
+    aws_s3_bucket_public_access_block.cdn,
+    aws_s3_bucket_acl.cdn,
+  ]
 }
 
 resource "random_string" "minio_microservice_user" {
