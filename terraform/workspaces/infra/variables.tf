@@ -46,13 +46,19 @@ variable "rds_instance_class" {
 variable "elasticache_node_type" {
   description = "The ElastiCache node type used for Redis."
   type        = string
-  default     = "cache.t4g.small"
+  default     = "cache.r6g.large"
 }
 
 variable "postgres_version" {
   description = "Postgres version for the database."
   type        = string
   default     = "12.7"
+}
+
+variable "multi_postgres" {
+  description = "Whether or not to create multiple Postgres instances."
+  type        = bool
+  default     = false
 }
 
 variable "master_guardduty_account_id" {
@@ -106,7 +112,41 @@ variable "multi_redis" {
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
-  default     = "1.25"
+  default     = "1.24"
+}
+
+variable "k8_ondemand_node_instance_type" {
+  description = "The compute instance type to use for Kubernetes nodes."
+  type        = string
+  default     = "t3a.medium,t3.medium"
+}
+
+variable "k8_spot_node_instance_type" {
+  description = "The compute instance type to use for Kubernetes spot nodes."
+  type        = string
+  default     = "t3a.medium,t3.medium"
+}
+
+variable "k8_spot_instance_percent" {
+  description = "The percentage of spot instances to use for Kubernetes nodes."
+  type        = number
+  default     = 75
+  validation {
+    condition     = var.k8_spot_instance_percent >= 0 && var.k8_spot_instance_percent <= 100
+    error_message = "Value must be between 0 - 100."
+  }
+}
+
+variable "k8_min_node_count" {
+  description = "The minimum number of nodes to run in the Kubernetes cluster."
+  type        = number
+  default     = 8
+}
+
+variable "k8_max_node_count" {
+  description = "The maximum number of nodes to run in the Kubernetes cluster."
+  type        = number
+  default     = 20
 }
 
 variable "eks_addon_ebs_csi_driver_enabled" {
@@ -116,6 +156,14 @@ variable "eks_addon_ebs_csi_driver_enabled" {
   default     = true
 }
 
+variable "eks_admin_user_arns" {
+  # If these aren't available when the cluster is first initialized, it'll have to be manually created
+  # https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+  description = "Comma-separated list of ARNs for IAM users that should have admin access to cluster. Used for viewing cluster resources in AWS dashboard."
+  type        = string
+  default     = null
+}
+
 locals {
   workspace   = "paragon-enterprise-${random_string.app.result}"
   environment = "enterprise"
@@ -123,4 +171,17 @@ locals {
   // get distinct values from comma-separated list, filter empty values and trim them
   // for `ip_whitelist`, if an ip doesn't contain a range at the end (e.g. `<IP_ADDRESS>/32`), then add `/32` to the end. `1.1.1.1` becomes `1.1.1.1/32`; `2.2.2.2/24` remains unchanged
   ssh_whitelist = distinct([for value in split(",", var.ssh_whitelist) : "${trimspace(value)}${replace(value, "/", "") != value ? "" : "/32"}" if trimspace(value) != ""])
+
+  // split instance types by comma, trim, and remove duplicates
+  k8_ondemand_node_instance_type = distinct([for value in split(",", var.k8_ondemand_node_instance_type) : trimspace(value)])
+  k8_spot_node_instance_type     = distinct([for value in split(",", var.k8_spot_node_instance_type) : trimspace(value)])
+
+  // split ARNs by comma, trim, remove duplicates, and transform into object
+  eks_admin_user_arns = var.eks_admin_user_arns == null ? [] : [
+    for value in distinct([for value in split(",", var.eks_admin_user_arns) : trimspace(value)]) : {
+      userarn  = value
+      username = element(split("/", value), length(split("/", value)) - 1)
+      groups   = ["system:masters"]
+    }
+  ]
 }

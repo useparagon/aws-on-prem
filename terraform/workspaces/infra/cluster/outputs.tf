@@ -8,8 +8,6 @@ output "eks_cluster" {
     cluster_oidc_issuer_url            = module.eks.cluster_oidc_issuer_url
     cluster_endpoint                   = module.eks.cluster_endpoint
     cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
-    worker_iam_role_arn                = aws_iam_role.node_role.arn
-    worker_iam_role_name               = "${var.workspace}-eks-node-role"
   }
 }
 

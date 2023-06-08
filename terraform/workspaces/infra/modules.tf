@@ -42,6 +42,8 @@ module "postgres" {
   postgres_version            = var.postgres_version
   rds_instance_class          = var.rds_instance_class
   disable_deletion_protection = var.disable_deletion_protection
+  multi_az_enabled            = var.multi_az_enabled
+  multi_postgres              = var.multi_postgres
 
   vpc                = module.network.vpc
   public_subnet      = module.network.public_subnet
@@ -95,7 +97,13 @@ module "cluster" {
   workspace                        = local.workspace
   environment                      = local.environment
   k8_version                       = var.k8_version
+  k8_ondemand_node_instance_type   = local.k8_ondemand_node_instance_type
+  k8_spot_node_instance_type       = local.k8_spot_node_instance_type
+  k8_spot_instance_percent         = var.k8_spot_instance_percent
+  k8_min_node_count                = var.k8_min_node_count
+  k8_max_node_count                = var.k8_max_node_count
   eks_addon_ebs_csi_driver_enabled = var.eks_addon_ebs_csi_driver_enabled
+  eks_admin_user_arns              = local.eks_admin_user_arns
 
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet
@@ -118,7 +126,6 @@ module "bastion" {
   vpc_id              = module.network.vpc.id
   public_subnet       = module.network.public_subnet
   private_subnet      = module.network.private_subnet
-  eks_cluster         = module.cluster.eks_cluster
   cluster_super_admin = module.cluster.cluster_super_admin
   force_destroy       = var.disable_deletion_protection
 }
