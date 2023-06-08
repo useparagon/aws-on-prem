@@ -88,6 +88,11 @@ variable "helm_values" {
   type        = string
 }
 
+variable "helm_env" {
+  description = "Enviroment variables to pass to helm from `.env-helm`."
+  type        = string
+}
+
 variable "ingress_scheme" {
   description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
   type        = string
@@ -101,9 +106,15 @@ variable "k8_version" {
 }
 
 locals {
-  base_helm_values = yamldecode(
+  raw_helm_env = jsondecode(base64decode(var.helm_env))
+  raw_helm_values = yamldecode(
     base64decode(var.helm_values),
   )
+  base_helm_values = merge(local.raw_helm_values, {
+    global = merge(try(local.raw_helm_values.global, {}), {
+      env = merge(try(local.raw_helm_values.global.env, {}), local.raw_helm_env)
+    })
+  })
 
   _microservices = {
     "cerberus" = {

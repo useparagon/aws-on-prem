@@ -140,7 +140,7 @@ variable "k8_spot_instance_percent" {
 variable "k8_min_node_count" {
   description = "The minimum number of nodes to run in the Kubernetes cluster."
   type        = number
-  default     = 8
+  default     = 12
 }
 
 variable "k8_max_node_count" {

@@ -101,10 +101,11 @@ module "eks" {
 resource "aws_eks_addon" "aws_ebs_csi_driver" {
   count = var.eks_addon_ebs_csi_driver_enabled ? 1 : 0
 
-  cluster_name      = var.workspace
-  addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.19.0-eksbuild.2"
-  resolve_conflicts = "OVERWRITE"
+  cluster_name             = var.workspace
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.19.0-eksbuild.2"
+  resolve_conflicts        = "OVERWRITE"
+  service_account_role_arn = module.aws_ebs_csi_driver_iam_role[0].iam_role_arn
 
   depends_on = [
     module.eks_managed_node_group
