@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 resource "aws_iam_role" "super_admin" {
   name = "${var.workspace}-eks-super-admin"
   assume_role_policy = jsonencode({

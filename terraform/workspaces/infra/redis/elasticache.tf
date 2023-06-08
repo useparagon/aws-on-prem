@@ -72,13 +72,13 @@ resource "aws_elasticache_parameter_group" "redis" {
 resource "aws_elasticache_replication_group" "redis" {
   count = var.multi_redis ? 1 : 0
 
-  replication_group_id          = "${var.workspace}-redis-cache"
-  replication_group_description = "Redis cluster for caching & workflows."
-  apply_immediately             = true
-  node_type                     = local.redis_instances.cache.size
-  engine_version                = local.redis_version
-  port                          = 6379
-  parameter_group_name          = aws_elasticache_parameter_group.redis["cluster"].name
+  replication_group_id = "${var.workspace}-redis-cache"
+  description          = "Redis cluster for caching & workflows."
+  apply_immediately    = true
+  node_type            = local.redis_instances.cache.size
+  engine_version       = local.redis_version
+  port                 = 6379
+  parameter_group_name = aws_elasticache_parameter_group.redis["cluster"].name
 
   snapshot_retention_limit = 5
   snapshot_window          = "12:00-13:00"

@@ -3,9 +3,12 @@ resource "aws_s3_bucket" "app" {
   acl           = "private"
   force_destroy = var.force_destroy
 
-  logging {
-    target_bucket = var.cloudtrail_s3_bucket
-    target_prefix = "${var.workspace}/"
+  dynamic "logging" {
+    for_each = var.disable_cloudtrail ? [] : ["true"]
+    content {
+      target_bucket = var.cloudtrail_s3_bucket
+      target_prefix = "${var.workspace}/"
+    }
   }
 
   versioning {
@@ -39,9 +42,12 @@ resource "aws_s3_bucket" "cdn" {
   bucket        = "${var.workspace}-cdn"
   force_destroy = var.force_destroy
 
-  logging {
-    target_bucket = var.cloudtrail_s3_bucket
-    target_prefix = "${var.workspace}-cdn/"
+  dynamic "logging" {
+    for_each = var.disable_cloudtrail ? [] : ["true"]
+    content {
+      target_bucket = var.cloudtrail_s3_bucket
+      target_prefix = "${var.workspace}-cdn/"
+    }
   }
 
   versioning {
@@ -64,6 +70,27 @@ resource "aws_s3_bucket" "cdn" {
       }
     }
   }
+}
+
+resource "aws_s3_bucket_policy" "cdn" {
+  bucket = aws_s3_bucket.cdn.id
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowAnonymousReads",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObjectVersion",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::${aws_s3_bucket.cdn.id}/*"
+        }
+    ]
+}
+POLICY
 }
 
 data "aws_iam_policy_document" "app_bucket_policy" {
@@ -113,10 +140,6 @@ resource "aws_s3_bucket_policy" "app_bucket" {
 resource "aws_s3_bucket_policy" "cdn_bucket" {
   bucket = aws_s3_bucket.cdn.id
   policy = data.aws_iam_policy_document.cdn_bucket_policy.json
-
-  depends_on = [
-    aws_s3_bucket_acl.cdn,
-  ]
 }
 
 resource "aws_s3_bucket_public_access_block" "cdn" {
@@ -126,15 +149,6 @@ resource "aws_s3_bucket_public_access_block" "cdn" {
   block_public_policy     = false
   ignore_public_acls      = false
   restrict_public_buckets = false
-}
-
-resource "aws_s3_bucket_acl" "cdn" {
-  bucket = aws_s3_bucket.cdn.id
-  acl    = "public-read"
-
-  depends_on = [
-    aws_s3_bucket_public_access_block.cdn,
-  ]
 }
 
 resource "aws_iam_user" "app" {
@@ -204,12 +218,6 @@ resource "aws_iam_user_policy" "app" {
   ]
 }
 EOF
-
-  depends_on = [
-    # aws_s3_bucket_ownership_controls.cdn,
-    aws_s3_bucket_public_access_block.cdn,
-    aws_s3_bucket_acl.cdn,
-  ]
 }
 
 resource "random_string" "minio_microservice_user" {

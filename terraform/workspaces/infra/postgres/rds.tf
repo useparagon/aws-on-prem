@@ -76,7 +76,7 @@ resource "aws_db_instance" "postgres" {
   for_each = local.postgres_instances
 
   identifier = each.value.name
-  name       = "postgres"
+  db_name    = each.value.db
   port       = "5432"
   username   = random_string.postgres_root_username[each.key].result
   password   = random_string.postgres_root_password[each.key].result

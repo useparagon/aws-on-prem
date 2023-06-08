@@ -31,6 +31,8 @@ locals {
 }
 
 resource "aws_s3_bucket" "cloudtrail" {
+  count = !var.disable_cloudtrail ? 1 : 0
+
   bucket        = local.cloudtrail_name
   force_destroy = var.force_destroy
 
@@ -49,7 +51,9 @@ resource "aws_s3_bucket" "cloudtrail" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "cloudtrail" {
-  bucket = aws_s3_bucket.cloudtrail.id
+  count = !var.disable_cloudtrail ? 1 : 0
+
+  bucket = aws_s3_bucket.cloudtrail[0].id
 
   rule {
     object_ownership = "ObjectWriter"
@@ -57,16 +61,20 @@ resource "aws_s3_bucket_ownership_controls" "cloudtrail" {
 }
 
 resource "aws_s3_bucket_acl" "cloudtrail" {
-  bucket = aws_s3_bucket.cloudtrail.id
+  count = !var.disable_cloudtrail ? 1 : 0
+
+  bucket = aws_s3_bucket.cloudtrail[0].id
   acl    = "private"
 
   depends_on = [
-    aws_s3_bucket_ownership_controls.cloudtrail
+    aws_s3_bucket_ownership_controls.cloudtrail[0]
   ]
 }
 
 resource "aws_s3_bucket_policy" "cloudtrail" {
-  bucket = aws_s3_bucket.cloudtrail.id
+  count = !var.disable_cloudtrail ? 1 : 0
+
+  bucket = aws_s3_bucket.cloudtrail[0].id
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -146,14 +154,16 @@ resource "aws_s3_bucket_policy" "cloudtrail" {
 POLICY
 
   depends_on = [
-    aws_s3_bucket_ownership_controls.cloudtrail,
-    aws_s3_bucket_acl.cloudtrail,
+    aws_s3_bucket_ownership_controls.cloudtrail[0],
+    aws_s3_bucket_acl.cloudtrail[0],
   ]
 }
 
 
 resource "aws_s3_bucket_public_access_block" "cloudtrail" {
-  bucket = aws_s3_bucket.cloudtrail.id
+  count = !var.disable_cloudtrail ? 1 : 0
+
+  bucket = aws_s3_bucket.cloudtrail[0].id
 
   block_public_acls       = true
   block_public_policy     = true

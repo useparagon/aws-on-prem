@@ -73,23 +73,28 @@ locals {
     beethoven = {
       name = "${var.workspace}-beethoven"
       size = var.rds_instance_class
+      db   = "beethoven"
     }
     cerberus = {
       name = "${var.workspace}-cerberus"
       size = "db.t4g.micro"
+      db   = "cerberus"
     }
     hermes = {
       name = "${var.workspace}-hermes"
       size = var.rds_instance_class
+      db   = "hermes"
     }
     zeus = {
       name = "${var.workspace}-zeus"
       size = var.rds_instance_class
+      db   = "zeus"
     }
-  } : {
+    } : {
     paragon = {
       name = "${var.workspace}"
       size = var.rds_instance_class
+      db   = "postgres"
     }
   }
 }

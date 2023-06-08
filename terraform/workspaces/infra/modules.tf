@@ -78,10 +78,11 @@ module "s3" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace   = local.workspace
-  environment = local.environment
+  workspace          = local.workspace
+  environment        = local.environment
+  disable_cloudtrail = var.disable_cloudtrail
 
-  cloudtrail_s3_bucket  = module.cloudtrail.s3.bucket
+  cloudtrail_s3_bucket  = var.disable_cloudtrail ? null : module.cloudtrail.s3.bucket
   force_destroy         = var.disable_deletion_protection
   app_bucket_expiration = var.app_bucket_expiration
 }
