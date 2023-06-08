@@ -130,11 +130,8 @@ module "eks_managed_node_group" {
     module.eks.cluster_security_group_id,
   ]
   security_group_rules = local.node_security_group_rules
-  security_group_tags = {
-    "kubernetes.io/cluster/${var.workspace}" = "owned"
-  }
-  create_iam_role = false
-  iam_role_arn    = aws_iam_role.node_role.arn
+  create_iam_role      = false
+  iam_role_arn         = aws_iam_role.node_role.arn
 
   min_size       = each.value.min_count
   max_size       = each.value.max_count
