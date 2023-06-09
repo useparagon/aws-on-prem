@@ -51,6 +51,11 @@ variable "acm_certificate_arn" {
   default     = null
 }
 
+variable "docker_registry_server" {
+  description = "Docker container registry server."
+  default     = "docker.io"
+}
+
 variable "docker_username" {
   description = "Docker username to pull images."
   type        = string
@@ -62,7 +67,7 @@ variable "docker_password" {
 }
 
 variable "docker_email" {
-  description = "Docker password to pull images."
+  description = "Docker email to pull images."
   type        = string
 }
 
