@@ -138,7 +138,7 @@ resource "helm_release" "paragon_on_prem" {
   description      = "Paragon microservices"
   chart            = "./charts/paragon-onprem"
   version          = "${var.helm_values.global.env["VERSION"]}-${module.helm_hash_onprem.hash}"
-  namespace        = "paragon"
+  namespace        = kubernetes_namespace.paragon.id
   cleanup_on_fail  = true
   create_namespace = false
   atomic           = true
