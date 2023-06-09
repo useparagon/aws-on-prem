@@ -263,6 +263,7 @@ resource "helm_release" "paragon_logging" {
   cleanup_on_fail  = true
   atomic           = true
   verify           = false
+  timeout          = 900 # 15 minutes
 
   values = [
     local.supported_microservices_values,
@@ -304,7 +305,7 @@ resource "helm_release" "paragon_monitoring" {
   create_namespace = false
   atomic           = true
   verify           = false
-  timeout          = 600 # 10 minutes
+  timeout          = 900 # 15 minutes
 
   values = [
     local.supported_microservices_values,
@@ -399,6 +400,7 @@ resource "helm_release" "paragon_monitoring" {
 
   depends_on = [
     helm_release.ingress,
+    helm_release.paragon_on_prem,
     kubernetes_secret.docker_login
   ]
 }
