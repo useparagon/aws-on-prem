@@ -409,6 +409,8 @@ locals {
             MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
             MONITOR_GRAFANA_HOST                    = "http://grafana"
             MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
+            MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
+            MONITOR_KUBE_STATE_METRICS_PORT         = try(local.monitors["kube-state-metrics"].port, null)
             MONITOR_PGADMIN_HOST                    = "http://pgadmin"
             MONITOR_PGADMIN_PORT                    = try(local.monitors["pgadmin"].port, null)
             MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
