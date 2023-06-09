@@ -55,7 +55,7 @@ resource "kubernetes_namespace" "paragon" {
 resource "kubernetes_secret" "docker_login" {
   metadata {
     name      = "docker-cfg"
-    namespace = "paragon"
+    namespace = kubernetes_namespace.paragon.id
   }
 
   type = "kubernetes.io/dockerconfigjson"
@@ -72,10 +72,6 @@ resource "kubernetes_secret" "docker_login" {
       }
     })
   }
-
-  depends_on = [
-    kubernetes_namespace.paragon
-  ]
 }
 
 # ingress controller; provisions load balancer
@@ -86,7 +82,7 @@ resource "helm_release" "ingress" {
   repository       = "https://aws.github.io/eks-charts"
   chart            = "aws-load-balancer-controller"
   version          = "1.5.3"
-  namespace        = "paragon"
+  namespace        = kubernetes_namespace.paragon.id
   create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
@@ -106,10 +102,6 @@ resource "helm_release" "ingress" {
     name  = "clusterName"
     value = var.cluster_name
   }
-
-  depends_on = [
-    kubernetes_namespace.paragon
-  ]
 }
 
 # metrics server for hpa
@@ -119,8 +111,8 @@ resource "helm_release" "metricsserver" {
 
   repository       = "https://kubernetes-sigs.github.io/metrics-server/"
   chart            = "metrics-server"
-  namespace        = "paragon"
-  create_namespace = true
+  namespace        = kubernetes_namespace.paragon.id
+  create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
   verify           = false
@@ -222,7 +214,6 @@ resource "helm_release" "paragon_on_prem" {
       value = var.aws_workspace
     }
   }
-
 
   # configures load balancer bucket for logging
   dynamic "set" {
