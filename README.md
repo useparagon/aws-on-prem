@@ -161,9 +161,9 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
 - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
 - `DISABLE_LOGS`: Set to `true` to disable system level logs gathering (defaults: `false`)
-- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
+- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23. (default: `true`)
 - `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
-- `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
+- `K8_VERSION`: Version of kubernetes to run. (default: `1.25`)
 - `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
 - `POSTGRES_VERSION`: the version of Postgres to run
 - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)

@@ -27,15 +27,6 @@ module "eks" {
       groups   = ["system:masters"]
     }
   ]
-
-  cluster_addons = merge(var.eks_addon_ebs_csi_driver_enabled ? {
-    aws-ebs-csi-driver = {
-      resolve_conflicts = "OVERWRITE"
-    }
-    } : {}
-    , {
-      # additional addons go here
-  })
 }
 
 resource "aws_iam_role" "node_role" {
@@ -92,9 +83,14 @@ resource "aws_iam_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
+resource "aws_iam_policy_attachment" "AmazonEBSCSIDriverPolicy" {
+  name       = "${var.workspace}-eks-cni-policy"
+  roles      = [aws_iam_role.node_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
 module "eks_node_group" {
   source = "cloudposse/eks-node-group/aws"
-  # Cloud Posse recommends pinning every module to a specific version
   version = "0.25.0"
 
   instance_types             = ["t3a.xlarge"]
@@ -116,6 +112,20 @@ module "eks_node_group" {
     aws_iam_policy_attachment.custom_worker_policy_attachment,
     aws_iam_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
-    aws_iam_policy_attachment.AmazonEKS_CNI_Policy
+    aws_iam_policy_attachment.AmazonEKS_CNI_Policy,
+    aws_iam_policy_attachment.AmazonEBSCSIDriverPolicy,
+  ]
+}
+
+resource "aws_eks_addon" "aws_ebs_csi_driver" {
+  count = var.eks_addon_ebs_csi_driver_enabled ? 1 : 0
+
+  cluster_name      = var.workspace
+  addon_name        = "aws-ebs-csi-driver"
+  addon_version     = "v1.19.0-eksbuild.2"
+  resolve_conflicts = "OVERWRITE"
+
+  depends_on = [
+    module.eks_node_group
   ]
 }
