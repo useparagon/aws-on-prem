@@ -235,6 +235,10 @@ locals {
       "port"       = 4500
       "public_url" = lookup(local.base_helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
     }
+    "kube-state-metrics" = {
+      "port"       = 2550
+      "public_url" = null
+    }
     "pgadmin" = {
       "port"       = 5050
       "public_url" = null
