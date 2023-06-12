@@ -51,30 +51,10 @@ resource "aws_s3_bucket_policy" "cdn" {
     ]
 }
 POLICY
-}
 
-data "aws_iam_policy_document" "cdn_bucket_policy" {
-  statement {
-    sid = "AllowAnonymousReads"
-    actions = [
-      "s3:GetObject",
-      "s3:GetObjectVersion"
-    ]
-    effect    = "Allow"
-    resources = ["${aws_s3_bucket.cdn.arn}/*"]
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-  }
-
-  # NOTE: Insecure (non-SSL) requests are allowed for this bucket otherwise requests from Minio fail
-}
-
-resource "aws_s3_bucket_policy" "cdn_bucket" {
-  bucket = aws_s3_bucket.cdn.id
-  policy = data.aws_iam_policy_document.cdn_bucket_policy.json
+  depends_on = [
+    aws_s3_bucket_public_access_block.cdn
+  ]
 }
 
 resource "aws_s3_bucket_public_access_block" "cdn" {
