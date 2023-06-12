@@ -160,14 +160,23 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
 - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
 - `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
+- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
+- `EKS_ADMIN_USER_ARNS`: Comma-separated list of ARNs for IAM users that should have admin access to the cluster.
 - `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
+- `K8_ONDEMAND_NODE_INSTANCE_TYPE`: The compute instance type to use for ondemand Kubernetes EC2 nodes.
+- `K8_SPOT_INSTANCE_PERCENT`: The percentage of spot instances to use for Kubernetes EC2 nodes.
+- `K8_SPOT_NODE_INSTANCE_TYPE`: The compute instance type to use for spot Kubernetes EC2 nodes.
+- `K8_MAX_NODE_COUNT`: The maximum number of nodes to run in the Kubernetes cluster.
+- `K8_MIN_NODE_COUNT`: The minimum number of nodes to run in the Kubernetes cluster.
+- `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 - `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
+- `MULTI_AZ_ENABLED`: Whether or not to enable multi-az for resources.
+- `MULTI_POSTGRES`: Whether or not to create multiple Postgres instances. Used for high volume installations. (default: `false`)
+- `MULTI_REDIS`: Whether or not to create multiple Redis instances. Used for high volume installations. (default: `false`)
 - `POSTGRES_VERSION`: the version of Postgres to run
 - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)
 - `SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
 - `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
-- `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
-- `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
 
 ### 5. Deploy the infrastructure.
 
