@@ -35,20 +35,6 @@ If you want to deploy Paragon to your own cloud but don’t want to manage the i
 
 We offer managed on premise solutions for AWS, Azure, and GCP. Please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you started.
 
-## Migrations
-
-### `1.x` to >= `2.x`
-
-Copy the `values.yaml.example` file into `.secure/values.yaml`
-
-```tsx
-> cp values.yaml.example .secure/values.yaml
-```
-
-Copy the values from your `.secure/.env-helm` into `.secure/values.yaml` inside the `global.env` object.
-
-Delete your `.secure/.env-helm` file.
-
 ## Getting Started
 
 ### Access
@@ -138,7 +124,7 @@ terraform/
 Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
 
 ```tsx
-> cp values.yaml.example .secure/values.yaml
+> cp .env-helm.example .secure/.env-helm
 > cp .env-tf-infra.example .secure/.env-tf-infra
 > cp .env-tf-paragon.example .secure/.env-tf-paragon
 ```
@@ -230,7 +216,7 @@ These variables should be pulled from the `infra` workspace.
 - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 
-### 7. Configure the `.secure/values.yaml` file.
+### 7. Configure the `.secure/.env-helm` file.
 
 **Required**
 
@@ -247,13 +233,65 @@ These variables should be pulled from the `infra` workspace.
 - `MINIO_ROOT_PASSWORD`: from `minio_root_password` output
 - `MINIO_ROOT_USER`: from `minio_root_user` output
 - `MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
-- `POSTGRES_DATABASE`: from `postgres_database` output
-- `POSTGRES_HOST`: from `postgres_host` output
-- `POSTGRES_PASSWORD`: from `postgres_password` output
-- `POSTGRES_PORT`: from `postgres_port` output
-- `POSTGRES_USER`: from `postgres_user` output
-- `REDIS_HOST`: from `redis_host` output
-- `REDIS_PORT`: from `redis_port` output
+- `POSTGRES_DATABASE`: from `postgres` output
+- `POSTGRES_HOST`: from `postgres` output
+- `POSTGRES_PASSWORD`: from `postgres` output
+- `POSTGRES_PORT`: from `postgres` output
+- `POSTGRES_USER`: from `postgres` output
+- `REDIS_HOST`: from `redis` output
+- `REDIS_PORT`: from `redis` output
+
+#### Configuring multiple Postgres instances.
+
+If you have `MULTI_POSTGRES` enabled, instead of using `POSTGRES_*` variables, you'll configure the following variables from the `postgres` output. **NOTE**: Beethoven and Pheme should point to the same database.
+
+```
+BEETHOVEN_POSTGRES_HOST=
+BEETHOVEN_POSTGRES_PORT=
+BEETHOVEN_POSTGRES_USERNAME=
+BEETHOVEN_POSTGRES_PASSWORD=
+BEETHOVEN_POSTGRES_DATABASE=
+
+CERBERUS_POSTGRES_HOST=
+CERBERUS_POSTGRES_PORT=
+CERBERUS_POSTGRES_USERNAME=
+CERBERUS_POSTGRES_PASSWORD=
+CERBERUS_POSTGRES_DATABASE=
+
+HERMES_POSTGRES_HOST=
+HERMES_POSTGRES_PORT=
+HERMES_POSTGRES_USERNAME=
+HERMES_POSTGRES_PASSWORD=
+HERMES_POSTGRES_DATABASE=
+
+PHEME_POSTGRES_HOST=
+PHEME_POSTGRES_PORT=
+PHEME_POSTGRES_USERNAME=
+PHEME_POSTGRES_PASSWORD=
+PHEME_POSTGRES_DATABASE=
+
+ZEUS_POSTGRES_HOST=
+ZEUS_POSTGRES_PORT=
+ZEUS_POSTGRES_USERNAME=
+ZEUS_POSTGRES_PASSWORD=
+ZEUS_POSTGRES_DATABASE=
+```
+
+#### Configuring multiple Redis instances.
+
+If you have `MULTI_REDIS` enabled, instead of using `REDIS_*` variables, you'll configure the following variables from the `redis` output. **NOTE**: Cache and Workflow should point to the same Redis.
+
+```
+CACHE_REDIS_URL=
+WORKFLOW_REDIS_URL=
+SYSTEM_REDIS_URL=
+QUEUE_REDIS_URL=
+
+CACHE_REDIS_CLUSTER_ENABLED=true
+SYSTEM_REDIS_CLUSTER_ENABLED=false
+QUEUE_REDIS_CLUSTER_ENABLED=false
+WORKFLOW_REDIS_CLUSTER_ENABLED=true
+```
 
 ### 8. Deploy the Helm chart.
 
