@@ -20,6 +20,12 @@ output "redis" {
   sensitive   = true
 }
 
+output "logs_bucket" {
+  description = "The bucket used to store system logs."
+  value       = module.s3.s3.logs_bucket
+  sensitive   = true
+}
+
 output "minio_root_user" {
   description = "The root username for Minio service."
   value       = module.s3.s3.access_key_id

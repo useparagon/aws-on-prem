@@ -9,7 +9,7 @@ resource "random_string" "minio_microservice_user" {
 resource "random_string" "minio_microservice_pass" {
   length  = 10
   special = false
-  numeric = false
+  numeric = true
   lower   = true
   upper   = false
 }

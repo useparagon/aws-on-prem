@@ -38,5 +38,9 @@ variable "app_bucket_expiration" {
 variable "disable_cloudtrail" {
   description = "Used to specify that Cloudtrail is disabled."
   type        = bool
-  default     = false
+}
+
+variable "disable_logs" {
+  description = "Whether to disable system level log gathering."
+  type        = bool
 }

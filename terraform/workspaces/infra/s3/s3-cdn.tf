@@ -22,12 +22,20 @@ resource "aws_s3_bucket" "cdn" {
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_ownership_controls" "cdn" {
+  bucket = aws_s3_bucket.cdn.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cdn" {
+  bucket = aws_s3_bucket.cdn.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }

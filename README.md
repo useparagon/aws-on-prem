@@ -144,8 +144,8 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 
 - `AWS_SESSION_TOKEN`: the AWS session token for authenticating Terraform
 - `DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
-- `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
 - `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
+- `DISABLE_LOGS`: Set to `true` to disable system level logs gathering (defaults: `false`)
 - `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
 - `EKS_ADMIN_USER_ARNS`: Comma-separated list of ARNs for IAM users that should have admin access to the cluster.
 - `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
@@ -208,6 +208,7 @@ These variables should be pulled from the `infra` workspace.
 
 - `AWS_WORKSPACE`: retrieve from `workspace` output. Used to configure [resource groups](https://docs.aws.amazon.com/ARG/latest/userguide/resource-groups.html)
 - `CLUSTER_NAME`: retrieve from `cluster_name` output. Name of your EKS cluster.
+- `LOGS_BUCKET`: retrieve from `logs_bucket` output. Bucket to store system logs. It can be left empty if `DISABLE_LOGS` is `true`.
 
 **Optional**
 
