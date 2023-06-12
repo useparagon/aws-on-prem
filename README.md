@@ -293,7 +293,15 @@ QUEUE_REDIS_CLUSTER_ENABLED=false
 WORKFLOW_REDIS_CLUSTER_ENABLED=true
 ```
 
-### 8. Deploy the Helm chart.
+### 8. Configuring `values.yaml` (optional)
+
+To create a custom `values.yaml` file to override the Paragon helm chart, create a `values.yaml` file in the `.secure` directory.
+
+> touch .secure/values.yaml
+
+Override your settings within that file.
+
+### 9. Deploy the Helm chart.
 
 Deploy the Paragon helm chart to your Kubernetes cluster. Run the following command:
 
@@ -303,7 +311,7 @@ Deploy the Paragon helm chart to your Kubernetes cluster. Run the following comm
 
 Confirm that Terraform executed successfully.
 
-### 9. Update your nameservers.
+### 10. Update your nameservers.
 
 You’ll need to update the nameservers for your domain to be able to access the services. Run the following command:
 
@@ -313,7 +321,7 @@ You’ll need to update the nameservers for your domain to be able to access the
 
 Go to the website where you registered your domain (e.g. Namecheap, Cloudflare), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
 
-### 10. Open the application.
+### 11. Open the application.
 
 Visit `https://dashboard.<YOUR_DOMAIN>` on your browser to view the dashboard. Register an account and get started!
 
