@@ -16,7 +16,8 @@ moved {
 }
 
 # incase migrating from single instance to multi, migrate db to zeus so data not erased
-moved {
-  from = aws_db_instance.postgres["paragon"]
-  to   = aws_db_instance.postgres["zeus"]
-}
+# FIXME: This currently prevents initial single instance postgres configuration setup
+# moved {
+#   from = aws_db_instance.postgres["paragon"]
+#   to   = aws_db_instance.postgres["zeus"]
+# }
