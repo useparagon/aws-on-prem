@@ -19,6 +19,12 @@ variable "aws_session_token" {
   default     = null
 }
 
+variable "organization" {
+  description = "Optional configuration to override resource names."
+  type        = string
+  default     = null
+}
+
 variable "az_count" {
   description = "Number of AZs to cover in a given region."
   type        = number
@@ -171,7 +177,7 @@ variable "eks_admin_user_arns" {
 }
 
 locals {
-  workspace   = "paragon-enterprise-${random_string.app.result}"
+  workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"
 
   // get distinct values from comma-separated list, filter empty values and trim them

@@ -113,9 +113,9 @@ variable "k8_version" {
 
 locals {
   raw_helm_env = jsondecode(base64decode(var.helm_env))
-  raw_helm_values = yamldecode(
+  raw_helm_values = try(yamldecode(
     base64decode(var.helm_values),
-  )
+  ), {})
   base_helm_values = merge(local.raw_helm_values, {
     global = merge(try(local.raw_helm_values.global, {}), {
       env = merge(try(local.raw_helm_values.global.env, {}), local.raw_helm_env)
@@ -306,10 +306,11 @@ locals {
           local.base_helm_values.global.env,
           {
             // transformations, take priority over `values.yaml` -> global.env
-            AWS_REGION   = var.aws_region
-            REGION       = var.aws_region
-            ORGANIZATION = var.organization
-            HOST_ENV     = "AWS_K8"
+            AWS_REGION     = var.aws_region
+            REGION         = var.aws_region
+            ORGANIZATION   = var.organization
+            PARAGON_DOMAIN = var.domain
+            HOST_ENV       = "AWS_K8"
 
             // worker variables
             HERCULES_CLUSTER_MAX_INSTANCES = 1
