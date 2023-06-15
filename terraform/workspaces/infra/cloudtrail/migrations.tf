@@ -6,10 +6,10 @@ moved {
 
 moved {
   from = aws_s3_bucket_policy.cloudtrail
-  to   = aws_s3_bucket_policy.aws_s3_bucket_policy[0]
+  to   = aws_s3_bucket_policy.cloudtrail[0]
 }
 
 moved {
   from = aws_s3_bucket_public_access_block.cloudtrail
-  to   = aws_s3_bucket_public_access_block.aws_s3_bucket_policy[0]
+  to   = aws_s3_bucket_public_access_block.cloudtrail[0]
 }
