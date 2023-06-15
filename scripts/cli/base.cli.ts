@@ -240,8 +240,8 @@ credentials "app.terraform.io" {
 
         // periodically new microservices are introduced or removed
         // we need to provide which microservices are supported in the current version
-        const paragonVersion: string | undefined = (parseYaml(helmValues) as HelmValues).global?.env
-          ?.VERSION;
+        const paragonVersion: string | undefined = ((parseYaml(helmValues) as HelmValues) ?? {})
+          .global?.env?.VERSION;
         variables['supported_microservices'] = this.getSupportedMicroservices(
           paragonVersion ? paragonVersion : 'latest',
         );

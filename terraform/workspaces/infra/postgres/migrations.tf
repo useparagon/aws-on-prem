@@ -14,10 +14,3 @@ moved {
   from = random_string.postgres_root_password
   to   = random_string.postgres_root_password["paragon"]
 }
-
-# incase migrating from single instance to multi, migrate db to zeus so data not erased
-# FIXME: This currently prevents initial single instance postgres configuration setup
-# moved {
-#   from = aws_db_instance.postgres["paragon"]
-#   to   = aws_db_instance.postgres["zeus"]
-# }

@@ -124,6 +124,7 @@ terraform/
 Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
 
 ```tsx
+> cp values.yaml.example .secure/values.yaml
 > cp .env-helm.example .secure/.env-helm
 > cp .env-tf-infra.example .secure/.env-tf-infra
 > cp .env-tf-paragon.example .secure/.env-tf-paragon
