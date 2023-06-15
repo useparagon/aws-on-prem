@@ -37,7 +37,7 @@ variable "aws_workspace" {
 variable "environment" {
   description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
   type        = string
-  default     = "enterprsie"
+  default     = "enterprise"
 }
 
 variable "cluster_name" {
