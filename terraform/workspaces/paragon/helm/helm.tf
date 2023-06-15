@@ -165,16 +165,6 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
-  # set image registry
-  dynamic "set" {
-    for_each = var.microservices
-
-    content {
-      name  = "${set.key}.image.registry"
-      value = var.docker_registry_server
-    }
-  }
-
   # set version of paragon microservices
   set {
     name  = "global.paragon_version"
@@ -333,16 +323,6 @@ resource "helm_release" "paragon_monitoring" {
     content {
       name  = "global.env.${set_sensitive.key}"
       value = set_sensitive.value
-    }
-  }
-
-  # set image registry
-  dynamic "set" {
-    for_each = var.monitors
-
-    content {
-      name  = "${set.key}.image.registry"
-      value = var.docker_registry_server
     }
   }
 
