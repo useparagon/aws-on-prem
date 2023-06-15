@@ -139,8 +139,8 @@ resource "helm_release" "paragon_on_prem" {
   chart            = "./charts/paragon-onprem"
   version          = "${var.helm_values.global.env["VERSION"]}-${module.helm_hash_onprem.hash}"
   namespace        = kubernetes_namespace.paragon.id
-  cleanup_on_fail  = true
   create_namespace = false
+  cleanup_on_fail  = true
   atomic           = true
   verify           = false
   timeout          = 900 # 15 minutes
@@ -257,8 +257,8 @@ resource "helm_release" "paragon_logging" {
   description      = "Paragon logging services"
   chart            = "./charts/paragon-logging"
   version          = "${var.helm_values.global.env["VERSION"]}-${module.helm_hash_logging.hash}"
-  namespace        = "paragon"
-  create_namespace = true
+  namespace        = kubernetes_namespace.paragon.id
+  create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
   verify           = false
