@@ -25,23 +25,21 @@ resource "aws_iam_role" "super_admin" {
 }
 
 resource "aws_iam_role" "node_role" {
-  name               = "${var.workspace}-eks-node-role"
-  description        = "role for eks node group"
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "ec2.amazonaws.com"
-            },
-            "Action": "sts:AssumeRole"
-        }
+  name        = "${var.workspace}-eks-node-role"
+  description = "role for eks node group"
+  assume_role_policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Sid : "",
+        Effect : "Allow",
+        Principal : {
+          Service : "ec2.amazonaws.com"
+        },
+        Action : "sts:AssumeRole"
+      }
     ]
-}
-EOF
+  })
 }
 
 resource "aws_iam_policy" "eks_worker_policy" {
