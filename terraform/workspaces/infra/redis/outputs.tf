@@ -9,8 +9,8 @@ output "elasticache" {
       port = aws_elasticache_cluster.redis[key].cache_nodes[0].port
     }
     } : {
-    host = aws_elasticache_cluster.redis[0].cache_nodes[0].address
-    port = aws_elasticache_cluster.redis[0].cache_nodes[0].port
+    host = aws_elasticache_cluster.redis["cache"].cache_nodes[0].address
+    port = aws_elasticache_cluster.redis["cache"].cache_nodes[0].port
   }
   sensitive = true
 }
