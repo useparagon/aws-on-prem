@@ -112,13 +112,31 @@ resource "aws_eks_addon" "aws_ebs_csi_driver" {
   ]
 }
 
+resource "random_string" "node_group" {
+  for_each = local.nodes
+
+  length  = 6
+  special = false
+  numeric = false
+  lower   = true
+  upper   = false
+  keepers = {
+    workspace      = var.workspace
+    iam_role_arn   = aws_iam_role.node_role.arn
+    subnet_ids     = join(",", var.private_subnet.*.id)
+    capacity_type  = each.value.capacity
+    instance_types = join(",", each.value.instance_types)
+  }
+}
+
 module "eks_managed_node_group" {
   source  = "terraform-aws-modules/eks/aws//modules/eks-managed-node-group"
   version = "18.31.2"
 
   for_each = local.nodes
 
-  name            = "${var.workspace}-${each.key}"
+  name            = "${var.workspace}-${random_string.node_group[each.key].result}"
+  use_name_prefix = true
   cluster_name    = module.eks.cluster_name
   cluster_version = module.eks.cluster_version
 
