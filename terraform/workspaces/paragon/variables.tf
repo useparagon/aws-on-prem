@@ -53,6 +53,7 @@ variable "acm_certificate_arn" {
 
 variable "docker_registry_server" {
   description = "Docker container registry server."
+  type        = string
   default     = "docker.io"
 }
 

@@ -128,7 +128,7 @@ resource "helm_release" "metricsserver" {
 
 # helm hash
 module "helm_hash_onprem" {
-  source = "../helm-hash"
+  source          = "../helm-hash"
   chart_directory = "./charts/paragon-onprem"
 }
 
@@ -247,7 +247,7 @@ resource "helm_release" "paragon_on_prem" {
 
 # helm hash
 module "helm_hash_logging" {
-  source = "../helm-hash"
+  source          = "../helm-hash"
   chart_directory = "./charts/paragon-logging"
 }
 
@@ -287,7 +287,9 @@ resource "helm_release" "paragon_logging" {
 
 # helm hash
 module "helm_hash_monitoring" {
-  source = "../helm-hash"
+  count = var.monitors_enabled ? 1 : 0
+
+  source          = "../helm-hash"
   chart_directory = "./charts/paragon-monitoring"
 }
 
@@ -298,7 +300,7 @@ resource "helm_release" "paragon_monitoring" {
   name             = "paragon-monitoring"
   description      = "Paragon monitors"
   chart            = "./charts/paragon-monitoring"
-  version          = "${var.monitor_version}-${module.helm_hash_monitoring.hash}"
+  version          = "${var.monitor_version}-${module.helm_hash_monitoring[count.index].hash}"
   namespace        = "paragon"
   cleanup_on_fail  = true
   create_namespace = false
