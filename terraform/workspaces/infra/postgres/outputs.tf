@@ -1,10 +1,14 @@
 output "rds" {
   value = {
-    host     = aws_db_instance.postgres.address
-    port     = aws_db_instance.postgres.port
-    user     = random_string.postgres_root_username.result
-    password = random_string.postgres_root_password.result
-    database = aws_db_instance.postgres.name
+    for key, value in local.postgres_instances :
+    key => {
+      host     = aws_db_instance.postgres[key].address
+      port     = aws_db_instance.postgres[key].port
+      user     = random_string.postgres_root_username[key].result
+      password = random_string.postgres_root_password[key].result
+      database = aws_db_instance.postgres[key].name
+    }
   }
+
   sensitive = true
 }

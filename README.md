@@ -35,20 +35,6 @@ If you want to deploy Paragon to your own cloud but don’t want to manage the i
 
 We offer managed on premise solutions for AWS, Azure, and GCP. Please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you started.
 
-## Migrations
-
-### `1.x` to >= `2.x`
-
-Copy the `values.yaml.example` file into `.secure/values.yaml`
-
-```tsx
-> cp values.yaml.example .secure/values.yaml
-```
-
-Copy the values from your `.secure/.env-helm` into `.secure/values.yaml` inside the `global.env` object.
-
-Delete your `.secure/.env-helm` file.
-
 ## Getting Started
 
 ### Access
@@ -139,6 +125,7 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 
 ```tsx
 > cp values.yaml.example .secure/values.yaml
+> cp .env-helm.example .secure/.env-helm
 > cp .env-tf-infra.example .secure/.env-tf-infra
 > cp .env-tf-paragon.example .secure/.env-tf-paragon
 ```
@@ -159,12 +146,20 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `AWS_SESSION_TOKEN`: the AWS session token for authenticating Terraform
 - `DISABLE_CLOUDTRAIL`: Set to `false` to disable creation of Cloudtrail resources
 - `DISABLE_DELETION_PROTECTION`: Set to `true` to disable deletion protection (ie. ephemeral installations) (default: `false`)
-- `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
 - `DISABLE_LOGS`: Set to `true` to disable system level logs gathering (defaults: `false`)
 - `EKS_ADDON_EBS_CSI_DRIVER_ENABLED`: Whether or not to disable creating the EKS EBS CSI Driver. Needed for Kubernetes versions >= 1.23
+- `EKS_ADMIN_USER_ARNS`: Comma-separated list of ARNs for IAM users that should have admin access to the cluster.
 - `ELASTICACHE_NODE_TYPE`: the ElastiCache [instance type](https://aws.amazon.com/elasticache/pricing/)
+- `K8_ONDEMAND_NODE_INSTANCE_TYPE`: The compute instance type to use for ondemand Kubernetes EC2 nodes.
+- `K8_SPOT_INSTANCE_PERCENT`: The percentage of spot instances to use for Kubernetes EC2 nodes.
+- `K8_SPOT_NODE_INSTANCE_TYPE`: The compute instance type to use for spot Kubernetes EC2 nodes.
+- `K8_MAX_NODE_COUNT`: The maximum number of nodes to run in the Kubernetes cluster.
+- `K8_MIN_NODE_COUNT`: The minimum number of nodes to run in the Kubernetes cluster.
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 - `MASTER_GUARDDUTY_ACCOUNT_ID`: AWS account id that Cloudtrail events will be sent to
+- `MULTI_AZ_ENABLED`: Whether or not to enable multi-az for resources.
+- `MULTI_POSTGRES`: Whether or not to create multiple Postgres instances. Used for high volume installations. (default: `false`)
+- `MULTI_REDIS`: Whether or not to create multiple Redis instances. Used for high volume installations. (default: `false`)
 - `POSTGRES_VERSION`: the version of Postgres to run
 - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/)
 - `SSH_WHITELIST`**:** your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
@@ -223,7 +218,7 @@ These variables should be pulled from the `infra` workspace.
 - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 
-### 7. Configure the `.secure/values.yaml` file.
+### 7. Configure the `.secure/.env-helm` file.
 
 **Required**
 
@@ -240,15 +235,75 @@ These variables should be pulled from the `infra` workspace.
 - `MINIO_ROOT_PASSWORD`: from `minio_root_password` output
 - `MINIO_ROOT_USER`: from `minio_root_user` output
 - `MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
-- `POSTGRES_DATABASE`: from `postgres_database` output
-- `POSTGRES_HOST`: from `postgres_host` output
-- `POSTGRES_PASSWORD`: from `postgres_password` output
-- `POSTGRES_PORT`: from `postgres_port` output
-- `POSTGRES_USER`: from `postgres_user` output
-- `REDIS_HOST`: from `redis_host` output
-- `REDIS_PORT`: from `redis_port` output
+- `POSTGRES_DATABASE`: from `postgres` output
+- `POSTGRES_HOST`: from `postgres` output
+- `POSTGRES_PASSWORD`: from `postgres` output
+- `POSTGRES_PORT`: from `postgres` output
+- `POSTGRES_USER`: from `postgres` output
+- `REDIS_HOST`: from `redis` output
+- `REDIS_PORT`: from `redis` output
 
-### 8. Deploy the Helm chart.
+#### Configuring multiple Postgres instances.
+
+If you have `MULTI_POSTGRES` enabled, instead of using `POSTGRES_*` variables, you'll configure the following variables from the `postgres` output. **NOTE**: Beethoven and Pheme should point to the same database.
+
+```
+BEETHOVEN_POSTGRES_HOST=
+BEETHOVEN_POSTGRES_PORT=
+BEETHOVEN_POSTGRES_USERNAME=
+BEETHOVEN_POSTGRES_PASSWORD=
+BEETHOVEN_POSTGRES_DATABASE=
+
+CERBERUS_POSTGRES_HOST=
+CERBERUS_POSTGRES_PORT=
+CERBERUS_POSTGRES_USERNAME=
+CERBERUS_POSTGRES_PASSWORD=
+CERBERUS_POSTGRES_DATABASE=
+
+HERMES_POSTGRES_HOST=
+HERMES_POSTGRES_PORT=
+HERMES_POSTGRES_USERNAME=
+HERMES_POSTGRES_PASSWORD=
+HERMES_POSTGRES_DATABASE=
+
+PHEME_POSTGRES_HOST=
+PHEME_POSTGRES_PORT=
+PHEME_POSTGRES_USERNAME=
+PHEME_POSTGRES_PASSWORD=
+PHEME_POSTGRES_DATABASE=
+
+ZEUS_POSTGRES_HOST=
+ZEUS_POSTGRES_PORT=
+ZEUS_POSTGRES_USERNAME=
+ZEUS_POSTGRES_PASSWORD=
+ZEUS_POSTGRES_DATABASE=
+```
+
+#### Configuring multiple Redis instances.
+
+If you have `MULTI_REDIS` enabled, instead of using `REDIS_*` variables, you'll configure the following variables from the `redis` output. **NOTE**: Cache and Workflow should point to the same Redis.
+
+```
+CACHE_REDIS_URL=
+WORKFLOW_REDIS_URL=
+SYSTEM_REDIS_URL=
+QUEUE_REDIS_URL=
+
+CACHE_REDIS_CLUSTER_ENABLED=true
+SYSTEM_REDIS_CLUSTER_ENABLED=false
+QUEUE_REDIS_CLUSTER_ENABLED=false
+WORKFLOW_REDIS_CLUSTER_ENABLED=true
+```
+
+### 8. Configuring `values.yaml` (optional)
+
+To create a custom `values.yaml` file to override the Paragon helm chart, create a `values.yaml` file in the `.secure` directory.
+
+> touch .secure/values.yaml
+
+Override your settings within that file.
+
+### 9. Deploy the Helm chart.
 
 Deploy the Paragon helm chart to your Kubernetes cluster. Run the following command:
 
@@ -258,7 +313,7 @@ Deploy the Paragon helm chart to your Kubernetes cluster. Run the following comm
 
 Confirm that Terraform executed successfully.
 
-### 9. Update your nameservers.
+### 10. Update your nameservers.
 
 You’ll need to update the nameservers for your domain to be able to access the services. Run the following command:
 
@@ -268,7 +323,7 @@ You’ll need to update the nameservers for your domain to be able to access the
 
 Go to the website where you registered your domain (e.g. Namecheap, Cloudflare), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
 
-### 10. Open the application.
+### 11. Open the application.
 
 Visit `https://dashboard.<YOUR_DOMAIN>` on your browser to view the dashboard. Register an account and get started!
 

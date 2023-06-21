@@ -26,7 +26,7 @@ data "template_file" "startup" {
   vars = {
     aws_region     = var.aws_region
     aws_account_id = data.aws_caller_identity.current.account_id
-    cluster_name   = var.eks_cluster.name
+    cluster_name   = var.workspace
     bastion_role   = local.resource_group
   }
 }

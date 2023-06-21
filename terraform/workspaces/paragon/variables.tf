@@ -94,6 +94,11 @@ variable "helm_values" {
   type        = string
 }
 
+variable "helm_env" {
+  description = "Enviroment variables to pass to helm from `.env-helm`."
+  type        = string
+}
+
 variable "ingress_scheme" {
   description = "Whether the load balancer is 'internet-facing' (public) or 'internal' (private)"
   type        = string
@@ -107,9 +112,15 @@ variable "k8_version" {
 }
 
 locals {
-  base_helm_values = yamldecode(
+  raw_helm_env = jsondecode(base64decode(var.helm_env))
+  raw_helm_values = try(yamldecode(
     base64decode(var.helm_values),
-  )
+  ), {})
+  base_helm_values = merge(local.raw_helm_values, {
+    global = merge(try(local.raw_helm_values.global, {}), {
+      env = merge(try(local.raw_helm_values.global.env, {}), local.raw_helm_env)
+    })
+  })
 
   _microservices = {
     "cerberus" = {
@@ -295,10 +306,11 @@ locals {
           local.base_helm_values.global.env,
           {
             // transformations, take priority over `values.yaml` -> global.env
-            AWS_REGION   = var.aws_region
-            REGION       = var.aws_region
-            ORGANIZATION = var.organization
-            HOST_ENV     = "AWS_K8"
+            AWS_REGION     = var.aws_region
+            REGION         = var.aws_region
+            ORGANIZATION   = var.organization
+            PARAGON_DOMAIN = var.domain
+            HOST_ENV       = "AWS_K8"
 
             // worker variables
             HERCULES_CLUSTER_MAX_INSTANCES = 1
@@ -404,6 +416,8 @@ locals {
             MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
             MONITOR_GRAFANA_HOST                    = "http://grafana"
             MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
+            MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
+            MONITOR_KUBE_STATE_METRICS_PORT         = try(local.monitors["kube-state-metrics"].port, null)
             MONITOR_PGADMIN_HOST                    = "http://pgadmin"
             MONITOR_PGADMIN_PORT                    = try(local.monitors["pgadmin"].port, null)
             MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null

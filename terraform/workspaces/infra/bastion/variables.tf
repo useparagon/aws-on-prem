@@ -45,22 +45,6 @@ variable "force_destroy" {
   default     = false
 }
 
-variable "eks_cluster" {
-  description = "The EKS cluster that node groups and resources should be deployed to."
-  type = object({
-    name                               = string
-    arn                                = string
-    id                                 = string
-    sg_id                              = string
-    cluster_oidc_issuer_url            = string
-    oidc_provider_arn                  = string
-    cluster_endpoint                   = string
-    cluster_certificate_authority_data = string
-    worker_iam_role_arn                = string
-    worker_iam_role_name               = string
-  })
-}
-
 variable "cluster_super_admin" {
   description = "The IAM role created with super admin access to the cluster."
   type = object({

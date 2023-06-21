@@ -85,6 +85,7 @@ resource "helm_release" "ingress" {
 
   repository       = "https://aws.github.io/eks-charts"
   chart            = "aws-load-balancer-controller"
+  version          = "1.5.3"
   namespace        = "paragon"
   create_namespace = false
   cleanup_on_fail  = true

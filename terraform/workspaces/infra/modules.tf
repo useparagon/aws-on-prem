@@ -42,6 +42,8 @@ module "postgres" {
   postgres_version            = var.postgres_version
   rds_instance_class          = var.rds_instance_class
   disable_deletion_protection = var.disable_deletion_protection
+  multi_az_enabled            = var.multi_az_enabled
+  multi_postgres              = var.multi_postgres
 
   vpc                = module.network.vpc
   public_subnet      = module.network.public_subnet
@@ -60,6 +62,8 @@ module "redis" {
   workspace             = local.workspace
   environment           = local.environment
   elasticache_node_type = var.elasticache_node_type
+  multi_az_enabled      = var.multi_az_enabled
+  multi_redis           = var.multi_redis
 
   vpc            = module.network.vpc
   public_subnet  = module.network.public_subnet
@@ -74,10 +78,11 @@ module "s3" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace   = local.workspace
-  environment = local.environment
+  workspace          = local.workspace
+  environment        = local.environment
+  disable_cloudtrail = var.disable_cloudtrail
 
-  cloudtrail_s3_bucket  = module.cloudtrail.s3.bucket
+  cloudtrail_s3_bucket  = var.disable_cloudtrail ? null : module.cloudtrail.s3.bucket
   force_destroy         = var.disable_deletion_protection
   app_bucket_expiration = var.app_bucket_expiration
   disable_logs          = var.disable_logs
@@ -94,7 +99,13 @@ module "cluster" {
   workspace                        = local.workspace
   environment                      = local.environment
   k8_version                       = var.k8_version
+  k8_ondemand_node_instance_type   = local.k8_ondemand_node_instance_type
+  k8_spot_node_instance_type       = local.k8_spot_node_instance_type
+  k8_spot_instance_percent         = var.k8_spot_instance_percent
+  k8_min_node_count                = var.k8_min_node_count
+  k8_max_node_count                = var.k8_max_node_count
   eks_addon_ebs_csi_driver_enabled = var.eks_addon_ebs_csi_driver_enabled
+  eks_admin_user_arns              = local.eks_admin_user_arns
 
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet
@@ -117,7 +128,6 @@ module "bastion" {
   vpc_id              = module.network.vpc.id
   public_subnet       = module.network.public_subnet
   private_subnet      = module.network.private_subnet
-  eks_cluster         = module.cluster.eks_cluster
   cluster_super_admin = module.cluster.cluster_super_admin
   force_destroy       = var.disable_deletion_protection
 }

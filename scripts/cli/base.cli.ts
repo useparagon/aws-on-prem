@@ -240,12 +240,17 @@ credentials "app.terraform.io" {
 
         // periodically new microservices are introduced or removed
         // we need to provide which microservices are supported in the current version
-        const paragonVersion: string | undefined = (parseYaml(helmValues) as HelmValues).global?.env
-          ?.VERSION;
+        const paragonVersion: string | undefined = ((parseYaml(helmValues) as HelmValues) ?? {})
+          .global?.env?.VERSION;
         variables['supported_microservices'] = this.getSupportedMicroservices(
           paragonVersion ? paragonVersion : 'latest',
         );
       }
+
+      const helmEnvValues: Record<string, any> = await getVariablesFromEnvFile(
+        `${ROOT_DIR}/.secure/.env-helm`,
+      ).catch(() => ({}));
+      variables['helm_env'] = Buffer.from(JSON.stringify(helmEnvValues)).toString('base64');
     }
 
     const outputFile: string = Object.keys(variables)
@@ -270,7 +275,7 @@ credentials "app.terraform.io" {
   getSupportedMicroservices(paragonVersion: string): Microservice[] {
     // if deploying a release candidate (e.g. `v2.77.0-rc-abc3d3`) or unstable version (e.g. `v2.77.0-unstable-abc3d3`)
     // we need to strip the end to compare the version
-    const LATEST: 'LATEST' = 'LATEST';
+    const LATEST: 'latest' = 'latest';
     const isLatest: boolean = paragonVersion === LATEST;
     const sanitizedParagonVersion: string = paragonVersion.split('-rc')[0].split('-unstable')[0];
     const microservices: Microservice[] = Object.values(Microservice);
