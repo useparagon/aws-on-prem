@@ -55,7 +55,7 @@ resource "kubernetes_namespace" "paragon" {
 resource "kubernetes_secret" "docker_login" {
   metadata {
     name      = "docker-cfg"
-    namespace = "paragon"
+    namespace = kubernetes_namespace.paragon.id
   }
 
   type = "kubernetes.io/dockerconfigjson"
@@ -72,10 +72,6 @@ resource "kubernetes_secret" "docker_login" {
       }
     })
   }
-
-  depends_on = [
-    kubernetes_namespace.paragon
-  ]
 }
 
 # ingress controller; provisions load balancer
@@ -86,7 +82,7 @@ resource "helm_release" "ingress" {
   repository       = "https://aws.github.io/eks-charts"
   chart            = "aws-load-balancer-controller"
   version          = "1.5.3"
-  namespace        = "paragon"
+  namespace        = kubernetes_namespace.paragon.id
   create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
@@ -106,10 +102,6 @@ resource "helm_release" "ingress" {
     name  = "clusterName"
     value = var.cluster_name
   }
-
-  depends_on = [
-    kubernetes_namespace.paragon
-  ]
 }
 
 # metrics server for hpa
@@ -119,8 +111,8 @@ resource "helm_release" "metricsserver" {
 
   repository       = "https://kubernetes-sigs.github.io/metrics-server/"
   chart            = "metrics-server"
-  namespace        = "paragon"
-  create_namespace = true
+  namespace        = kubernetes_namespace.paragon.id
+  create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
   verify           = false
@@ -130,14 +122,25 @@ resource "helm_release" "metricsserver" {
   ]
 }
 
+######
+# Microservices
+######
+
+# helm hash
+module "helm_hash_onprem" {
+  source          = "../helm-hash"
+  chart_directory = "./charts/paragon-onprem"
+}
+
 # microservices deployment
 resource "helm_release" "paragon_on_prem" {
   name             = "paragon-on-prem"
   description      = "Paragon microservices"
   chart            = "./charts/paragon-onprem"
-  namespace        = "paragon"
-  cleanup_on_fail  = true
+  version          = "${var.helm_values.global.env["VERSION"]}-${module.helm_hash_onprem.hash}"
+  namespace        = kubernetes_namespace.paragon.id
   create_namespace = false
+  cleanup_on_fail  = true
   atomic           = true
   verify           = false
   timeout          = 900 # 15 minutes
@@ -153,18 +156,6 @@ resource "helm_release" "paragon_on_prem" {
     }))
   ]
 
-  # force redeploy when Chart.yaml changes
-  set {
-    name  = "chartHash"
-    value = filesha256("./charts/paragon-onprem/Chart.yaml")
-  }
-
-  # used to determine which version of paragon microservices to pull
-  set {
-    name  = "global.paragon_version"
-    value = var.helm_values.global.env["VERSION"]
-  }
-
   # used to load environment variables into microservices
   dynamic "set_sensitive" {
     for_each = nonsensitive(merge(var.helm_values.global.env))
@@ -172,6 +163,12 @@ resource "helm_release" "paragon_on_prem" {
       name  = "global.env.${set_sensitive.key}"
       value = set_sensitive.value
     }
+  }
+
+  # set version of paragon microservices
+  set {
+    name  = "global.paragon_version"
+    value = var.helm_values.global.env["VERSION"]
   }
 
   # used to set map the ingress to the public url of each microservice
@@ -223,7 +220,6 @@ resource "helm_release" "paragon_on_prem" {
     }
   }
 
-
   # configures load balancer bucket for logging
   dynamic "set" {
     for_each = var.microservices
@@ -245,16 +241,28 @@ resource "helm_release" "paragon_on_prem" {
   ]
 }
 
+######
+# Logging
+######
+
+# helm hash
+module "helm_hash_logging" {
+  source          = "../helm-hash"
+  chart_directory = "./charts/paragon-logging"
+}
+
 # paragon logging stack fluent bit , kibana , elasticsearch
 resource "helm_release" "paragon_logging" {
   name             = "paragon-logging"
   description      = "Paragon logging services"
   chart            = "./charts/paragon-logging"
-  namespace        = "paragon"
-  create_namespace = true
+  version          = "${var.helm_values.global.env["VERSION"]}-${module.helm_hash_logging.hash}"
+  namespace        = kubernetes_namespace.paragon.id
+  create_namespace = false
   cleanup_on_fail  = true
   atomic           = true
   verify           = false
+  timeout          = 900 # 15 minutes
 
   values = [
     local.supported_microservices_values,
@@ -273,6 +281,18 @@ resource "helm_release" "paragon_logging" {
   ]
 }
 
+######
+# Monitors
+######
+
+# helm hash
+module "helm_hash_monitoring" {
+  count = var.monitors_enabled ? 1 : 0
+
+  source          = "../helm-hash"
+  chart_directory = "./charts/paragon-monitoring"
+}
+
 # monitors deployment
 resource "helm_release" "paragon_monitoring" {
   count = var.monitors_enabled ? 1 : 0
@@ -280,12 +300,13 @@ resource "helm_release" "paragon_monitoring" {
   name             = "paragon-monitoring"
   description      = "Paragon monitors"
   chart            = "./charts/paragon-monitoring"
+  version          = "${var.monitor_version}-${module.helm_hash_monitoring[count.index].hash}"
   namespace        = "paragon"
   cleanup_on_fail  = true
   create_namespace = false
   atomic           = true
   verify           = false
-  timeout          = 600 # 10 minutes
+  timeout          = 900 # 15 minutes
 
   values = [
     local.supported_microservices_values,
@@ -298,18 +319,6 @@ resource "helm_release" "paragon_monitoring" {
     }))
   ]
 
-  # force redeploy when Chart.yaml changes
-  set {
-    name  = "chartHash"
-    value = filesha256("./charts/paragon-monitoring/Chart.yaml")
-  }
-
-  # used to determine which version of paragon microservices to pull
-  set {
-    name  = "global.paragon_version"
-    value = var.helm_values.global.env["VERSION"]
-  }
-
   # used to load environment variables into microservices
   dynamic "set_sensitive" {
     for_each = nonsensitive(merge(var.helm_values.global.env))
@@ -317,6 +326,22 @@ resource "helm_release" "paragon_monitoring" {
       name  = "global.env.${set_sensitive.key}"
       value = set_sensitive.value
     }
+  }
+
+  # set image tag to pull
+  dynamic "set" {
+    for_each = var.monitors
+
+    content {
+      name  = "${set.key}.image.tag"
+      value = var.monitor_version
+    }
+  }
+
+  # used to determine which version of paragon monitors to pull
+  set {
+    name  = "global.paragon_version"
+    value = var.helm_values.global.env["VERSION"]
   }
 
   # used to set map the ingress to the public url of each microservice
@@ -359,15 +384,6 @@ resource "helm_release" "paragon_monitoring" {
     }
   }
 
-  dynamic "set" {
-    for_each = var.monitors
-
-    content {
-      name  = "${set.key}.image.tag"
-      value = var.monitor_version
-    }
-  }
-
   # configures load balancer bucket for logging
   dynamic "set" {
     for_each = var.monitors
@@ -385,6 +401,7 @@ resource "helm_release" "paragon_monitoring" {
 
   depends_on = [
     helm_release.ingress,
+    helm_release.paragon_on_prem,
     kubernetes_secret.docker_login
   ]
 }

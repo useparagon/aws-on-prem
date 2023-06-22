@@ -37,7 +37,7 @@ variable "aws_workspace" {
 variable "environment" {
   description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
   type        = string
-  default     = "enterprsie"
+  default     = "enterprise"
 }
 
 variable "cluster_name" {
@@ -51,6 +51,12 @@ variable "acm_certificate_arn" {
   default     = null
 }
 
+variable "docker_registry_server" {
+  description = "Docker container registry server."
+  type        = string
+  default     = "docker.io"
+}
+
 variable "docker_username" {
   description = "Docker username to pull images."
   type        = string
@@ -62,7 +68,7 @@ variable "docker_password" {
 }
 
 variable "docker_email" {
-  description = "Docker password to pull images."
+  description = "Docker email to pull images."
   type        = string
 }
 
@@ -234,6 +240,10 @@ locals {
     "grafana" = {
       "port"       = 4500
       "public_url" = lookup(local.base_helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
+    }
+    "kube-state-metrics" = {
+      "port"       = 2550
+      "public_url" = null
     }
     "pgadmin" = {
       "port"       = 5050

@@ -14,8 +14,8 @@ variable "cluster_name" {
 }
 
 variable "docker_registry_server" {
-  description = "EKS cluster auth token"
-  default     = "docker.io"
+  description = "Docker container registry server."
+  type        = string
 }
 
 variable "docker_username" {
@@ -29,7 +29,7 @@ variable "docker_password" {
 }
 
 variable "docker_email" {
-  description = "Docker password to pull images."
+  description = "Docker email to pull images."
   type        = string
 }
 
