@@ -41,6 +41,8 @@ module "postgres" {
   environment                 = local.environment
   postgres_version            = var.postgres_version
   rds_instance_class          = var.rds_instance_class
+  rds_restore_from_snapshot   = var.rds_restore_from_snapshot
+  rds_final_snapshot_enabled  = var.rds_final_snapshot_enabled
   disable_deletion_protection = var.disable_deletion_protection
   multi_az_enabled            = var.multi_az_enabled
   multi_postgres              = var.multi_postgres

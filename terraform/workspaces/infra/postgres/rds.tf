@@ -72,6 +72,13 @@ resource "aws_db_parameter_group" "postgres" {
   }
 }
 
+data "aws_db_snapshot" "postgres" {
+  for_each = var.rds_restore_from_snapshot ? local.postgres_instances : {}
+
+  db_instance_identifier = each.value.name
+  most_recent            = true
+}
+
 resource "aws_db_instance" "postgres" {
   for_each = local.postgres_instances
 
@@ -104,8 +111,9 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids    = [aws_security_group.postgres.id]
   publicly_accessible       = false
   deletion_protection       = !var.disable_deletion_protection
-  skip_final_snapshot       = var.disable_deletion_protection
-  final_snapshot_identifier = var.disable_deletion_protection ? null : each.value.name
+  snapshot_identifier       = var.rds_restore_from_snapshot ? data.aws_db_snapshot.postgres[each.key].id : null
+  skip_final_snapshot       = !var.rds_final_snapshot_enabled
+  final_snapshot_identifier = var.rds_final_snapshot_enabled ? each.value.name : null
   storage_encrypted         = true
 
   performance_insights_enabled          = true

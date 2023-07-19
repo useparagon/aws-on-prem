@@ -161,7 +161,9 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `MULTI_POSTGRES`: Whether or not to create multiple Postgres instances. Used for high volume installations. (default: `false`)
 - `MULTI_REDIS`: Whether or not to create multiple Redis instances. Used for high volume installations. (default: `false`)
 - `POSTGRES_VERSION`: the version of Postgres to run
+- `RDS_FINAL_SNAPSHOT_ENABLED`: Specifies that RDS should take a final snapshot (default: `true`)
 - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/) (default: `db.t3.small`)
+- `RDS_RESTORE_FROM_SNAPSHOT`: Specifies that RDS instance(s) should be restored from snapshots (default: `false`)
 - `SSH_WHITELIST`: your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
 - `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
 
