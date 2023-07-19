@@ -91,7 +91,7 @@ resource "aws_db_instance" "postgres" {
   allocated_storage           = 20
   max_allocated_storage       = 1000
   allow_major_version_upgrade = false
-  auto_minor_version_upgrade  = true
+  auto_minor_version_upgrade  = false
   availability_zone           = var.multi_az_enabled ? null : var.availability_zones.names[0]
   backup_retention_period     = 7
   monitoring_interval         = 15
