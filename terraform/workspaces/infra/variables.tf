@@ -56,7 +56,7 @@ variable "rds_restore_from_snapshot" {
 }
 
 variable "rds_final_snapshot_enabled" {
-  description = "Specifies that RDS instances should be restored from a snapshot."
+  description = "Specifies that RDS instances should perform a final snapshot before being deleted."
   type        = bool
   default     = true
 }
