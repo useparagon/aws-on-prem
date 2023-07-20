@@ -53,6 +53,16 @@ variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
 }
 
+variable "rds_restore_from_snapshot" {
+  description = "Specifies that RDS instances should be restored from a snapshot."
+  type        = bool
+}
+
+variable "rds_final_snapshot_enabled" {
+  description = "Specifies that RDS instances should perform a final snapshot before being deleted."
+  type        = bool
+}
+
 variable "disable_deletion_protection" {
   description = "Whether to disable deletion protection."
   type        = bool
