@@ -216,7 +216,10 @@ These variables should be pulled from the `infra` workspace.
 **Optional**
 
 - `ACM_CERTIFICATE_ARN`: Use to provide your own existing certificate ACM certificate ARN for use with the load balancer
+- `CLOUDFLARE_DNS_API_TOKEN`: Cloudflare api token to use when updating nameservers.
+- `CLOUDFLARE_ZONE_ID`: Cloudflare zone id to use when updating nameservers.
 - `DISABLE_DOCKER_VERIFICATION`: Set to `false` when running the installer outside of Docker
+- `DNS_PROVIDER`: specifies which DNS provider to update nameservers. Currently only supports `cloudflare`
 - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
 
