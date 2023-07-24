@@ -117,6 +117,29 @@ variable "k8_version" {
   default     = "1.25"
 }
 
+variable "dns_provider" {
+  description = "DNS provider to use."
+  type        = string
+  default     = "cloudflare"
+
+  validation {
+    condition     = var.dns_provider == "cloudflare" || var.dns_provider == "namecheap"
+    error_message = "Only cloudflare and namecheap are currently supported."
+  }
+}
+
+variable "cloudflare_dns_api_token" {
+  description = "Cloudflare DNS API token for SSL certificate creation and verification."
+  type        = string
+  default     = null
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone id to set CNAMEs."
+  type        = string
+  default     = null
+}
+
 locals {
   raw_helm_env = jsondecode(base64decode(var.helm_env))
   raw_helm_values = try(yamldecode(

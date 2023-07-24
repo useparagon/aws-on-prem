@@ -1,11 +1,14 @@
 module "alb" {
   source = "./alb"
 
-  acm_certificate_arn = var.acm_certificate_arn
-  aws_workspace       = var.aws_workspace
-  domain              = var.domain
-  microservices       = local.microservices
-  public_monitors     = local.public_monitors
+  acm_certificate_arn      = var.acm_certificate_arn
+  aws_workspace            = var.aws_workspace
+  domain                   = var.domain
+  microservices            = local.microservices
+  public_monitors          = local.public_monitors
+  dns_provider             = var.dns_provider
+  cloudflare_dns_api_token = var.cloudflare_dns_api_token
+  cloudflare_zone_id       = var.cloudflare_zone_id
 
   release_ingress         = module.helm.release_ingress
   release_paragon_on_prem = module.helm.release_paragon_on_prem
