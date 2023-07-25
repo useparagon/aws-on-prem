@@ -12,3 +12,7 @@ provider "aws" {
     }
   }
 }
+
+provider "cloudflare" {
+  api_token = var.cloudflare_dns_api_token
+}

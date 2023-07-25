@@ -97,7 +97,7 @@ locals {
     }
     zeus = {
       name = "${var.workspace}-zeus"
-      size = var.rds_instance_class
+      size = "db.t4g.small"
       db   = "zeus"
     }
     } : {

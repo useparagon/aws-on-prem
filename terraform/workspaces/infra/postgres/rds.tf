@@ -3,7 +3,7 @@ locals {
 }
 
 resource "random_string" "postgres_root_username" {
-  for_each = local.postgres_instances
+  for_each = var.rds_restore_from_snapshot ? {} : local.postgres_instances
 
   length  = 16
   special = false
@@ -13,7 +13,7 @@ resource "random_string" "postgres_root_username" {
 }
 
 resource "random_string" "postgres_root_password" {
-  for_each = local.postgres_instances
+  for_each = var.rds_restore_from_snapshot ? {} : local.postgres_instances
 
   length    = 16
   min_upper = 2
@@ -22,6 +22,16 @@ resource "random_string" "postgres_root_password" {
   special   = false
   lower     = true
   upper     = true
+}
+
+resource "random_string" "snapshot_identifier" {
+  count = var.rds_final_snapshot_enabled ? 1 : 0
+
+  length  = 8
+  numeric = false
+  special = false
+  lower   = true
+  upper   = false
 }
 
 resource "aws_db_subnet_group" "postgres" {
@@ -76,6 +86,7 @@ data "aws_db_snapshot" "postgres" {
   for_each = var.rds_restore_from_snapshot ? local.postgres_instances : {}
 
   db_instance_identifier = each.value.name
+  snapshot_type          = "manual"
   most_recent            = true
 }
 
@@ -85,12 +96,12 @@ resource "aws_db_instance" "postgres" {
   identifier = each.value.name
   db_name    = each.value.db
   port       = "5432"
-  username   = random_string.postgres_root_username[each.key].result
-  password   = random_string.postgres_root_password[each.key].result
+  username   = var.rds_restore_from_snapshot ? null : random_string.postgres_root_username[each.key].result
+  password   = var.rds_restore_from_snapshot ? null : random_string.postgres_root_password[each.key].result
 
   engine               = "postgres"
   engine_version       = var.postgres_version
-  instance_class       = var.rds_instance_class
+  instance_class       = each.value.size
   parameter_group_name = aws_db_parameter_group.postgres.name
   storage_type         = "gp2"
   replicate_source_db  = null
@@ -113,7 +124,7 @@ resource "aws_db_instance" "postgres" {
   deletion_protection       = !var.disable_deletion_protection
   snapshot_identifier       = var.rds_restore_from_snapshot ? data.aws_db_snapshot.postgres[each.key].id : null
   skip_final_snapshot       = !var.rds_final_snapshot_enabled
-  final_snapshot_identifier = var.rds_final_snapshot_enabled ? each.value.name : null
+  final_snapshot_identifier = var.rds_final_snapshot_enabled ? "${each.value.name}-${random_string.snapshot_identifier[0].result}" : null
   storage_encrypted         = true
 
   performance_insights_enabled          = true

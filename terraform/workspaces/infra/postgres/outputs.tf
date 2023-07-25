@@ -4,8 +4,8 @@ output "rds" {
     key => {
       host     = aws_db_instance.postgres[key].address
       port     = aws_db_instance.postgres[key].port
-      user     = random_string.postgres_root_username[key].result
-      password = random_string.postgres_root_password[key].result
+      user     = aws_db_instance.postgres[key].username
+      password = var.rds_restore_from_snapshot ? null : random_string.postgres_root_password[key].result
       database = aws_db_instance.postgres[key].name
     }
   }

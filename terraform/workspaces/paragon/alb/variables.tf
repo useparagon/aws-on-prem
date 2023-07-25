@@ -37,3 +37,23 @@ variable "release_ingress" {
 variable "release_paragon_on_prem" {
   description = "The helm release for the Paragon microservices."
 }
+
+variable "dns_provider" {
+  description = "DNS provider to use."
+  type        = string
+  default     = "cloudflare"
+}
+
+variable "cloudflare_dns_api_token" {
+  description = "Cloudflare DNS API token for SSL certificate creation and verification."
+  type        = string
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone id to set CNAMEs."
+  type        = string
+}
+
+locals {
+  has_cloudflare_credentials = var.dns_provider == "cloudflare" && var.cloudflare_dns_api_token != null && var.cloudflare_zone_id != null
+}
