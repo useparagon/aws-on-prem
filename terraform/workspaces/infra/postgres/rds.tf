@@ -65,6 +65,11 @@ resource "aws_db_parameter_group" "postgres" {
         value        = 10000
         apply_method = "pending-reboot"
       },
+      {
+        name         = "wal_buffers"
+        value        = "2048" # sets `wal_buffers` to 16mb
+        apply_method = "pending-reboot"
+      },
     ]
     content {
       apply_method = lookup(parameter.value, "apply_method", null)
