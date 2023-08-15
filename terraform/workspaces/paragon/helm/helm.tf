@@ -23,6 +23,8 @@ subchart:
     enabled: ${contains(keys(var.microservices), "plato")}
   pheme:
     enabled: ${contains(keys(var.microservices), "pheme")}
+  release:
+    enabled: ${contains(keys(var.microservices), "release")}
   zeus:
     enabled: ${contains(keys(var.microservices), "zeus")}
   worker-actions:
@@ -31,6 +33,8 @@ subchart:
     enabled: ${contains(keys(var.microservices), "worker-credentials")}
   worker-crons:
     enabled: ${contains(keys(var.microservices), "worker-crons")}
+  worker-deployments:
+    enabled: ${contains(keys(var.microservices), "worker-deployments")}
   worker-proxy:
     enabled: ${contains(keys(var.microservices), "worker-proxy")}
   worker-triggers:
