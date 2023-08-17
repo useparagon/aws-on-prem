@@ -294,11 +294,30 @@ credentials "app.terraform.io" {
       }
 
       // in v2.77.0, hercules was replaced with `worker-actions`, `worker-credentials`, etc
-      const hasWorkers: boolean =
-        isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
-      if (!hasWorkers && microservice.includes('worker-')) {
+      const workersV1: Microservice[] = [
+        Microservice.WORKER_ACTIONS,
+        Microservice.WORKER_CREDENTIALS,
+        Microservice.WORKER_CRONS,
+        Microservice.WORKER_PROXY,
+        Microservice.WORKER_TRIGGERS,
+        Microservice.WORKER_WORKFLOWS,
+      ];
+      const hasWorkersV1: boolean = compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
+      if (!hasWorkersV1 && workersV1.includes(microservice)) {
         return false;
-      } else if (hasWorkers && microservice === Microservice.HERCULES) {
+      } else if (hasWorkersV1 && microservice === Microservice.HERCULES) {
+        return false;
+      }
+
+      // `release` and `worker-deployments` were introduced in v2.82.2
+      const hasReleaseAndWorkerDeployments: boolean =
+        compareVersions(sanitizedParagonVersion, 'v2.82.2') >= 0;
+
+      // filter unused microservices
+      if (
+        !hasReleaseAndWorkerDeployments &&
+        [Microservice.RELEASE, Microservice.WORKER_DEPLOYMENTS].includes(microservice)
+      ) {
         return false;
       }
 

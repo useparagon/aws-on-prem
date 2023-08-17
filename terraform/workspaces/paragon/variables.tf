@@ -207,6 +207,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "PLATO_PUBLIC_URL", "https://plato.${var.domain}")
     }
+    "release" = {
+      "port"             = lookup(local.base_helm_values.global.env, "RELEASE_PORT", 1719)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "RELEASE_PUBLIC_URL", "https://release.${var.domain}")
+    }
     "zeus" = {
       "port"             = lookup(local.base_helm_values.global.env, "ZEUS_PORT", 1703)
       "healthcheck_path" = "/healthz"
@@ -227,6 +232,11 @@ locals {
       "port"             = lookup(local.base_helm_values.global.env, "WORKER_CRONS_PORT", 1714)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_CRONS_PUBLIC_URL", "https://worker-crons.${var.domain}")
+    }
+    "worker-deployments" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_DEPLOYMENTS_PORT", 1718)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_DEPLOYMENTS_PUBLIC_URL", "https://worker-deployments.${var.domain}")
     }
     "worker-proxy" = {
       "port"             = lookup(local.base_helm_values.global.env, "WORKER_PROXY_PORT", 1715)
@@ -408,11 +418,13 @@ locals {
             PASSPORT_PORT  = try(local.microservices.passport.port, null)
             PHEME_PORT     = try(local.microservices.pheme.port, null)
             PLATO_PORT     = try(local.microservices.plato.port, null)
+            RELEASE_PORT   = try(local.microservices.release.port, null)
             ZEUS_PORT      = try(local.microservices.zeus.port, null)
 
             WORKER_ACTIONS_PORT     = try(local.microservices["worker-actions"].port, null)
             WORKER_CREDENTIALS_PORT = try(local.microservices["worker-credentials"].port, null)
             WORKER_CRONS_PORT       = try(local.microservices["worker-crons"].port, null)
+            WORKER_DEPLOYMENTS_PORT = try(local.microservices["worker-deployments"].port, null)
             WORKER_PROXY_PORT       = try(local.microservices["worker-proxy"].port, null)
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
@@ -429,11 +441,13 @@ locals {
             PASSPORT_PRIVATE_URL  = try("http://passport:${local.microservices.passport.port}", null)
             PHEME_PRIVATE_URL     = try("http://pheme:${local.microservices.pheme.port}", null)
             PLATO_PRIVATE_URL     = try("http://plato:${local.microservices.plato.port}", null)
+            RELEASE_PRIVATE_URL   = try("http://release:${local.microservices.release.port}", null)
             ZEUS_PRIVATE_URL      = try("http://zeus:${local.microservices.zeus.port}", null)
 
             WORKER_ACTIONS_PRIVATE_URL     = try("http://worker-actions:${local.microservices["worker-actions"].port}", null)
             WORKER_CREDENTIALS_PRIVATE_URL = try("http://worker-credentials:${local.microservices["worker-credentials"].port}", null)
             WORKER_CRONS_PRIVATE_URL       = try("http://worker-crons:${local.microservices["worker-crons"].port}", null)
+            WORKER_DEPLOYMENTS_PRIVATE_URL = try("http://worker-deployments:${local.microservices["worker-deployments"].port}", null)
             WORKER_PROXY_PRIVATE_URL       = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
