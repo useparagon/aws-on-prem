@@ -43,6 +43,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "expiration" {
       days = var.app_bucket_expiration
     }
 
+    noncurrent_version_expiration {
+      noncurrent_days = var.app_bucket_expiration
+    }
+
     status = "Enabled"
   }
 }
