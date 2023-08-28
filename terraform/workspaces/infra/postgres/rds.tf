@@ -108,11 +108,12 @@ resource "aws_db_instance" "postgres" {
   engine_version       = var.postgres_version
   instance_class       = each.value.size
   parameter_group_name = aws_db_parameter_group.postgres.name
-  storage_type         = "gp2"
+  storage_type         = each.value.storage_type
   replicate_source_db  = null
 
   allocated_storage           = 20
   max_allocated_storage       = 1000
+  iops                        = try(each.value.iops, null)
   allow_major_version_upgrade = false
   auto_minor_version_upgrade  = false
   availability_zone           = var.multi_az_enabled ? null : var.availability_zones.names[0]
