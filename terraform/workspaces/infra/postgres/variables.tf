@@ -81,30 +81,36 @@ variable "multi_postgres" {
 locals {
   postgres_instances = var.multi_postgres ? {
     beethoven = {
-      name = "${var.workspace}-beethoven"
-      size = var.rds_instance_class
-      db   = "beethoven"
+      name         = "${var.workspace}-beethoven"
+      size         = var.rds_instance_class
+      db           = "beethoven"
+      storage_type = "gp2"
     }
     cerberus = {
-      name = "${var.workspace}-cerberus"
-      size = "db.t4g.micro"
-      db   = "cerberus"
+      name         = "${var.workspace}-cerberus"
+      size         = "db.t4g.micro"
+      db           = "cerberus"
+      storage_type = "gp2"
     }
     hermes = {
-      name = "${var.workspace}-hermes"
-      size = var.rds_instance_class
-      db   = "hermes"
+      name         = "${var.workspace}-hermes"
+      size         = var.rds_instance_class
+      db           = "hermes"
+      storage_type = "gp3"
+      iops         = 3000
     }
     zeus = {
-      name = "${var.workspace}-zeus"
-      size = "db.t4g.small"
-      db   = "zeus"
+      name         = "${var.workspace}-zeus"
+      size         = "db.t4g.small"
+      db           = "zeus"
+      storage_type = "gp2"
     }
     } : {
     paragon = {
-      name = "${var.workspace}"
-      size = var.rds_instance_class
-      db   = "postgres"
+      name         = "${var.workspace}"
+      size         = var.rds_instance_class
+      db           = "postgres"
+      storage_type = "gp2"
     }
   }
 }
