@@ -106,6 +106,11 @@ resource "helm_release" "ingress" {
     name  = "clusterName"
     value = var.cluster_name
   }
+
+  set {
+    name  = "replicaCount"
+    value = "5"
+  }
 }
 
 # metrics server for hpa
