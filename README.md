@@ -140,7 +140,7 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 > cp .env-tf-paragon.example .secure/.env-tf-paragon
 ```
 
-### 4. Configure the `.secure/.env-infra` file.
+### 4. Configure the `.secure/.env-tf-infra` file.
 
 **Required**
 
