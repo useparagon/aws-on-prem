@@ -47,6 +47,16 @@ For this repo to work, you’ll need a few additional things:
 
 If you don't already have a license, please contact **[sales@useparagon.com](mailto:sales@useparagon.com)**, and we’ll get you connected.
 
+### Local Machine
+
+The machine that is being used to perform the setup will require the following software to be installed:
+
+- [git](https://github.com/git-guides/install-git)
+- [node](https://nodejs.org/en/download)
+- [yarn](https://yarnpkg.com/getting-started/install)
+- [docker](https://docs.docker.com/engine/install/)
+- [terraform](https://developer.hashicorp.com/terraform/downloads)
+
 ### Additional Resources
 
 To use this repository and run Paragon, you’ll additionally need:
