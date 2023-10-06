@@ -185,9 +185,9 @@ module "eks_managed_node_group" {
   depends_on = [
     module.eks,
     aws_iam_role.node_role,
-    aws_iam_policy_attachment.custom_worker_policy_attachment,
-    aws_iam_policy_attachment.AmazonEKSWorkerNodePolicy,
-    aws_iam_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
-    aws_iam_policy_attachment.AmazonEKS_CNI_Policy
+    aws_iam_role_policy_attachment.custom_worker_policy_attachment,
+    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
+    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy
   ]
 }

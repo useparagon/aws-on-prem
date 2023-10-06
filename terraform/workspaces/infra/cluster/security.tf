@@ -52,27 +52,23 @@ resource "aws_iam_policy" "eks_worker_policy" {
   }
 }
 
-resource "aws_iam_policy_attachment" "custom_worker_policy_attachment" {
-  name       = "${var.workspace}-custom-worker-policy"
-  roles      = [aws_iam_role.node_role.name]
+resource "aws_iam_role_policy_attachment" "custom_worker_policy_attachment" {
+  role       = aws_iam_role.node_role.name
   policy_arn = aws_iam_policy.eks_worker_policy.arn
 }
 
-resource "aws_iam_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-  name       = "${var.workspace}-eks-worker-node-policy"
-  roles      = [aws_iam_role.node_role.name]
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
+  role       = aws_iam_role.node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-resource "aws_iam_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
-  name       = "${var.workspace}-ec2-container-registry-policy"
-  roles      = [aws_iam_role.node_role.name]
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
+  role       = aws_iam_role.node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-resource "aws_iam_policy_attachment" "AmazonEKS_CNI_Policy" {
-  name       = "${var.workspace}-eks-cni-policy"
-  roles      = [aws_iam_role.node_role.name]
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  role       = aws_iam_role.node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
