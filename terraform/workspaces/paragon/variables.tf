@@ -270,6 +270,10 @@ locals {
       "port"       = 9538
       "public_url" = null
     }
+    "jaegar" = {
+      "port"       = 4317
+      "public_url" = null
+    }
     "grafana" = {
       "port"       = 4500
       "public_url" = lookup(local.base_helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
@@ -352,6 +356,8 @@ locals {
           MONITOR_GRAFANA_SLACK_CANARY_BETA_CHANNEL     = "<PLACEHOLDER>"
           MONITOR_GRAFANA_SLACK_CANARY_WEBHOOK_URL      = "<PLACEHOLDER>"
           MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
+
+          MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
           // custom values provided in `values.yaml`, overrides default values
           local.base_helm_values.global.env,
@@ -471,6 +477,8 @@ locals {
             MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
             MONITOR_GRAFANA_HOST                    = "http://grafana"
             MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST = "http://jaegar"
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT = try(local.monitors["jaegar"].port, null)
             MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
             MONITOR_KUBE_STATE_METRICS_PORT         = try(local.monitors["kube-state-metrics"].port, null)
             MONITOR_PGADMIN_HOST                    = "http://pgadmin"
