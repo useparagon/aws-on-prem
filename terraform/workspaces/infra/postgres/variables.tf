@@ -97,7 +97,7 @@ locals {
       size         = var.rds_instance_class
       db           = "hermes"
       storage_type = "gp3"
-      iops         = 3000
+      iops         = !contains(["db.t4g.micro", "db.t4g.small", "db.t3.micro", "db.t3.small"], var.rds_instance_class) ? 3000 : null
     }
     zeus = {
       name         = "${var.workspace}-zeus"

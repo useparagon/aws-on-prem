@@ -262,10 +262,6 @@ locals {
   }
 
   monitors = {
-    "beethoven-exporter" = {
-      "port"       = 8002
-      "public_url" = null
-    }
     "bull-exporter" = {
       "port"       = 9538
       "public_url" = null
@@ -466,8 +462,6 @@ locals {
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
 
-            MONITOR_BEETHOVEN_EXPORTER_HOST         = "http://beethoven-exporter"
-            MONITOR_BEETHOVEN_EXPORTER_PORT         = try(local.monitors["beethoven-exporter"].port, null)
             MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
             MONITOR_BULL_EXPORTER_PORT              = try(local.monitors["bull-exporter"].port, null)
             MONITOR_GRAFANA_AWS_ACCESS_ID           = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
