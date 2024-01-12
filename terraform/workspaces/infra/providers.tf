@@ -6,9 +6,13 @@ provider "aws" {
   default_tags {
     tags = {
       Name        = local.workspace
-      Creator     = "Terraform"
       Environment = local.environment
       Workspace   = local.workspace
+      Creator     = "Terraform"
     }
   }
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_dns_api_token
 }

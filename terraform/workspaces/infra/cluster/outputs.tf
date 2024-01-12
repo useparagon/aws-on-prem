@@ -10,22 +10,3 @@ output "eks_cluster" {
     cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
   }
 }
-
-output "cluster_super_admin" {
-  value = {
-    arn  = aws_iam_role.super_admin.arn
-    id   = aws_iam_role.super_admin.id
-    name = aws_iam_role.super_admin.name
-  }
-}
-
-output "eks_super_admin" {
-  value = {
-    arn  = aws_iam_role.super_admin.arn
-    name = aws_iam_role.super_admin.name
-  }
-}
-
-output "eks" {
-  value = module.eks
-}

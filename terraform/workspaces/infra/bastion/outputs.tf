@@ -2,11 +2,10 @@ output "bucket" {
   value = module.bastion.bucket_name
 }
 
-output "load_balancer" {
+output "connection" {
   value = {
+    bastion_dns = var.cloudflare_tunnel_enabled ? local.tunnel_domain : module.bastion.elb_ip
     private_key = tls_private_key.bastion.private_key_pem
-    public_key  = tls_private_key.bastion.public_key_openssh
-    public_dns  = module.bastion.elb_ip
   }
 }
 

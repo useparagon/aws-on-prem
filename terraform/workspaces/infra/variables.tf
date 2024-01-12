@@ -188,9 +188,62 @@ variable "eks_admin_user_arns" {
   default     = null
 }
 
+# Cloudflare variables
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token created at https://dash.cloudflare.com/profile/api-tokens. Requires Edit permissions on Account `Cloudflare Tunnel`, `Access: Organizations, Identity Providers, and Groups`, `Access: Apps and Policies` and Zone `DNS`"
+  type        = string
+  sensitive   = true
+  default     = "dummy-cloudflare-tokens-must-be-40-chars"
+}
+
+variable "cloudflare_tunnel_enabled" {
+  description = "Flag whether to enable Cloudflare Zero Trust tunnel for bastion"
+  type        = bool
+  default     = false
+}
+
+variable "cloudflare_tunnel_zone_id" {
+  description = "Zone ID for Cloudflare domain"
+  type        = string
+  default     = ""
+}
+
+variable "cloudflare_tunnel_account_id" {
+  description = "Account ID for Cloudflare account"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "cloudflare_tunnel_email_domain" {
+  description = "Email domain for Cloudflare access"
+  type        = string
+  sensitive   = true
+  default     = "useparagon.com"
+}
+
+variable "cloudflare_dns_api_token" {
+  description = "Cloudflare DNS API token for SSL certificate creation and verification."
+  type        = string
+  default     = null
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone id to set CNAMEs."
+  type        = string
+  default     = null
+}
+
 locals {
   workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"
+
+  default_tags = {
+    Name        = local.workspace
+    Environment = local.environment
+    Workspace   = local.workspace
+    Creator     = "Terraform"
+  }
 
   // get distinct values from comma-separated list, filter empty values and trim them
   // for `ip_whitelist`, if an ip doesn't contain a range at the end (e.g. `<IP_ADDRESS>/32`), then add `/32` to the end. `1.1.1.1` becomes `1.1.1.1/32`; `2.2.2.2/24` remains unchanged

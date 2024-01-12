@@ -1,9 +1,9 @@
-variable "workspace" {
-  description = "The name of the workspace resources are being created in."
+variable "app_name" {
+  description = "An optional name to override the name of the resources created."
 }
 
 variable "environment" {
-  description = "The development environment (e.g. sandbox, development, staging, production, enterprise)."
+  description = "The development environment (e.g. sandbox, development, staging, production)."
 }
 
 variable "aws_region" {
@@ -39,24 +39,58 @@ variable "ssh_whitelist" {
   type        = list(string)
 }
 
-variable "force_destroy" {
-  description = "Whether to enable force destroy."
+# Cloudflare variables
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token created at https://dash.cloudflare.com/profile/api-tokens. Requires Edit permissions on Account `Cloudflare Tunnel`, `Access: Organizations, Identity Providers, and Groups`, `Access: Apps and Policies` and Zone `DNS`"
+  type        = string
+  sensitive   = true
+  default     = "dummy-cloudflare-tokens-must-be-40-chars"
+}
+
+variable "cloudflare_tunnel_enabled" {
+  description = "Flag whether to enable Cloudflare Zero Trust tunnel for bastion"
   type        = bool
   default     = false
 }
 
-variable "cluster_super_admin" {
-  description = "The IAM role created with super admin access to the cluster."
-  type = object({
-    arn  = string
-    id   = string
-    name = string
-  })
+variable "cloudflare_tunnel_zone_id" {
+  description = "Zone ID for Cloudflare domain"
+  type        = string
+  default     = ""
+}
+
+variable "cloudflare_tunnel_account_id" {
+  description = "Account ID for Cloudflare account"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "cloudflare_tunnel_email_domain" {
+  description = "Email domain for Cloudflare access"
+  type        = string
+  sensitive   = true
+  default     = "useparagon.com"
+}
+
+variable "eks_cluster_name" {
+  description = "The EKS cluster that node groups and resources should be deployed to."
+  type        = string
+}
+
+variable "default_tags" {
+  description = "The default tags applied to resources."
+  type        = map(string)
 }
 
 locals {
-  resource_group = "${var.workspace}-bastion"
+  resource_group = "${var.app_name}-bastion"
 
-  # TODO: update to random port for security
+  default_tags = merge(var.default_tags, {
+    Name          = local.resource_group
+    ResourceGroup = local.resource_group
+  })
+
+  # TODO: update to random port
   ssh_port = 22
 }

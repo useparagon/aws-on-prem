@@ -62,19 +62,41 @@ output "minio_private_bucket" {
   sensitive   = true
 }
 
-output "bastion_load_balancer" {
-  description = "The url for the bastion load balancer."
-  value       = module.bastion.load_balancer.public_dns
+output "bastion_public_dns" {
+  description = "The URL for the bastion server."
+  value       = module.bastion.connection.bastion_dns
   sensitive   = true
 }
 
 output "bastion_private_key" {
   description = "The private key for the bastion."
-  value       = module.bastion.load_balancer.private_key
+  value       = module.bastion.connection.private_key
   sensitive   = true
 }
 
 output "cluster_name" {
   description = "The name of the EKS cluster."
   value       = module.cluster.eks_cluster.name
+}
+
+output "paragon_config" {
+  description = "Required configuration for Paragon deployment"
+  sensitive   = true
+  value       = <<OUTPUT
+    MINIO_ROOT_USER: ${module.s3.s3.access_key_id}
+    MINIO_ROOT_PASSWORD: ${module.s3.s3.access_key_secret}
+    MINIO_MICROSERVICE_USER: ${module.s3.s3.minio_microservice_user}
+    MINIO_MICROSERVICE_PASS: ${module.s3.s3.minio_microservice_pass}
+    MINIO_PUBLIC_BUCKET: ${module.s3.s3.public_bucket}
+    MINIO_SYSTEM_BUCKET: ${module.s3.s3.private_bucket}
+
+    POSTGRES_HOST: ${module.postgres.rds.paragon.host}
+    POSTGRES_PORT: ${module.postgres.rds.paragon.port}
+    POSTGRES_USER: ${module.postgres.rds.paragon.user}
+    POSTGRES_PASSWORD: ${module.postgres.rds.paragon.password}
+    POSTGRES_DATABASE: ${module.postgres.rds.paragon.database}
+
+    REDIS_HOST: ${module.redis.elasticache.cache.host}
+    REDIS_PORT: ${module.redis.elasticache.cache.port}
+  OUTPUT
 }

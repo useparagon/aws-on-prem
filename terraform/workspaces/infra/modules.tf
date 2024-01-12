@@ -123,13 +123,19 @@ module "bastion" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace     = local.workspace
+  app_name      = local.workspace
   environment   = local.environment
   ssh_whitelist = local.ssh_whitelist
+  default_tags  = local.default_tags
 
-  vpc_id              = module.network.vpc.id
-  public_subnet       = module.network.public_subnet
-  private_subnet      = module.network.private_subnet
-  cluster_super_admin = module.cluster.cluster_super_admin
-  force_destroy       = var.disable_deletion_protection
+  vpc_id           = module.network.vpc.id
+  public_subnet    = module.network.public_subnet
+  private_subnet   = module.network.private_subnet
+  eks_cluster_name = module.cluster.eks_cluster.name
+
+  cloudflare_api_token           = var.cloudflare_api_token
+  cloudflare_tunnel_enabled      = var.cloudflare_tunnel_enabled
+  cloudflare_tunnel_zone_id      = var.cloudflare_tunnel_zone_id
+  cloudflare_tunnel_account_id   = var.cloudflare_tunnel_account_id
+  cloudflare_tunnel_email_domain = var.cloudflare_tunnel_email_domain
 }
