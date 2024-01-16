@@ -62,7 +62,7 @@ The machine that is being used to perform the setup will require the following s
 To use this repository and run Paragon, you’ll additionally need:
 
 - an [AWS account](https://aws.amazon.com/) to provision the resources and deploy the application
-- a [Terraform account](https://www.terraform.io/) for managing the infrastructure state
+- a [Terraform Cloud account](https://www.terraform.io/) for managing the infrastructure state
 - a [SendGrid account](https://sendgrid.com/) to send emails
 - a domain name that the Paragon microservices can be reached at
 
@@ -70,15 +70,17 @@ To use this repository and run Paragon, you’ll additionally need:
 
 From your AWS account, you’ll need:
 
-- access key id
-- access secret key
-- aws region
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_REGION
+- AWS_SESSION_TOKEN (optional)
 
 **Terraform Account**
 
 - organization
 - API token
-- 2 workspaces: one for the infrastructure and a second for the helm chart
+- two workspaces: one for the infrastructure and a second for the helm chart
+  - for ease of use these should be configured to "Auto apply"
 
 **SendGrid Account**
 
@@ -95,17 +97,17 @@ If you’re bringing your own infrastructure (e.g. Kubernetes cluster, Redis, Po
 
 ### 1. Clone the repository and build the Docker image.
 
-```tsx
-> git clone git@github.com:useparagon/aws-on-prem.git paragon-on-prem
-> cd paragon-on-prem
-> make -s build
-> make -s tf-version
-> yarn install
+```bash
+git clone https://github.com/useparagon/aws-on-prem.git paragon-on-prem
+cd paragon-on-prem
+make -s build
+make -s tf-version
+yarn install
 ```
 
 Confirm that when running `make -s tf-version`, you see the following output or similar:
 
-```tsx
+```bash
 Terraform v1.2.4
 on linux_amd64
 
@@ -117,7 +119,7 @@ is 1.3.3. You can update by downloading from https://www.terraform.io/downloads.
 
 Copy the Helm chart provided into `terraform/workspaces/paragon/charts`. It should look like this:
 
-```tsx
+```bash
 ...
 terraform/
   workspaces/
@@ -133,11 +135,10 @@ terraform/
 
 Copy the environment variable files into the `.secure/` directory and remove `.example` from the file name.
 
-```tsx
-> cp values.yaml.example .secure/values.yaml
-> cp .env-helm.example .secure/.env-helm
-> cp .env-tf-infra.example .secure/.env-tf-infra
-> cp .env-tf-paragon.example .secure/.env-tf-paragon
+```bash
+cp .env-tf-infra.example .secure/.env-tf-infra
+cp .env-tf-paragon.example .secure/.env-tf-paragon
+cp values.yaml.example .secure/values.yaml
 ```
 
 ### 4. Configure the `.secure/.env-tf-infra` file.
@@ -147,9 +148,9 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `AWS_ACCESS_KEY_ID`: your AWS access key id
 - `AWS_REGION`: the AWS region to deploy resources to
 - `AWS_SECRET_ACCESS_KEY`: your AWS secret access key
-- `TF_ORGANIZATION`**:** the name of the organization your Terraform account belongs to
+- `TF_ORGANIZATION`: the name of the organization your Terraform account belongs to
 - `TF_TOKEN`: your Terraform API key
-- `TF_WORKSPACE`**:** the Terraform workspace for the infrastructure
+- `TF_WORKSPACE`: the Terraform workspace for the infrastructure
 
 **Optional**
 
@@ -175,14 +176,14 @@ Copy the environment variable files into the `.secure/` directory and remove `.e
 - `RDS_INSTANCE_CLASS`: the RDS [instance type](https://aws.amazon.com/rds/postgresql/pricing/) (default: `db.t3.small`)
 - `RDS_RESTORE_FROM_SNAPSHOT`: Specifies that RDS instance(s) should be restored from snapshots (default: `false`)
 - `SSH_WHITELIST`: your current IP address which will allow you SSH into the bastion to debug the Kubernetes cluster
-- `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function
+- `VPC_CIDR_NEWBITS`: Set to a number to configure newbits used to calculate subnets used in `cidrsubnet` function. e.g. a `/16` VPC CIDR with newbits=4 will result in 4096 IPs per subnet.
 
 ### 5. Deploy the infrastructure.
 
 Run the following command to provision the infrastructure:
 
-```tsx
-> make -s deploy-infra
+```bash
+make -s deploy-infra
 ```
 
 You should see Terraform initialize the modules and prepare a remote plan. Type `yes` to create the infrastructure.
@@ -195,8 +196,8 @@ Confirm that all the resources are created.
 
 Get the state from the infra workspace by running the following command:
 
-```tsx
-> make -s state-infra
+```bash
+make -s state-infra
 ```
 
 Configure the environment variables:
@@ -232,8 +233,10 @@ These variables should be pulled from the `infra` workspace.
 - `DNS_PROVIDER`: specifies which DNS provider to update nameservers. Currently only supports `cloudflare`
 - `ENVIRONMENT`: used when deploying multiple installations of Paragon. should be left empty or set to `enterprise`
 - `K8_VERSION`: Version of kubernetes to run. Defaults to `1.25`
+- `MONITORS_ENABLED`: flag to deploy monitoring resources such as Grafana and Prometheus
+- `MONITOR_VERSION`: monitoring version that should typically match `VERSION` below
 
-### 7. Configure the `.secure/.env-helm` file.
+### 7. Configure the `.secure/values.yaml` file.
 
 **Required**
 
@@ -242,7 +245,7 @@ These variables should be pulled from the `infra` workspace.
 - `SENDGRID_FROM_ADDRESS`: the email to send SendGrid emails from
 - `VERSION`: the version of Paragon you want to run
 
-**Required (from infra workspace)**
+**Required (from `paragon_config` output variable in infra workspace)**
 
 - `MINIO_MICROSERVICE_PASS`: from `minio_microservice_pass` output
 - `MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
@@ -262,83 +265,75 @@ These variables should be pulled from the `infra` workspace.
 
 If you have `MULTI_POSTGRES` enabled, instead of using `POSTGRES_*` variables, you'll configure the following variables from the `postgres` output. **NOTE**: Beethoven and Pheme should point to the same database.
 
-```
-BEETHOVEN_POSTGRES_HOST=
-BEETHOVEN_POSTGRES_PORT=
-BEETHOVEN_POSTGRES_USERNAME=
-BEETHOVEN_POSTGRES_PASSWORD=
-BEETHOVEN_POSTGRES_DATABASE=
+```yaml
+    BEETHOVEN_POSTGRES_HOST: 
+    BEETHOVEN_POSTGRES_PORT: 
+    BEETHOVEN_POSTGRES_USERNAME: 
+    BEETHOVEN_POSTGRES_PASSWORD: 
+    BEETHOVEN_POSTGRES_DATABASE: 
 
-CERBERUS_POSTGRES_HOST=
-CERBERUS_POSTGRES_PORT=
-CERBERUS_POSTGRES_USERNAME=
-CERBERUS_POSTGRES_PASSWORD=
-CERBERUS_POSTGRES_DATABASE=
+    CERBERUS_POSTGRES_HOST: 
+    CERBERUS_POSTGRES_PORT: 
+    CERBERUS_POSTGRES_USERNAME: 
+    CERBERUS_POSTGRES_PASSWORD: 
+    CERBERUS_POSTGRES_DATABASE: 
 
-HERMES_POSTGRES_HOST=
-HERMES_POSTGRES_PORT=
-HERMES_POSTGRES_USERNAME=
-HERMES_POSTGRES_PASSWORD=
-HERMES_POSTGRES_DATABASE=
+    HERMES_POSTGRES_HOST: 
+    HERMES_POSTGRES_PORT: 
+    HERMES_POSTGRES_USERNAME: 
+    HERMES_POSTGRES_PASSWORD: 
+    HERMES_POSTGRES_DATABASE: 
 
-PHEME_POSTGRES_HOST=
-PHEME_POSTGRES_PORT=
-PHEME_POSTGRES_USERNAME=
-PHEME_POSTGRES_PASSWORD=
-PHEME_POSTGRES_DATABASE=
+    PHEME_POSTGRES_HOST: 
+    PHEME_POSTGRES_PORT: 
+    PHEME_POSTGRES_USERNAME: 
+    PHEME_POSTGRES_PASSWORD: 
+    PHEME_POSTGRES_DATABASE: 
 
-ZEUS_POSTGRES_HOST=
-ZEUS_POSTGRES_PORT=
-ZEUS_POSTGRES_USERNAME=
-ZEUS_POSTGRES_PASSWORD=
-ZEUS_POSTGRES_DATABASE=
+    ZEUS_POSTGRES_HOST: 
+    ZEUS_POSTGRES_PORT: 
+    ZEUS_POSTGRES_USERNAME: 
+    ZEUS_POSTGRES_PASSWORD: 
+    ZEUS_POSTGRES_DATABASE: 
 ```
 
 #### Configuring multiple Redis instances.
 
 If you have `MULTI_REDIS` enabled, instead of using `REDIS_*` variables, you'll configure the following variables from the `redis` output. **NOTE**: Cache and Workflow should point to the same Redis.
 
+```yaml
+    CACHE_REDIS_URL: 
+    WORKFLOW_REDIS_URL: 
+    SYSTEM_REDIS_URL: 
+    QUEUE_REDIS_URL: 
+
+    CACHE_REDIS_CLUSTER_ENABLED: true
+    SYSTEM_REDIS_CLUSTER_ENABLED: false
+    QUEUE_REDIS_CLUSTER_ENABLED: false
+    WORKFLOW_REDIS_CLUSTER_ENABLED: true
 ```
-CACHE_REDIS_URL=
-WORKFLOW_REDIS_URL=
-SYSTEM_REDIS_URL=
-QUEUE_REDIS_URL=
 
-CACHE_REDIS_CLUSTER_ENABLED=true
-SYSTEM_REDIS_CLUSTER_ENABLED=false
-QUEUE_REDIS_CLUSTER_ENABLED=false
-WORKFLOW_REDIS_CLUSTER_ENABLED=true
-```
-
-### 8. Configuring `values.yaml` (optional)
-
-To create a custom `values.yaml` file to override the Paragon helm chart, create a `values.yaml` file in the `.secure` directory.
-
-> touch .secure/values.yaml
-
-Override your settings within that file.
-
-### 9. Deploy the Helm chart.
+### 8. Deploy the Helm chart.
 
 Deploy the Paragon helm chart to your Kubernetes cluster. Run the following command:
 
-```tsx
-> make -s deploy-paragon
+```bash
+make -s deploy-paragon
 ```
 
 Confirm that Terraform executed successfully.
 
-### 10. Update your nameservers.
+### 9. Update your nameservers.
 
 You’ll need to update the nameservers for your domain to be able to access the services. Run the following command:
 
-```tsx
-> make -s state-paragon
+```bash
+make -s state-paragon
 ```
 
-Go to the website where you registered your domain (e.g. Namecheap, Cloudflare), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
+Go to the website where you registered your domain (e.g. Namecheap, Cloudflare, Route53), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
 
-### 11. Open the application.
+### 10. Open the application.
 
 Visit `https://dashboard.<YOUR_DOMAIN>` on your browser to view the dashboard. Register an account and get started!
 
@@ -350,7 +345,7 @@ This repository is split into two Terraform workspaces so you can optionally bri
 - Kubernetes cluster ([EKS](https://aws.amazon.com/eks/))
 - Redis instance ([ElastiCache](https://aws.amazon.com/elasticache/))
 - Postgres instance ([RDS](https://aws.amazon.com/rds/))
-- 2 S3 buckets:
+- two S3 buckets:
   - 1 with public access
   - 1 with private access
 
@@ -360,23 +355,23 @@ Configuring this is currently outside of the scope of this repository. Please co
 
 To destroy the infrastructure, you’ll need to first destroy the `paragon` workspace, then the `infra` workspace.
 
-```tsx
-> make -s deploy-paragon initialize=false plan=false destroy=true
-> make -s deploy-infra initialize=false plan=false destroy=true
+```bash
+make -s deploy-paragon initialize=false plan=false destroy=true
+make -s deploy-infra initialize=false plan=false destroy=true
 ```
 
 ## Makefile
 
 This repo comes with a `Makefile` and CLI to execute commands. Here are the commands and their arguments:
 
-```tsx
+```bash
 build                       # builds the docker image
 
 tf-version                  # echos the terraform version
 
-state-infra                 # gets the state of the infra workspace
+state-infra                 # gets the state of the infra workspace (comparable to terraform -chdir=terraform/workspaces/infra output -json)
 
-state-paragon               # gets the state of the helm workspace
+state-paragon               # gets the state of the paragon workspace (comparable to terraform -chdir=terraform/workspaces/paragon output -json)
 
 deploy-infra                # deploys the infrastructure
   debug={true,false}        # (optional) print additional debugging information
@@ -387,7 +382,7 @@ deploy-infra                # deploys the infrastructure
   target                    # (optional) used to specify a target for the Terraform operation
   args                      # (optional) additional arguments to pass to Terraform
 
-deploy-paragon # deploys the Paragon helm chart
+deploy-paragon              # deploys the Paragon helm chart
   debug={true,false}        # (optional) print additional debugging information
   initialize={true,false}   # (optional) used to skip the `terraform init` command
   plan={true,false}         # (optional) used to skip the `terraform plan` command
@@ -399,7 +394,7 @@ deploy-paragon # deploys the Paragon helm chart
 
 **Examples**
 
-```tsx
+```bash
 make -s build
 
 make -s tf-version
@@ -421,14 +416,14 @@ make -s deploy-paragon initialize=false plan=true apply=false target=module.alb
 To debug the Kubernetes cluster, the `infra` workspace provisions a bastion that you can SSH into. After successfully provisioning the infra workspace:
 
 1. Run `make -s state-infra`
-2. Copy the value of `bastion_private_key` from the Terraform state into a new file at `.secure/id_rsa`
+2. Copy the value of `bastion_private_key` from the Terraform state into a new file at `.secure/id_rsa` (replacing `\n` with newlines)
 3. Run `chmod 600 .secure/id_rsa`
 4. Copy the bastion url from `bastion_load_balancer` from the Terraform state.
 5. Run `ssh -i .secure/id_rsa ubuntu@<BASTION_LOAD_BALANCER_URL>`
 
-Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not configured correctly, run the following commands. Make sure to replace the placeholders.
+Once you're in the bastion, you should be able to use `kubectl` to interact with the cluster. If it's not connecting run the following commands. Make sure to replace the placeholders.
 
-```tsx
-> aws eks --region <AWS_REGION> update-kubeconfig --name <CLUSTER_NAME>
-> kubectl config set-context --current --namespace=paragon
+```bash
+aws eks --region <AWS_REGION> update-kubeconfig --name <CLUSTER_NAME>
+kubectl config set-context --current --namespace=paragon
 ```
