@@ -79,6 +79,10 @@ output "cluster_name" {
   value       = module.cluster.eks_cluster.name
 }
 
+locals {
+  db_info = [for r in module.postgres.rds : r][0]
+}
+
 output "paragon_config" {
   description = "Required configuration for Paragon deployment"
   sensitive   = true
@@ -90,11 +94,11 @@ output "paragon_config" {
     MINIO_PUBLIC_BUCKET: ${module.s3.s3.public_bucket}
     MINIO_SYSTEM_BUCKET: ${module.s3.s3.private_bucket}
 
-    POSTGRES_HOST: ${module.postgres.rds.paragon.host}
-    POSTGRES_PORT: ${module.postgres.rds.paragon.port}
-    POSTGRES_USER: ${module.postgres.rds.paragon.user}
-    POSTGRES_PASSWORD: ${module.postgres.rds.paragon.password}
-    POSTGRES_DATABASE: ${module.postgres.rds.paragon.database}
+    POSTGRES_HOST: ${local.db_info.host}
+    POSTGRES_PORT: ${local.db_info.port}
+    POSTGRES_USER: ${local.db_info.user}
+    POSTGRES_PASSWORD: ${local.db_info.password}
+    POSTGRES_DATABASE: ${local.db_info.database}
 
     REDIS_HOST: ${module.redis.elasticache.cache.host}
     REDIS_PORT: ${module.redis.elasticache.cache.port}
