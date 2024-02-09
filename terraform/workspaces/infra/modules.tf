@@ -135,6 +135,7 @@ module "bastion" {
 
   cloudflare_api_token           = var.cloudflare_api_token
   cloudflare_tunnel_enabled      = var.cloudflare_tunnel_enabled
+  cloudflare_tunnel_subdomain    = var.cloudflare_tunnel_subdomain
   cloudflare_tunnel_zone_id      = var.cloudflare_tunnel_zone_id
   cloudflare_tunnel_account_id   = var.cloudflare_tunnel_account_id
   cloudflare_tunnel_email_domain = var.cloudflare_tunnel_email_domain

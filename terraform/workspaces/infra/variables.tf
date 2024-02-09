@@ -202,6 +202,12 @@ variable "cloudflare_tunnel_enabled" {
   default     = false
 }
 
+variable "cloudflare_tunnel_subdomain" {
+  description = "Subdomain under the Cloudflare Zone to create the tunnel"
+  type        = string
+  default     = ""
+}
+
 variable "cloudflare_tunnel_zone_id" {
   description = "Zone ID for Cloudflare domain"
   type        = string
