@@ -7,17 +7,10 @@ data "cloudflare_zone" "zone" {
   count = var.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id = var.cloudflare_tunnel_zone_id
-
-  lifecycle {
-    precondition {
-      condition     = !var.cloudflare_tunnel_enabled || (length(var.cloudflare_api_token) > 0 && length(var.cloudflare_tunnel_zone_id) > 0 && length(var.cloudflare_tunnel_account_id) > 0 && length(var.cloudflare_tunnel_email_domain) > 0)
-      error_message = "cloudflare_api_token, cloudflare_tunnel_account_id, cloudflare_tunnel_email_domain and cloudflare_tunnel_zone_id are required when cloudflare_tunnel_enabled"
-    }
-  }
 }
 
 locals {
-  tunnel_domain = var.cloudflare_tunnel_enabled ? "${local.resource_group}.${data.cloudflare_zone.zone[0].name}" : ""
+  tunnel_domain = var.cloudflare_tunnel_enabled ? "${var.cloudflare_tunnel_subdomain}.${data.cloudflare_zone.zone[0].name}" : ""
   tunnel_secret = random_id.tunnel_secret.b64_std
 }
 
@@ -28,6 +21,13 @@ resource "cloudflare_tunnel" "tunnel" {
   account_id = var.cloudflare_tunnel_account_id
   name       = local.tunnel_domain
   secret     = local.tunnel_secret
+
+  lifecycle {
+    precondition {
+      condition     = !var.cloudflare_tunnel_enabled || (length(var.cloudflare_api_token) > 0 && length(var.cloudflare_tunnel_subdomain) > 0 && length(var.cloudflare_tunnel_zone_id) > 0 && length(var.cloudflare_tunnel_account_id) > 0 && length(var.cloudflare_tunnel_email_domain) > 0)
+      error_message = "cloudflare_api_token, cloudflare_tunnel_account_id, cloudflare_tunnel_email_domain, cloudflare_tunnel_subdomain and cloudflare_tunnel_zone_id are required when cloudflare_tunnel_enabled"
+    }
+  }
 }
 
 locals {
@@ -39,7 +39,7 @@ resource "cloudflare_record" "tunnel" {
   count = var.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id = var.cloudflare_tunnel_zone_id
-  name    = local.resource_group
+  name    = var.cloudflare_tunnel_subdomain
   value   = "${cloudflare_tunnel.tunnel[0].id}.cfargotunnel.com"
   type    = "CNAME"
   proxied = true
