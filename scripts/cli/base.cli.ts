@@ -280,16 +280,26 @@ credentials "app.terraform.io" {
     const sanitizedParagonVersion: string = paragonVersion.split('-rc')[0].split('-unstable')[0];
     const microservices: Microservice[] = Object.values(Microservice);
     return microservices.filter((microservice: Microservice): boolean => {
-      // hades, pheme and plato expected to be added in v2.67.0 in non-GCP environments
-      // delete the charts if version is before that and not in GCP
-      const hasHadesAndPlatoAndPheme: boolean =
-        isLatest || compareVersions(sanitizedParagonVersion, 'v2.67.0') >= 0;
+      // pheme was added in v2.64.1
+      const hasPheme: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.64.0') >= 0;
+      if (!hasPheme && Microservice.PHEME === microservice) {
+        return false;
+      }
 
-      // filter unused microservices
-      if (
-        !hasHadesAndPlatoAndPheme &&
-        [Microservice.HADES, Microservice.PHEME, Microservice.PLATO].includes(microservice)
-      ) {
+      // hades was added in v2.67.1
+      const hasHades: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.67.0') >= 0;
+      if (!hasHades && Microservice.HADES === microservice) {
+        return false;
+      }
+
+      // plato was added in v2.67.1 and removed in v2.94.3
+      const hasPlato: boolean =
+        !isLatest &&
+        compareVersions(sanitizedParagonVersion, 'v2.67.0') >= 0 &&
+        compareVersions(sanitizedParagonVersion, 'v2.94.3') < 0;
+      if (!hasPlato && Microservice.PLATO === microservice) {
         return false;
       }
 
@@ -302,7 +312,8 @@ credentials "app.terraform.io" {
         Microservice.WORKER_TRIGGERS,
         Microservice.WORKER_WORKFLOWS,
       ];
-      const hasWorkersV1: boolean = compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
+      const hasWorkersV1: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
       if (!hasWorkersV1 && workersV1.includes(microservice)) {
         return false;
       } else if (hasWorkersV1 && microservice === Microservice.HERCULES) {
@@ -311,7 +322,7 @@ credentials "app.terraform.io" {
 
       // `release` and `worker-deployments` were introduced in v2.82.2
       const hasReleaseAndWorkerDeployments: boolean =
-        compareVersions(sanitizedParagonVersion, 'v2.82.2') >= 0;
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2.82.2') >= 0;
 
       // filter unused microservices
       if (
