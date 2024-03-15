@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "app" {
   }
 
   versioning {
-    enabled = true
+    enabled = var.force_destroy ? false : true
   }
 
   server_side_encryption_configuration {

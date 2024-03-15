@@ -18,5 +18,5 @@ resource "random_string" "pgadmin_admin_password" {
   numeric     = true
   special     = false
   lower       = true
-  upper       = true
+  upper       = false
 }

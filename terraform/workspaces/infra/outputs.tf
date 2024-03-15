@@ -97,7 +97,7 @@ output "paragon_config" {
     POSTGRES_HOST: ${local.db_info.host}
     POSTGRES_PORT: ${local.db_info.port}
     POSTGRES_USER: ${local.db_info.user}
-    POSTGRES_PASSWORD: ${local.db_info.password}
+    POSTGRES_PASSWORD: ${local.db_info.password == null ? "" : local.db_info.password}
     POSTGRES_DATABASE: ${local.db_info.database}
 
     REDIS_HOST: ${module.redis.elasticache.cache.host}

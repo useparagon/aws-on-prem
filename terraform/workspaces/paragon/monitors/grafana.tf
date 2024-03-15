@@ -57,7 +57,7 @@ resource "random_string" "grafana_admin_email_prefix" {
   special = false
   numeric = false
   lower   = true
-  upper   = true
+  upper   = false
 }
 
 resource "random_string" "grafana_admin_password" {
