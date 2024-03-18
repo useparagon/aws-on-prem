@@ -49,3 +49,11 @@ module "monitors" {
   pgadmin_admin_email           = try(local.base_helm_values.global.env["MONITOR_PGADMIN_EMAIL"], null)
   pgadmin_admin_password        = try(local.base_helm_values.global.env["MONITOR_PGADMIN_PASSWORD"], null)
 }
+
+module "uptime" {
+  source = "./uptime"
+
+  uptime_api_token = var.uptime_api_token
+  uptime_company   = coalesce(var.uptime_company, var.organization)
+  microservices    = local.microservices
+}
