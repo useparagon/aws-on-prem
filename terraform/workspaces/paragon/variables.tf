@@ -140,6 +140,18 @@ variable "cloudflare_zone_id" {
   default     = null
 }
 
+variable "uptime_api_token" {
+  description = "Optional API Token for setting up BetterStack Uptime monitors."
+  type        = string
+  default     = null
+}
+
+variable "uptime_company" {
+  description = "Optional pretty company name to include in BetterStack Uptime monitors."
+  type        = string
+  default     = null
+}
+
 locals {
   raw_helm_env = jsondecode(base64decode(var.helm_env))
   raw_helm_values = try(yamldecode(
@@ -471,6 +483,7 @@ locals {
             MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
             MONITOR_GRAFANA_HOST                    = "http://grafana"
             MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
+            MONITOR_GRAFANA_UPTIME_WEBHOOK_URL      = module.uptime.webhook
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST = "http://jaegar"
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT = try(local.monitors["jaegar"].port, null)
             MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
