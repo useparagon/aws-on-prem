@@ -5,7 +5,7 @@ resource "random_string" "pgadmin_admin_email_prefix" {
   special = false
   numeric = false
   lower   = true
-  upper   = true
+  upper   = false
 }
 
 resource "random_string" "pgadmin_admin_password" {
