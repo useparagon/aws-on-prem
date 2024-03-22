@@ -115,7 +115,7 @@ resource "aws_db_instance" "postgres" {
   max_allocated_storage       = 1000
   iops                        = try(each.value.iops, null)
   allow_major_version_upgrade = false
-  auto_minor_version_upgrade  = false
+  auto_minor_version_upgrade  = true
   availability_zone           = var.multi_az_enabled ? null : var.availability_zones.names[0]
   backup_retention_period     = 7
   monitoring_interval         = 15
@@ -123,6 +123,7 @@ resource "aws_db_instance" "postgres" {
   monitoring_role_arn         = aws_iam_role.rds_enhanced_monitoring.arn
   backup_window               = "06:00-07:00"
   maintenance_window          = "Tue:04:00-Tue:05:00"
+  ca_cert_identifier          = "rds-ca-rsa2048-g1"
 
   db_subnet_group_name      = aws_db_subnet_group.postgres.id
   vpc_security_group_ids    = [aws_security_group.postgres.id]
