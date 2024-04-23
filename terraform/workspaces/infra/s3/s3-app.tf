@@ -92,55 +92,58 @@ resource "aws_iam_user_policy" "app" {
   name = "${var.workspace}-s3-policy"
   user = aws_iam_user.app.name
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
+  policy = jsonencode(
     {
-      "Sid": "AllowReadBucketOperations",
-      "Action": [
-        "s3:ListBucket",
-        "s3:GetBucketAcl",
-        "s3:GetBucketCORS",
-        "s3:GetBucketLocation",
-        "s3:GetBucketPolicy",
-        "s3:GetBucketVersioning",
-        "s3:GetEncryptionConfiguration"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "${aws_s3_bucket.app.arn}",
-        "${aws_s3_bucket.cdn.arn}"
-      ]
-    },
-    {
-      "Sid": "AllowReadObjectOperations",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectAcl",
-        "s3:GetObjectRetention",
-        "s3:GetObjectRetention"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "${aws_s3_bucket.app.arn}/*",
-        "${aws_s3_bucket.cdn.arn}/*"
-      ]
-    },
-    {
-      "Sid": "AllowPutAndDeleteObjectOperations",
-      "Action": [
-        "s3:DeleteObject",
-        "s3:PutObject",
-        "s3:PutObjectLegalHold"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "${aws_s3_bucket.app.arn}/*",
-        "${aws_s3_bucket.cdn.arn}/*"
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Sid" : "AllowReadBucketOperations",
+          "Action" : [
+            "s3:GetBucketAcl",
+            "s3:GetBucketCORS",
+            "s3:GetBucketLocation",
+            "s3:GetBucketPolicy",
+            "s3:GetBucketVersioning",
+            "s3:GetEncryptionConfiguration",
+            "s3:ListBucket",
+            "s3:ListBucketMultipartUploads"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "${aws_s3_bucket.app.arn}",
+            "${aws_s3_bucket.cdn.arn}"
+          ]
+        },
+        {
+          "Sid" : "AllowReadObjectOperations",
+          "Action" : [
+            "s3:GetObject",
+            "s3:GetObjectAcl",
+            "s3:GetObjectRetention",
+            "s3:ListMultipartUploadParts"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "${aws_s3_bucket.app.arn}/*",
+            "${aws_s3_bucket.cdn.arn}/*"
+          ]
+        },
+        {
+          "Sid" : "AllowPutAndDeleteObjectOperations",
+          "Action" : [
+            "s3:AbortMultipartUpload",
+            "s3:DeleteObject",
+            "s3:DeleteObjectVersion",
+            "s3:PutObject",
+            "s3:PutObjectLegalHold"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "${aws_s3_bucket.app.arn}/*",
+            "${aws_s3_bucket.cdn.arn}/*"
+          ]
+        }
       ]
     }
-  ]
-}
-EOF
+  )
 }
