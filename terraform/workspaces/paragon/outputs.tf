@@ -31,3 +31,18 @@ output "alb_arn" {
   description = "The ARN of the application load balancer."
   value       = module.alb.alb_arn
 }
+
+output "uptime_webhook" {
+  description = "Uptime webhook URL"
+  value       = module.uptime.webhook
+}
+
+output "uptime_monitors" {
+  description = "Uptime monitor names"
+  value       = module.uptime.monitors
+}
+
+output "uptime_microservices" {
+  description = "Uptime enabled microservices"
+  value       = module.uptime.microservices
+}
