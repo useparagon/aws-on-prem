@@ -111,7 +111,26 @@ export abstract class BaseCLI {
           .action(async (): Promise<void> => {
             await this.runStateOutput();
           }),
+      )
+      .addCommand(
+        new commander.Command(`prepare-${this.workspace}`)
+          .description('Prepare the Terraform vars.auto.tfvars file.')
+          .action(async (): Promise<void> => {
+            await this.runPrepare();
+          }),
       );
+  }
+
+  /**
+   * prepares Terraform vars for execution outside of Docker
+   */
+  async runPrepare(): Promise<void> {
+    console.log('ℹ️  Executing runPrepare...');
+
+    const env: TerraformEnv = await this.getTerraformEnv();
+    await this.prepareTerraformVariables(env);
+
+    console.log('✅ Executed runPrepare.');
   }
 
   /**

@@ -62,3 +62,13 @@ deploy-paragon:
 		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
 		--rm useparagon/aws-self-hosted:latest \
 		ts-node "scripts/cli" deploy-paragon
+
+####################
+# Prepare Terraform files without Docker
+####################
+
+prepare-infra:
+	ts-node "scripts/cli" prepare-infra
+
+prepare-paragon:
+	ts-node "scripts/cli" prepare-paragon
