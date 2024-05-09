@@ -4,7 +4,7 @@ output "webhook" {
 }
 
 output "monitors" {
-  value = betteruptime_monitor.monitor[*].pronounceable_name
+  value = keys(betteruptime_monitor.monitor)
 }
 
 output "microservices" {

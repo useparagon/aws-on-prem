@@ -35,6 +35,7 @@ output "alb_arn" {
 output "uptime_webhook" {
   description = "Uptime webhook URL"
   value       = module.uptime.webhook
+  sensitive   = true
 }
 
 output "uptime_monitors" {
