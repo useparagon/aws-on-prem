@@ -299,6 +299,20 @@ credentials "app.terraform.io" {
     const sanitizedParagonVersion: string = paragonVersion.split('-rc')[0].split('-unstable')[0];
     const microservices: Microservice[] = Object.values(Microservice);
     return microservices.filter((microservice: Microservice): boolean => {
+      // account was added in v3.4.3
+      const hasAccount: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v3.4.3') >= 0;
+      if (!hasAccount && Microservice.ACCOUNT === microservice) {
+        return false;
+      }
+
+      // chronos was removed in v3.4.3
+      const hasChronos: boolean =
+        !isLatest && compareVersions(sanitizedParagonVersion, 'v3.4.3') < 0;
+      if (!hasChronos && Microservice.CHRONOS === microservice) {
+        return false;
+      }
+
       // pheme was added in v2.64.1
       const hasPheme: boolean =
         isLatest || compareVersions(sanitizedParagonVersion, 'v2.64.0') >= 0;
