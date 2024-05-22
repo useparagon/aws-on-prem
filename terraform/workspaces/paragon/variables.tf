@@ -164,6 +164,11 @@ locals {
   })
 
   _microservices = {
+    "account" = {
+      "port"             = lookup(local.base_helm_values.global.env, "ACCOUNT_PORT", 1708)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "ACCOUNT_PUBLIC_URL", "https://account.${var.domain}")
+    }
     "cerberus" = {
       "port"             = lookup(local.base_helm_values.global.env, "CERBERUS_PORT", 1700)
       "healthcheck_path" = "/healthz"
@@ -339,6 +344,7 @@ locals {
           SENDGRID_API_KEY      = "SG.xxx"
           SENDGRID_FROM_ADDRESS = "not-a-real@email.com"
 
+          ACCOUNT_PUBLIC_URL   = try(local.microservices.account.public_url, null)
           CERBERUS_PUBLIC_URL  = try(local.microservices.cerberus.public_url, null)
           CHRONOS_PUBLIC_URL   = try(local.microservices.chronos.public_url, null)
           CONNECT_PUBLIC_URL   = try(local.microservices.connect.public_url, null)
@@ -429,6 +435,7 @@ locals {
             MINIO_INSTANCE_COUNT = "1"
             MINIO_REGION         = var.aws_region
 
+            ACCOUNT_PORT   = try(local.microservices.account.port, null)
             CERBERUS_PORT  = try(local.microservices.cerberus.port, null)
             CHRONOS_PORT   = try(local.microservices.chronos.port, null)
             CONNECT_PORT   = try(local.microservices.connect.port, null)
@@ -451,6 +458,7 @@ locals {
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
 
+            ACCOUNT_PRIVATE_URL  = try("http://account:${local.microservices.account.port}", null)
             CERBERUS_PRIVATE_URL  = try("http://cerberus:${local.microservices.cerberus.port}", null)
             CHRONOS_PRIVATE_URL   = try("http://chronos:${local.microservices.chronos.port}", null)
             CONNECT_PRIVATE_URL   = try("http://connect:${local.microservices.connect.port}", null)

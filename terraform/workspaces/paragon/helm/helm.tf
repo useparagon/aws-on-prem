@@ -1,6 +1,8 @@
 locals {
   supported_microservices_values = <<EOF
 subchart:
+  account:
+    enabled: ${contains(keys(var.microservices), "account")}
   cerberus:
     enabled: ${contains(keys(var.microservices), "cerberus")}
   chronos:
