@@ -48,7 +48,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "flow_logs" {
     status = "Enabled"
 
     transition {
-      days          = 30
+      days          = 7
       storage_class = "GLACIER"
     }
   }

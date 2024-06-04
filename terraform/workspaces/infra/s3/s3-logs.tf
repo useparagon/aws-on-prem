@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "logs" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "logs" {
-  count = var.disable_logs ? 0 : 1
+  count  = var.disable_logs ? 0 : 1
   bucket = aws_s3_bucket.logs[count.index].id
 
   rule {
@@ -48,4 +48,38 @@ resource "aws_s3_bucket_policy" "logs_bucket" {
 
   bucket = aws_s3_bucket.logs[count.index].id
   policy = data.aws_iam_policy_document.logs_bucket_policy[count.index].json
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  count = var.disable_logs ? 0 : 1
+
+  bucket = aws_s3_bucket.logs[count.index].id
+
+  rule {
+    id     = "abort-incomplete"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+
+  rule {
+    id     = "transition-to-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 7
+      storage_class = "GLACIER"
+    }
+  }
+
+  rule {
+    id     = "expire"
+    status = "Enabled"
+
+    expiration {
+      days = 365
+    }
+  }
 }
