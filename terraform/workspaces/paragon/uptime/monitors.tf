@@ -26,4 +26,10 @@ resource "betteruptime_monitor" "monitor" {
   email = true
   push  = true
   sms   = true
+
+  # start paused to avoid alarms during initial provisioning
+  paused = true
+  lifecycle {
+    ignore_changes = [paused]
+  }
 }

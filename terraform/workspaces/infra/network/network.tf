@@ -100,3 +100,18 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
+
+# VPC endpoint for S3 to bypass NAT Gateway for cost savings
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.app.id
+  service_name = "com.amazonaws.${var.aws_region}.s3"
+
+  route_table_ids = concat(
+    aws_route_table.private.*.id,
+    [aws_vpc.app.main_route_table_id]
+  )
+
+  tags = {
+    Name = "${var.workspace}-s3-endpoint"
+  }
+}
