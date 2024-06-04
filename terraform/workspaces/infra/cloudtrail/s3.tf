@@ -159,7 +159,6 @@ POLICY
   ]
 }
 
-
 resource "aws_s3_bucket_public_access_block" "cloudtrail" {
   count = !var.disable_cloudtrail ? 1 : 0
 
@@ -169,4 +168,38 @@ resource "aws_s3_bucket_public_access_block" "cloudtrail" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
+  count = !var.disable_cloudtrail ? 1 : 0
+
+  bucket = aws_s3_bucket.cloudtrail[0].id
+
+  rule {
+    id     = "abort-incomplete"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+
+  rule {
+    id     = "transition-to-glacier"
+    status = "Enabled"
+
+    transition {
+      days          = 7
+      storage_class = "GLACIER"
+    }
+  }
+
+  rule {
+    id     = "expire"
+    status = "Enabled"
+
+    expiration {
+      days = 365
+    }
+  }
 }

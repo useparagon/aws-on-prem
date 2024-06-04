@@ -4,6 +4,7 @@
 provider "registry.terraform.io/betterstackhq/better-uptime" {
   version = "0.6.1"
   hashes = [
+    "h1:Js6vyhkkkbF33ruBI5ZHGzLuSl20t3LvBVMMeP1oclI=",
     "h1:PoYW4p9l/O0H0NbN/kqNG51cCcyRVaO5gPnLXiAl+Ds=",
     "zh:0281d80170429bd39cd7c3e431b7b45dddf1be22b703e2ea6dc534ffc9f70f7f",
     "zh:1666632f0a8ef1c018ef85ee52e8434c2343479a82312e626b51c9d616de8654",
