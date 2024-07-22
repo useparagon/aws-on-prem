@@ -9,6 +9,18 @@ variable "uptime_company" {
   type        = string
 }
 
+variable "uptime_policy" {
+  description = "The name of the escalation policy to associate with BetterStack Uptime monitors."
+  type        = string
+  default     = "Standard Escalation Policy"
+}
+
+variable "uptime_regions" {
+  description = "The regions to enable on the BetterStack Uptime monitors."
+  type        = list(string)
+  default     = ["as", "au", "eu", "us"]
+}
+
 variable "microservices" {
   description = "The microservices to create monitors for."
   type        = map(any)

@@ -2,6 +2,18 @@ resource "betteruptime_monitor_group" "group" {
   count = local.enabled ? 1 : 0
 
   name = var.uptime_company
+
+  # start paused to avoid alarms during initial provisioning
+  paused = true
+  lifecycle {
+    ignore_changes = [paused]
+  }
+}
+
+data "betteruptime_policy" "escalation" {
+  count = local.enabled ? 1 : 0
+
+  name = var.uptime_policy
 }
 
 resource "betteruptime_monitor" "monitor" {
@@ -16,7 +28,9 @@ resource "betteruptime_monitor" "monitor" {
   maintenance_timezone  = "Pacific Time (US & Canada)"
   monitor_group_id      = betteruptime_monitor_group.group[0].id
   monitor_type          = "expected_status_code"
-  recovery_period       = 60  # seconds
+  policy_id             = data.betteruptime_policy.escalation[0].id
+  recovery_period       = 60 # seconds
+  regions               = var.uptime_regions
   request_timeout       = 15  # seconds
   ssl_expiration        = 14  # days
   team_wait             = 180 # seconds
