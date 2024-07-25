@@ -38,16 +38,6 @@ output "uptime_webhook" {
   sensitive   = true
 }
 
-output "uptime_monitors" {
-  description = "Uptime monitor names"
-  value       = module.uptime.monitors
-}
-
-output "uptime_microservices" {
-  description = "Uptime enabled microservices"
-  value       = module.uptime.microservices
-}
-
 output "openobserve_email" {
   value = module.helm.openobserve_email
 }
