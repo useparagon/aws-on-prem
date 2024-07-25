@@ -37,3 +37,12 @@ output "uptime_webhook" {
   value       = module.uptime.webhook
   sensitive   = true
 }
+
+output "openobserve_email" {
+  value = module.helm.openobserve_email
+}
+
+output "openobserve_password" {
+  value     = module.helm.openobserve_password
+  sensitive = true
+}

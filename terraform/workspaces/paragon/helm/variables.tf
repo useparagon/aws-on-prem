@@ -33,6 +33,12 @@ variable "docker_email" {
   type        = string
 }
 
+variable "openobserve_email" {
+  description = "Email for OpenObserve admin account."
+  type        = string
+  default     = "services@useparagon.com"
+}
+
 variable "logs_bucket" {
   description = "Bucket to store system logs."
   type        = string

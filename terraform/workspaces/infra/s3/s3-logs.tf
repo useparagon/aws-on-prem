@@ -28,17 +28,40 @@ data "aws_iam_policy_document" "logs_bucket_policy" {
   count = var.disable_logs ? 0 : 1
 
   statement {
-    sid     = "AllowPutObjects"
+    sid     = "AllowAccessLogs"
     actions = ["s3:PutObject"]
     effect  = "Allow"
     resources = [
       "${aws_s3_bucket.logs[count.index].arn}",
       "${aws_s3_bucket.logs[count.index].arn}/access_logs/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
     ]
-
     principals {
       type        = "AWS"
       identifiers = [data.aws_elb_service_account.main.arn]
+    }
+  }
+
+  statement {
+    sid = "AllowAppLogs"
+    actions = [
+      "s3:DeleteObject",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:PutObject"
+    ]
+    effect = "Allow"
+    resources = [
+      "${aws_s3_bucket.logs[count.index].arn}",
+      "${aws_s3_bucket.logs[count.index].arn}/*",
+    ]
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
@@ -69,7 +92,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
     status = "Enabled"
 
     transition {
-      days          = 7
+      days          = 30
       storage_class = "GLACIER"
     }
   }
