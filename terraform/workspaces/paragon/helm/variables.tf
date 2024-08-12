@@ -33,6 +33,18 @@ variable "docker_email" {
   type        = string
 }
 
+variable "openobserve_email" {
+  description = "OpenObserve admin login email."
+  type        = string
+  default     = null
+}
+
+variable "openobserve_password" {
+  description = "OpenObserve admin login password."
+  type        = string
+  default     = null
+}
+
 variable "logs_bucket" {
   description = "Bucket to store system logs."
   type        = string

@@ -262,7 +262,7 @@ module "helm_hash_logging" {
   chart_directory = "./charts/paragon-logging"
 }
 
-# paragon logging stack fluent bit , kibana , elasticsearch
+# paragon logging stack fluent bit and openobserve
 resource "helm_release" "paragon_logging" {
   name             = "paragon-logging"
   description      = "Paragon logging services"
@@ -285,6 +285,31 @@ resource "helm_release" "paragon_logging" {
       })
     }))
   ]
+
+  set {
+    name  = "global.env.ZO_S3_PROVIDER"
+    value = "s3"
+  }
+
+  set {
+    name  = "global.env.ZO_S3_BUCKET_NAME"
+    value = var.logs_bucket
+  }
+
+  set {
+    name  = "global.env.ZO_S3_REGION_NAME"
+    value = var.aws_region
+  }
+
+  set {
+    name  = "global.env.ZO_ROOT_USER_EMAIL"
+    value = local.openobserve_email
+  }
+
+  set_sensitive {
+    name  = "global.env.ZO_ROOT_USER_PASSWORD"
+    value = local.openobserve_password
+  }
 
   depends_on = [
     helm_release.ingress,
