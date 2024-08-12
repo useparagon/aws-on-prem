@@ -303,12 +303,12 @@ resource "helm_release" "paragon_logging" {
 
   set {
     name  = "global.env.ZO_ROOT_USER_EMAIL"
-    value = var.openobserve_email
+    value = local.openobserve_email
   }
 
   set_sensitive {
     name  = "global.env.ZO_ROOT_USER_PASSWORD"
-    value = random_password.openobserve.result
+    value = local.openobserve_password
   }
 
   depends_on = [

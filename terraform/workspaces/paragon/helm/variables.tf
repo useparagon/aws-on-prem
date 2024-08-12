@@ -34,9 +34,15 @@ variable "docker_email" {
 }
 
 variable "openobserve_email" {
-  description = "Email for OpenObserve admin account."
+  description = "OpenObserve admin login email."
   type        = string
-  default     = "services@useparagon.com"
+  default     = null
+}
+
+variable "openobserve_password" {
+  description = "OpenObserve admin login password."
+  type        = string
+  default     = null
 }
 
 variable "logs_bucket" {

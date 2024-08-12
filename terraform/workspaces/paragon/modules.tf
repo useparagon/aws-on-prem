@@ -32,6 +32,8 @@ module "helm" {
   monitor_version        = local.monitor_version
   monitors               = local.monitors
   monitors_enabled       = var.monitors_enabled
+  openobserve_email      = var.openobserve_email
+  openobserve_password   = var.openobserve_password
   public_monitors        = local.public_monitors
 
   acm_certificate_arn = module.alb.acm_certificate_arn

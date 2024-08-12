@@ -152,6 +152,18 @@ variable "uptime_company" {
   default     = null
 }
 
+variable "openobserve_email" {
+  description = "OpenObserve admin login email."
+  type        = string
+  default     = null
+}
+
+variable "openobserve_password" {
+  description = "OpenObserve admin login password."
+  type        = string
+  default     = null
+}
+
 locals {
   raw_helm_env = jsondecode(base64decode(var.helm_env))
   raw_helm_values = try(yamldecode(
@@ -458,7 +470,7 @@ locals {
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
 
-            ACCOUNT_PRIVATE_URL  = try("http://account:${local.microservices.account.port}", null)
+            ACCOUNT_PRIVATE_URL   = try("http://account:${local.microservices.account.port}", null)
             CERBERUS_PRIVATE_URL  = try("http://cerberus:${local.microservices.cerberus.port}", null)
             CHRONOS_PRIVATE_URL   = try("http://chronos:${local.microservices.chronos.port}", null)
             CONNECT_PRIVATE_URL   = try("http://connect:${local.microservices.connect.port}", null)
