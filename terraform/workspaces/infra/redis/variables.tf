@@ -77,8 +77,8 @@ locals {
   }
 
   # https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoScaling.html
-  # only R5, R6g, M5, M6g families supported
-  cache_autoscaling_supports_family = contains(["r5", "r6g", "m5", "m6g"], element(split(".", lower(var.elasticache_node_type)), 1))
+  # only certain families supported
+  cache_autoscaling_supports_family = contains(["c7gn", "m5", "m6g", "m7g", "r5", "r6g", "r6gd", "r7g"], element(split(".", lower(var.elasticache_node_type)), 1))
   # only large, xlarge, and 2xlarge supported
   cache_autoscaling_supports_size = contains(["large", "xlarge", "2xlarge"], element(split(".", lower(var.elasticache_node_type)), 2))
   cache_autoscaling_enabled       = var.multi_redis && local.cache_autoscaling_supports_family && local.cache_autoscaling_supports_size
