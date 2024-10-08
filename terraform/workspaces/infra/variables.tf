@@ -136,7 +136,7 @@ variable "multi_redis" {
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
-  default     = "1.30"
+  default     = "1.31"
 }
 
 variable "k8_ondemand_node_instance_type" {
