@@ -1,8 +1,8 @@
 locals {
-  key_administrators = concat(
+  key_administrators = distinct(concat(
     compact([for user in var.eks_admin_user_arns : user.userarn if user != null]),
     [data.aws_caller_identity.current.arn]
-  )
+  ))
 }
 
 ########################################
