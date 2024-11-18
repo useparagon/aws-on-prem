@@ -83,6 +83,12 @@ variable "k8_max_node_count" {
   type        = number
 }
 
+variable "kms_admin_role" {
+  description = "ARN of IAM role allowed to administer KMS keys."
+  type        = string
+  default     = null
+}
+
 locals {
   node_volume_size = 50
 

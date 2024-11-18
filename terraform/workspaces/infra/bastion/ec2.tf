@@ -50,8 +50,7 @@ resource "random_string" "bastion_id" {
 }
 
 module "bastion" {
-  source  = "Guimove/bastion/aws"
-  version = "3.0.6"
+  source = "github.com/useparagon/terraform-aws-bastion"
 
   # logging
   bucket_name     = local.resource_group
