@@ -108,6 +108,7 @@ module "cluster" {
   k8_max_node_count                = var.k8_max_node_count
   eks_addon_ebs_csi_driver_enabled = var.eks_addon_ebs_csi_driver_enabled
   eks_admin_user_arns              = local.eks_admin_user_arns
+  kms_admin_role                   = var.kms_admin_role
 
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet

@@ -240,6 +240,12 @@ variable "cloudflare_zone_id" {
   default     = null
 }
 
+variable "kms_admin_role" {
+  description = "ARN of IAM role allowed to administer KMS keys."
+  type        = string
+  default     = null
+}
+
 locals {
   workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"
