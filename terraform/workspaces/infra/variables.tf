@@ -182,8 +182,15 @@ variable "eks_addon_ebs_csi_driver_enabled" {
 
 variable "eks_admin_user_arns" {
   # If these aren't available when the cluster is first initialized, it'll have to be manually created
+  description = "Comma-separated list of ARNs for IAM roles that should have admin access to cluster. Used for viewing cluster resources in AWS dashboard or running kubectl commands."
+  type        = string
+  default     = null
+}
+
+variable "eks_admin_role_arns" {
+  # If these aren't available when the cluster is first initialized, it'll have to be manually created
   # https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-  description = "Comma-separated list of ARNs for IAM users that should have admin access to cluster. Used for viewing cluster resources in AWS dashboard."
+  description = "Comma-separated list of ARNs for IAM roles that should have admin access to cluster. Used for viewing cluster resources in AWS dashboard."
   type        = string
   default     = null
 }
@@ -246,6 +253,12 @@ variable "kms_admin_role" {
   default     = null
 }
 
+variable "create_autoscaling_linked_role" {
+  description = "Whether or not to create an IAM role for autoscaling."
+  type        = bool
+  default     = true
+}
+
 locals {
   workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"
@@ -269,6 +282,15 @@ locals {
   eks_admin_user_arns = var.eks_admin_user_arns == null ? [] : [
     for value in distinct([for value in split(",", var.eks_admin_user_arns) : trimspace(value)]) : {
       userarn  = value
+      username = element(split("/", value), length(split("/", value)) - 1)
+      groups   = ["system:masters"]
+    }
+  ]
+
+  // split ARNs by comma, trim, remove duplicates, and transform into object
+  eks_admin_role_arns = var.eks_admin_role_arns == null ? [] : [
+    for value in distinct([for value in split(",", var.eks_admin_role_arns) : trimspace(value)]) : {
+      rolearn  = value
       username = element(split("/", value), length(split("/", value)) - 1)
       groups   = ["system:masters"]
     }

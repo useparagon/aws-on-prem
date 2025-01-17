@@ -1,11 +1,17 @@
+locals {
+  autoscaling_role_arn = var.create_autoscaling_linked_role ? aws_iam_service_linked_role.autoscaling[0].arn : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+}
+
 resource "aws_iam_service_linked_role" "autoscaling" {
+  count            = var.create_autoscaling_linked_role ? 1 : 0
   aws_service_name = "autoscaling.amazonaws.com"
 }
 
 locals {
   key_administrators = distinct(concat(
     compact([for user in var.eks_admin_user_arns : user.userarn if user != null]),
-    [var.kms_admin_role != null ? var.kms_admin_role : data.aws_caller_identity.current.arn]
+    [var.kms_admin_role != null ? var.kms_admin_role : data.aws_caller_identity.current.arn],
+    [local.autoscaling_role_arn]
   ))
 }
 
@@ -26,7 +32,7 @@ module "ebs_kms_key" {
 
   key_service_roles_for_autoscaling = [
     # required for the ASG to manage encrypted volumes for nodes
-    aws_iam_service_linked_role.autoscaling.arn,
+    local.autoscaling_role_arn,
     # required for the cluster / persistentvolume-controller to create encrypted PVCs
     module.eks.cluster_iam_role_arn,
   ]
