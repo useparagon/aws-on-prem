@@ -53,6 +53,15 @@ variable "eks_admin_user_arns" {
   }))
 }
 
+variable "eks_admin_role_arns" {
+  description = "Comma-separated list of ARNs for IAM roles that should have admin access to cluster. Used for viewing cluster resources in AWS dashboard."
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+}
+
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
@@ -87,6 +96,11 @@ variable "kms_admin_role" {
   description = "ARN of IAM role allowed to administer KMS keys."
   type        = string
   default     = null
+}
+
+variable "create_autoscaling_linked_role" {
+  description = "Whether or not to create an IAM role for autoscaling."
+  type        = bool
 }
 
 locals {

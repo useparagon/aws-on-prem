@@ -10,7 +10,7 @@ module "eks" {
   cluster_endpoint_public_access = true
   create_aws_auth_configmap      = true
 
-  aws_auth_roles = [
+  aws_auth_roles = concat([
     {
       rolearn  = aws_iam_role.node_role.arn
       username = "system:node:{{EC2PrivateDNSName}}"
@@ -29,7 +29,7 @@ module "eks" {
       username = "system:node:{{EC2PrivateDNSName}}",
       groups   = ["system:masters"]
     }
-  ]
+  ], var.eks_admin_role_arns)
 
   # If these aren't available when the cluster is first initialized, it'll have to be manually created
   # https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
