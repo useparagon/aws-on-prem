@@ -365,6 +365,13 @@ credentials "app.terraform.io" {
         return false;
       }
 
+      // `worker-actionkit` was introduced in v2024.1223.0735-1b63051b
+      const hasWorkerActionKit: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2024.1223.0735') >= 0;
+      if (!hasWorkerActionKit && Microservice.WORKER_ACTIONKIT === microservice) {
+        return false;
+      }
+
       return true;
     });
   }

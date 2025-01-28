@@ -24,6 +24,7 @@ export enum Microservice {
   PLATO = 'plato',
   RELEASE = 'release',
   ZEUS = 'zeus',
+  WORKER_ACTIONKIT = 'worker-actionkit',
   WORKER_ACTIONS = 'worker-actions',
   WORKER_CREDENTIALS = 'worker-credentials',
   WORKER_CRONS = 'worker-crons',
