@@ -15,6 +15,7 @@ export enum Microservice {
   CHRONOS = 'chronos',
   CONNECT = 'connect',
   DASHBOARD = 'dashboard',
+  FLIPT = 'flipt',
   HADES = 'hades',
   HERCULES = 'hercules',
   HERMES = 'hermes',

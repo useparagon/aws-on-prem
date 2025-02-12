@@ -201,6 +201,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "DASHBOARD_PUBLIC_URL", "https://dashboard.${var.domain}")
     }
+    "flipt" = {
+      "port"             = lookup(local.base_helm_values.global.env, "FLIPT_PORT", 1722)
+      "healthcheck_path" = "/health"
+      "public_url"       = lookup(local.base_helm_values.global.env, "FLIPT_PUBLIC_URL", null)
+    }
     "hades" = {
       "port"             = lookup(local.base_helm_values.global.env, "HADES_PORT", 1710)
       "healthcheck_path" = "/healthz"
@@ -246,13 +251,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "ZEUS_PUBLIC_URL", "https://zeus.${var.domain}")
     }
-
     "worker-actionkit" = {
       "port"             = lookup(local.base_helm_values.global.env, "WORKER_ACTIONKIT_PORT", 1721)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_ACTIONKIT_PUBLIC_URL", "https://worker-actionkit.${var.domain}")
     }
-
     "worker-actions" = {
       "port"             = lookup(local.base_helm_values.global.env, "WORKER_ACTIONS_PORT", 1712)
       "healthcheck_path" = "/healthz"
@@ -294,6 +297,12 @@ locals {
     for microservice, config in local._microservices :
     microservice => config
     if contains(var.supported_microservices, microservice)
+  }
+
+  public_microservices = {
+    for microservice, config in local.microservices :
+    microservice => config
+    if config.public_url != null && config.public_url != ""
   }
 
   monitors = {
@@ -509,6 +518,8 @@ locals {
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
 
+            FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
+
             MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
             MONITOR_BULL_EXPORTER_PORT              = try(local.monitors["bull-exporter"].port, null)
             MONITOR_GRAFANA_AWS_ACCESS_ID           = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
@@ -547,4 +558,20 @@ locals {
   })
 
   monitor_version = var.monitor_version != null ? var.monitor_version : try(local.helm_values.global.env["VERSION"], "latest")
+
+  flipt_options = {
+    for key, value in merge(
+      # user overrides
+      local.base_helm_values.global.env,
+      {
+        FLIPT_CACHE_ENABLED             = "true"
+        FLIPT_STORAGE_GIT_POLL_INTERVAL = "30s"
+        FLIPT_STORAGE_GIT_REF           = "main"
+        FLIPT_STORAGE_GIT_REPOSITORY    = "https://github.com/useparagon/feature-flags.git"
+        FLIPT_STORAGE_READ_ONLY         = "true"
+        FLIPT_STORAGE_TYPE              = "git"
+    }) :
+    key => value
+    if key != null && key != "" && value != null && value != "" && can(regex("^FLIPT_", key))
+  }
 }

@@ -4,7 +4,7 @@ module "alb" {
   acm_certificate_arn      = var.acm_certificate_arn
   aws_workspace            = var.aws_workspace
   domain                   = var.domain
-  microservices            = local.microservices
+  public_microservices     = local.public_microservices
   public_monitors          = local.public_monitors
   dns_provider             = var.dns_provider
   cloudflare_dns_api_token = var.cloudflare_dns_api_token
@@ -24,6 +24,7 @@ module "helm" {
   docker_password        = var.docker_password
   docker_registry_server = var.docker_registry_server
   docker_username        = var.docker_username
+  flipt_options          = local.flipt_options
   helm_values            = local.helm_values
   ingress_scheme         = var.ingress_scheme
   k8_version             = var.k8_version
@@ -34,6 +35,7 @@ module "helm" {
   monitors_enabled       = var.monitors_enabled
   openobserve_email      = var.openobserve_email
   openobserve_password   = var.openobserve_password
+  public_microservices   = local.public_microservices
   public_monitors        = local.public_monitors
 
   acm_certificate_arn = module.alb.acm_certificate_arn
@@ -57,5 +59,5 @@ module "uptime" {
 
   uptime_api_token = var.uptime_api_token
   uptime_company   = coalesce(var.uptime_company, var.organization)
-  microservices    = local.microservices
+  microservices    = local.public_microservices
 }

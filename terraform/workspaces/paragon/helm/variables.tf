@@ -13,6 +13,12 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "flipt_options" {
+  description = "Map of flipt configuration variables"
+  type        = map(any)
+  sensitive   = true
+}
+
 variable "docker_registry_server" {
   description = "Docker container registry server."
   type        = string
@@ -63,6 +69,15 @@ variable "acm_certificate_arn" {
 
 variable "microservices" {
   description = "The microservices running within the system."
+  type = map(object({
+    port             = number
+    healthcheck_path = string
+    public_url       = string
+  }))
+}
+
+variable "public_microservices" {
+  description = "The microservices running within the system exposed to the load balancer"
   type = map(object({
     port             = number
     healthcheck_path = string

@@ -54,6 +54,7 @@ module "bastion" {
 
   # logging
   bucket_name     = local.resource_group
+  log_auto_clean  = true
   log_expiry_days = 365
 
   # networking

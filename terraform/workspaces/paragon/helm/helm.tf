@@ -1,4 +1,17 @@
 locals {
+  flipt_values = yamlencode({
+    flipt = {
+      flipt = {
+        extraEnvVars = [
+          for k, v in var.flipt_options : {
+            name  = k
+            value = v
+          }
+        ]
+      }
+    }
+  })
+
   supported_microservices_values = <<EOF
 subchart:
   account:
@@ -11,6 +24,8 @@ subchart:
     enabled: ${contains(keys(var.microservices), "connect")}
   dashboard:
     enabled: ${contains(keys(var.microservices), "dashboard")}
+  flipt:
+    enabled: ${contains(keys(var.microservices), "flipt")}
   hades:
     enabled: ${contains(keys(var.microservices), "hades")}
   hercules:
@@ -160,6 +175,7 @@ resource "helm_release" "paragon_on_prem" {
 
   values = [
     local.supported_microservices_values,
+    local.flipt_values,
 
     // map `var.helm_values` but remove `global.env`, as we'll map it below
     yamlencode(merge(nonsensitive(var.helm_values), {
@@ -186,7 +202,7 @@ resource "helm_release" "paragon_on_prem" {
 
   # used to set map the ingress to the public url of each microservice
   dynamic "set" {
-    for_each = var.microservices
+    for_each = var.public_microservices
 
     content {
       name  = "${set.key}.ingress.host"
@@ -196,7 +212,7 @@ resource "helm_release" "paragon_on_prem" {
 
   # configures whether the load balancer is 'internet-facing' (public) or 'internal' (private)
   dynamic "set" {
-    for_each = var.microservices
+    for_each = var.public_microservices
 
     content {
       name  = "${set.key}.ingress.scheme"
@@ -215,7 +231,7 @@ resource "helm_release" "paragon_on_prem" {
 
   # configures the ssl cert to the load balancer
   dynamic "set" {
-    for_each = var.microservices
+    for_each = var.public_microservices
 
     content {
       name  = "${set.key}.ingress.acm_certificate_arn"
@@ -225,7 +241,7 @@ resource "helm_release" "paragon_on_prem" {
 
   # configures the load balancer name
   dynamic "set" {
-    for_each = var.microservices
+    for_each = var.public_microservices
 
     content {
       name  = "${set.key}.ingress.load_balancer_name"
@@ -235,7 +251,7 @@ resource "helm_release" "paragon_on_prem" {
 
   # configures load balancer bucket for logging
   dynamic "set" {
-    for_each = var.microservices
+    for_each = var.public_microservices
 
     content {
       name  = "${set.key}.ingress.logs_bucket"
@@ -279,8 +295,6 @@ resource "helm_release" "paragon_logging" {
   timeout          = 900 # 15 minutes
 
   values = [
-    local.supported_microservices_values,
-
     // map `var.helm_values` but remove `global.env`, as we'll map it below
     yamlencode(merge(nonsensitive(var.helm_values), {
       global = merge(nonsensitive(var.helm_values).global, {
@@ -349,7 +363,6 @@ resource "helm_release" "paragon_monitoring" {
   timeout          = 900 # 15 minutes
 
   values = [
-    local.supported_microservices_values,
 
     // map `var.helm_values` but remove `global.env`, as we'll map it below
     yamlencode(merge(nonsensitive(var.helm_values), {
