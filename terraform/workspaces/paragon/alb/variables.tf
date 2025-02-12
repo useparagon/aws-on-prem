@@ -13,7 +13,7 @@ variable "acm_certificate_arn" {
   type        = string
 }
 
-variable "microservices" {
+variable "public_microservices" {
   description = "The microservices running within the system."
   type = map(object({
     port             = number
