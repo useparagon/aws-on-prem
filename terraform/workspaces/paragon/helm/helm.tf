@@ -347,6 +347,14 @@ module "helm_hash_monitoring" {
   chart_directory = "./charts/paragon-monitoring"
 }
 
+# reference to load balancer created by k8 ingress
+data "aws_lb" "load_balancer" {
+  name = var.aws_workspace
+
+  # requires ingress for the controller and then logging/on-prem to deploy pods that trigger LB creation
+  depends_on = [helm_release.ingress, helm_release.paragon_logging, helm_release.paragon_on_prem]
+}
+
 # monitors deployment
 resource "helm_release" "paragon_monitoring" {
   count = var.monitors_enabled ? 1 : 0
@@ -450,6 +458,11 @@ resource "helm_release" "paragon_monitoring" {
   set {
     name  = "global.env.K8_VERSION"
     value = var.k8_version
+  }
+
+  set {
+    name  = "global.env.MONITOR_GRAFANA_ALB_ARN"
+    value = data.aws_lb.load_balancer.arn_suffix
   }
 
   depends_on = [
