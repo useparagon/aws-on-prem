@@ -62,14 +62,3 @@ resource "aws_s3_bucket_lifecycle_configuration" "flow_logs" {
     }
   }
 }
-
-// TODO this is no longer used but skip_destroy must be applied before removing to avoid data loss
-resource "aws_cloudwatch_log_group" "main" {
-  name_prefix       = "${var.workspace}-vpc-logs"
-  retention_in_days = 365
-  skip_destroy      = true
-
-  tags = {
-    Name = "${var.workspace}-vpc-logs"
-  }
-}

@@ -270,6 +270,23 @@ credentials "app.terraform.io" {
         `${ROOT_DIR}/.secure/.env-helm`,
       ).catch(() => ({}));
       variables['helm_env'] = Buffer.from(JSON.stringify(helmEnvValues)).toString('base64');
+
+      // Add feature flags if they exist - supports both yml and yaml since our values.yaml naming is inconsistent from flipt's yml
+      const featureFlagExtensions = ['yml', 'yaml'];
+      let featureFlagsContent: string | null = null;
+
+      // Loop through extensions, preferring yml over yaml
+      for (const ext of featureFlagExtensions) {
+        const featureFlagsPath = `${ROOT_DIR}/.secure/features.${ext}`;
+        if (fs.existsSync(featureFlagsPath)) {
+          featureFlagsContent = await fs.promises.readFile(featureFlagsPath, 'utf-8');
+          break;
+        }
+      }
+
+      if (featureFlagsContent) {
+        variables['feature_flags'] = Buffer.from(featureFlagsContent).toString('base64');
+      }
     }
 
     const outputFile: string = Object.keys(variables)

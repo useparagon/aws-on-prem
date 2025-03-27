@@ -97,6 +97,5 @@ locals {
     ResourceGroup = local.resource_group
   })
 
-  # TODO: update to random port
   ssh_port = 22
 }
