@@ -313,7 +313,42 @@ If you have `MULTI_REDIS` enabled, instead of using `REDIS_*` variables, you'll 
     WORKFLOW_REDIS_CLUSTER_ENABLED: true
 ```
 
-### 8. Deploy the Helm chart.
+### 8. Optionally configure the `.secure/features.yml` file.
+
+If the deployment will not have access to Paragon's `feature-flag` repository for GitOps-based flags then the flags can be configured locally. Paragon can provide an export of this file since the options change regularly. If using Git then this file should not exist. The format will look like this:
+
+```yaml
+namespace: production
+flags:
+  - key: MFA_RECOVERY_CODES_ENABLED
+    description: Enable MFA Recovery Codes
+    name: MFA_RECOVERY_CODES_ENABLED
+    type: BOOLEAN_FLAG_TYPE
+    rollouts:
+      - description: Enabled for Organizations by ID
+        segment:
+          key: mfa-recovery-codes-enabled-organizations
+          value: true
+      - description: Disabled for all other users
+        segment:
+          key: all-users
+          value: false
+  - key: MFA_ENABLED
+    description: Enable MFA
+    name: MFA_ENABLED
+    type: BOOLEAN_FLAG_TYPE
+    rollouts:
+      - description: Enabled for Organizations by ID
+        segment:
+          key: mfa-enabled-organizations
+          value: true
+      - description: Disabled for all other users
+        segment:
+          key: all-users
+          value: false
+```
+
+### 9. Deploy the Helm chart.
 
 Deploy the Paragon helm chart to your Kubernetes cluster. Run the following command:
 
@@ -323,7 +358,7 @@ make -s deploy-paragon
 
 Confirm that Terraform executed successfully.
 
-### 9. Update your nameservers.
+### 10. Update your nameservers.
 
 You’ll need to update the nameservers for your domain to be able to access the services. Run the following command:
 
@@ -333,7 +368,7 @@ make -s state-paragon
 
 Go to the website where you registered your domain (e.g. Namecheap, Cloudflare, Route53), and update the nameservers. If the domain is a subdomain, e.g. `subdomain.domain.com`, you’ll need to add `NS` entries for the subdomain. If the domain is a root domain, e.g. `domain.com`, you’ll need to update the nameservers for the domain.
 
-### 10. Open the application.
+### 11. Open the application.
 
 Visit `https://dashboard.<YOUR_DOMAIN>` on your browser to view the dashboard. Register an account and get started!
 

@@ -106,7 +106,7 @@ variable "helm_env" {
 }
 
 variable "feature_flags" {
-  description = "Base64 encoded feature flags YAML content."
+  description = "Optional base64 encoded feature flags YAML content."
   type        = string
   default     = null
 }
