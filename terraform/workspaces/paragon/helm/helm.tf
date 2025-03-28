@@ -9,6 +9,25 @@ locals {
           }
         ]
       }
+      persistence = var.feature_flags_content != null ? {
+        enabled = true
+      } : {}
+      extraVolumes = var.feature_flags_content != null ? [
+        {
+          name = "feature-flags-content"
+          configMap = {
+            name = kubernetes_config_map.feature_flag_content[0].metadata[0].name
+          }
+        }
+      ] : []
+      extraVolumeMounts = var.feature_flags_content != null ? [
+        {
+          name      = "feature-flags-content"
+          mountPath = "/var/opt/flipt/production/features.yml"
+          subPath   = "features.yml"
+          readOnly  = true
+        }
+      ] : []
     }
   })
 
@@ -160,6 +179,19 @@ module "helm_hash_onprem" {
   chart_directory = "./charts/paragon-onprem"
 }
 
+resource "kubernetes_config_map" "feature_flag_content" {
+  count = var.feature_flags_content != null ? 1 : 0
+
+  metadata {
+    name      = "feature-flags-content"
+    namespace = kubernetes_namespace.paragon.id
+  }
+
+  data = {
+    "features.yml" = var.feature_flags_content
+  }
+}
+
 # microservices deployment
 resource "helm_release" "paragon_on_prem" {
   name             = "paragon-on-prem"
@@ -267,7 +299,8 @@ resource "helm_release" "paragon_on_prem" {
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login,
-    kubernetes_storage_class_v1.gp3_encrypted
+    kubernetes_storage_class_v1.gp3_encrypted,
+    kubernetes_config_map.feature_flag_content
   ]
 }
 

@@ -13,6 +13,12 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "feature_flags_content" {
+  description = "Optional YAML content for feature flags when not using a git repository."
+  type        = string
+  default     = null
+}
+
 variable "flipt_options" {
   description = "Map of flipt configuration variables"
   type        = map(any)

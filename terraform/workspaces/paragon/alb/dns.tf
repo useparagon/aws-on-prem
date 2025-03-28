@@ -38,5 +38,5 @@ resource "cloudflare_record" "nameserver" {
   zone_id = var.cloudflare_zone_id
   value   = aws_route53_zone.paragon.name_servers[count.index]
   type    = "NS"
-  ttl     = 60 # TODO: increase the TTL to `600` (10 MINUTES) when stable
+  ttl     = 600
 }
