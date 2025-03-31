@@ -72,3 +72,27 @@ prepare-infra:
 
 prepare-paragon:
 	ts-node "scripts/cli" prepare-paragon
+
+####################
+# Migrate Terraform state to Enterprise
+####################
+
+migrate-infra:
+	docker run \
+		-it \
+		--env debug=$(debug) \
+		--env initialize=$(initialize) \
+		--env args=$(args) \
+		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
+		--rm useparagon/aws-self-hosted:latest \
+		ts-node "scripts/cli" migrate-infra
+
+migrate-paragon:
+	docker run \
+		-it \
+		--env debug=$(debug) \
+		--env initialize=$(initialize) \
+		--env args=$(args) \
+		--mount source="$(shell pwd)",target=/usr/src/app,type=bind \
+		--rm useparagon/aws-self-hosted:latest \
+		ts-node "scripts/cli" migrate-paragon

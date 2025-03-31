@@ -18,7 +18,7 @@ report.*.json
 .eslintcache
 
 .terraform
-*terraform.tfstate*
+*.tfstate*
 *terraform.lock.hcl
 *.terraform*
 terraform/main.tf
