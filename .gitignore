@@ -1,47 +1,39 @@
-.git
-
 .cache/**
 !.cache/.gitkeep
+.DS_Store
+.git
+.idea/
 .secure/**
 !.secure/.gitkeep
-
-vars.auto.tfvars
+.vscode
+!.vscode/tasks.js
+docker_volumes
+tmp/**
+!tmp/.gitkeep
 
 # Logs
 logs
 *.log
 npm-debug.log*
 
-node_modules/
-report.*.json
-.npm
+# Node
 .eslintcache
-
-.terraform
-*.tfstate*
-*terraform.lock.hcl
-*.terraform*
-terraform/main.tf
-
-!.terraform-version
-!.terraform.lock.hcl
-
-main.tf
-
+.npm
 coverage
 coverageReport.json
-.idea/
-.vscode
-!.vscode/tasks.js
+node_modules/
+report.*.json
 
-# Misc
-.DS_Store
-tmp/**
-!tmp/.gitkeep
+# Terraform
+.terraform
+*.terraform*
+*.tfstate*
+*.tfvars
+*terraform.lock.hcl
+!.terraform-version
+!.terraform.lock.hcl
+main.tf
 
-docker_volumes
-
-# charts
-# ./charts
+# Helm
 terraform/workspaces/paragon/charts
 !terraform/workspaces/paragon/charts/.gitkeep
