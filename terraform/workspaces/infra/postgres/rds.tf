@@ -61,11 +61,6 @@ resource "aws_db_parameter_group" "postgres" {
         apply_method = "pending-reboot"
       },
       {
-        name         = "max_connections"
-        value        = 10000
-        apply_method = "pending-reboot"
-      },
-      {
         name         = "wal_buffers"
         value        = "2048" # sets `wal_buffers` to 16mb
         apply_method = "pending-reboot"
@@ -101,11 +96,6 @@ resource "aws_db_parameter_group" "postgres16" {
       {
         name         = "log_min_duration_statement"
         value        = 1000
-        apply_method = "pending-reboot"
-      },
-      {
-        name         = "max_connections"
-        value        = 10000
         apply_method = "pending-reboot"
       },
       {
