@@ -45,6 +45,3 @@ docker_volumes
 # ./charts
 terraform/workspaces/paragon/charts
 !terraform/workspaces/paragon/charts/.gitkeep
-
-*.tfvars
-*.tfstate
