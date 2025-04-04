@@ -11,6 +11,7 @@ export const PARAGON_WORKSPACE_DIR: string = `${TERRAFORM_WORKSPACES_DIR}/parago
  */
 export enum Microservice {
   ACCOUNT = 'account',
+  CACHE_REPLAY = 'cache-replay',
   CERBERUS = 'cerberus',
   CHRONOS = 'chronos',
   CONNECT = 'connect',
