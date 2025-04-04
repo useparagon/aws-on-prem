@@ -479,11 +479,6 @@ locals {
             MINIO_INSTANCE_COUNT = "1"
             MINIO_REGION         = var.aws_region
 
-            CACHE_REPLAY_ACCESS_TOKEN                 = coalesce(try(local.base_helm_values.global.env["CACHE_REPLAY_ACCESS_TOKEN"], null), try(local.base_helm_values.global.env["LICENSE"], null))
-            CACHE_REPLAY_EXECUTION_PROCESSING_COUNT   = 1
-            CACHE_REPLAY_INTERCEPT_REQUEST_MESSAGE    = "Paragon is under scheduled maintenance. Your request has been submitted successfully for processing."
-            CACHE_REPLAY_NO_INTERCEPT_REQUEST_MESSAGE = "Service is temporarily unavailable. Please try again soon."
-
             ACCOUNT_PORT      = try(local.microservices.account.port, null)
             CACHE_REPLAY_PORT = try(local.microservices["cache-replay"].port, null)
             CERBERUS_PORT     = try(local.microservices.cerberus.port, null)
