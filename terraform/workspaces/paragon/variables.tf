@@ -187,6 +187,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "ACCOUNT_PUBLIC_URL", "https://account.${var.domain}")
     }
+    "cache-replay" = {
+      "port"             = lookup(local.base_helm_values.global.env, "CACHE_REPLAY_PORT", 1724)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "CACHE_REPLAY_PUBLIC_URL", "https://cache-replay.${var.domain}")
+    }
     "cerberus" = {
       "port"             = lookup(local.base_helm_values.global.env, "CERBERUS_PORT", 1700)
       "healthcheck_path" = "/healthz"
@@ -474,20 +479,26 @@ locals {
             MINIO_INSTANCE_COUNT = "1"
             MINIO_REGION         = var.aws_region
 
-            ACCOUNT_PORT   = try(local.microservices.account.port, null)
-            CERBERUS_PORT  = try(local.microservices.cerberus.port, null)
-            CHRONOS_PORT   = try(local.microservices.chronos.port, null)
-            CONNECT_PORT   = try(local.microservices.connect.port, null)
-            DASHBOARD_PORT = try(local.microservices.dashboard.port, null)
-            HADES_PORT     = try(local.microservices.hades.port, null)
-            HERCULES_PORT  = try(local.microservices.hercules.port, null)
-            HERMES_PORT    = try(local.microservices.hermes.port, null)
-            MINIO_PORT     = try(local.microservices.minio.port, null)
-            PASSPORT_PORT  = try(local.microservices.passport.port, null)
-            PHEME_PORT     = try(local.microservices.pheme.port, null)
-            PLATO_PORT     = try(local.microservices.plato.port, null)
-            RELEASE_PORT   = try(local.microservices.release.port, null)
-            ZEUS_PORT      = try(local.microservices.zeus.port, null)
+            CACHE_REPLAY_ACCESS_TOKEN                 = coalesce(try(local.base_helm_values.global.env["CACHE_REPLAY_ACCESS_TOKEN"], null), try(local.base_helm_values.global.env["LICENSE"], null))
+            CACHE_REPLAY_EXECUTION_PROCESSING_COUNT   = 1
+            CACHE_REPLAY_INTERCEPT_REQUEST_MESSAGE    = "Paragon is under scheduled maintenance. Your request has been submitted successfully for processing."
+            CACHE_REPLAY_NO_INTERCEPT_REQUEST_MESSAGE = "Service is temporarily unavailable. Please try again soon."
+
+            ACCOUNT_PORT      = try(local.microservices.account.port, null)
+            CACHE_REPLAY_PORT = try(local.microservices["cache-replay"].port, null)
+            CERBERUS_PORT     = try(local.microservices.cerberus.port, null)
+            CHRONOS_PORT      = try(local.microservices.chronos.port, null)
+            CONNECT_PORT      = try(local.microservices.connect.port, null)
+            DASHBOARD_PORT    = try(local.microservices.dashboard.port, null)
+            HADES_PORT        = try(local.microservices.hades.port, null)
+            HERCULES_PORT     = try(local.microservices.hercules.port, null)
+            HERMES_PORT       = try(local.microservices.hermes.port, null)
+            MINIO_PORT        = try(local.microservices.minio.port, null)
+            PASSPORT_PORT     = try(local.microservices.passport.port, null)
+            PHEME_PORT        = try(local.microservices.pheme.port, null)
+            PLATO_PORT        = try(local.microservices.plato.port, null)
+            RELEASE_PORT      = try(local.microservices.release.port, null)
+            ZEUS_PORT         = try(local.microservices.zeus.port, null)
 
             WORKER_ACTIONKIT_PORT   = try(local.microservices["worker-actionkit"].port, null)
             WORKER_ACTIONS_PORT     = try(local.microservices["worker-actions"].port, null)
@@ -499,6 +510,7 @@ locals {
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
 
             ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
+            CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
             CERBERUS_PRIVATE_URL      = try("http://cerberus:${local.microservices.cerberus.port}", null)
             CHRONOS_PRIVATE_URL       = try("http://chronos:${local.microservices.chronos.port}", null)
             CLOUD_STORAGE_PRIVATE_URL = try("http://minio:${local.microservices.minio.port}", null)
