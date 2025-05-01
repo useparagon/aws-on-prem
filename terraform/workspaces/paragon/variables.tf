@@ -376,11 +376,10 @@ locals {
       env = merge(local.base_helm_values.global.env, {
         for key, value in merge({
           // default values, can be overridden by `values.yaml -> global.env`
-          NODE_ENV              = "production"
-          PLATFORM_ENV          = "enterprise"
-          BRANCH                = "master"
-          SENDGRID_API_KEY      = "SG.xxx"
-          SENDGRID_FROM_ADDRESS = "not-a-real@email.com"
+          NODE_ENV               = "production"
+          PLATFORM_ENV           = "enterprise"
+          BRANCH                 = "master"
+          EMAIL_DELIVERY_SERVICE = "none"
 
           CLOUD_STORAGE_TYPE          = try(local.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "MINIO")
           CLOUD_STORAGE_PUBLIC_BUCKET = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], null), try(local.base_helm_values.global.env["MINIO_PUBLIC_BUCKET"], null), null)
@@ -410,11 +409,6 @@ locals {
           WORKER_TRIGGERS_PUBLIC_URL    = try(local.microservices["worker-triggers"].public_url, null)
           WORKER_WORKFLOWS_PUBLIC_URL   = try(local.microservices["worker-workflows"].public_url, null)
 
-          MONITOR_GRAFANA_SLACK_CANARY_CHANNEL          = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_BETA_CHANNEL     = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_WEBHOOK_URL      = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
-
           MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
           // custom values provided in `values.yaml`, overrides default values
@@ -428,8 +422,8 @@ locals {
             HOST_ENV       = "AWS_K8"
 
             // worker variables
-            HERCULES_CLUSTER_MAX_INSTANCES = 1
-            HERCULES_CLUSTER_DISABLED      = true
+            WORKER_WORKFLOWS_MINIMUM_HERMES_PROCESSOR_QUEUE_COUNT = 0
+            WORKER_WORKFLOWS_MINIMUM_TEST_WORKFLOW_QUEUE_COUNT    = 1
 
             ADMIN_BASIC_AUTH_USERNAME = local.base_helm_values.global.env["LICENSE"]
             ADMIN_BASIC_AUTH_PASSWORD = local.base_helm_values.global.env["LICENSE"]
@@ -531,6 +525,7 @@ locals {
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
 
+            FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
 
             MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
