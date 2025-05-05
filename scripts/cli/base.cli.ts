@@ -396,6 +396,13 @@ credentials "app.terraform.io" {
         return false;
       }
 
+      // `cache-replay` was introduced in v2025.0404.0018
+      const hasCacheReplay: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2025.0404.0017') >= 0;
+      if (!hasCacheReplay && Microservice.CACHE_REPLAY === microservice) {
+        return false;
+      }
+
       return true;
     });
   }

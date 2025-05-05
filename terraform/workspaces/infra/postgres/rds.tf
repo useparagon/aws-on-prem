@@ -61,11 +61,6 @@ resource "aws_db_parameter_group" "postgres" {
         apply_method = "pending-reboot"
       },
       {
-        name         = "max_connections"
-        value        = 10000
-        apply_method = "pending-reboot"
-      },
-      {
         name         = "wal_buffers"
         value        = "2048" # sets `wal_buffers` to 16mb
         apply_method = "pending-reboot"
@@ -84,6 +79,49 @@ resource "aws_db_parameter_group" "postgres" {
 
   tags = {
     Name = "${var.workspace}-postgres-group"
+  }
+}
+
+resource "aws_db_parameter_group" "postgres16" {
+  name   = "${var.workspace}-postgres16-upgrade"
+  family = "postgres16"
+
+  dynamic "parameter" {
+    for_each = [
+      {
+        name         = "log_statement"
+        value        = "ddl"
+        apply_method = "pending-reboot"
+      },
+      {
+        name         = "log_min_duration_statement"
+        value        = 1000
+        apply_method = "pending-reboot"
+      },
+      {
+        name         = "wal_buffers"
+        value        = "2048" # 2MB
+        apply_method = "pending-reboot"
+      },
+      {
+        name         = "rds.logical_replication"
+        value        = 1
+        apply_method = "pending-reboot"
+      },
+    ]
+    content {
+      apply_method = lookup(parameter.value, "apply_method", null)
+      name         = parameter.value.name
+      value        = parameter.value.value
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "${var.workspace}-postgres16-upgrade"
   }
 }
 

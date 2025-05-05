@@ -187,6 +187,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "ACCOUNT_PUBLIC_URL", "https://account.${var.domain}")
     }
+    "cache-replay" = {
+      "port"             = lookup(local.base_helm_values.global.env, "CACHE_REPLAY_PORT", 1724)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "CACHE_REPLAY_PUBLIC_URL", "https://cache-replay.${var.domain}")
+    }
     "cerberus" = {
       "port"             = lookup(local.base_helm_values.global.env, "CERBERUS_PORT", 1700)
       "healthcheck_path" = "/healthz"
@@ -371,11 +376,10 @@ locals {
       env = merge(local.base_helm_values.global.env, {
         for key, value in merge({
           // default values, can be overridden by `values.yaml -> global.env`
-          NODE_ENV              = "production"
-          PLATFORM_ENV          = "enterprise"
-          BRANCH                = "master"
-          SENDGRID_API_KEY      = "SG.xxx"
-          SENDGRID_FROM_ADDRESS = "not-a-real@email.com"
+          NODE_ENV               = "production"
+          PLATFORM_ENV           = "enterprise"
+          BRANCH                 = "master"
+          EMAIL_DELIVERY_SERVICE = "none"
 
           CLOUD_STORAGE_TYPE          = try(local.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "MINIO")
           CLOUD_STORAGE_PUBLIC_BUCKET = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], null), try(local.base_helm_values.global.env["MINIO_PUBLIC_BUCKET"], null), null)
@@ -405,11 +409,6 @@ locals {
           WORKER_TRIGGERS_PUBLIC_URL    = try(local.microservices["worker-triggers"].public_url, null)
           WORKER_WORKFLOWS_PUBLIC_URL   = try(local.microservices["worker-workflows"].public_url, null)
 
-          MONITOR_GRAFANA_SLACK_CANARY_CHANNEL          = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_BETA_CHANNEL     = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_WEBHOOK_URL      = "<PLACEHOLDER>"
-          MONITOR_GRAFANA_SLACK_CANARY_BETA_WEBHOOK_URL = "<PLACEHOLDER>"
-
           MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
           // custom values provided in `values.yaml`, overrides default values
@@ -423,8 +422,8 @@ locals {
             HOST_ENV       = "AWS_K8"
 
             // worker variables
-            HERCULES_CLUSTER_MAX_INSTANCES = 1
-            HERCULES_CLUSTER_DISABLED      = true
+            WORKER_WORKFLOWS_MINIMUM_HERMES_PROCESSOR_QUEUE_COUNT = 0
+            WORKER_WORKFLOWS_MINIMUM_TEST_WORKFLOW_QUEUE_COUNT    = 1
 
             ADMIN_BASIC_AUTH_USERNAME = local.base_helm_values.global.env["LICENSE"]
             ADMIN_BASIC_AUTH_PASSWORD = local.base_helm_values.global.env["LICENSE"]
@@ -474,20 +473,21 @@ locals {
             MINIO_INSTANCE_COUNT = "1"
             MINIO_REGION         = var.aws_region
 
-            ACCOUNT_PORT   = try(local.microservices.account.port, null)
-            CERBERUS_PORT  = try(local.microservices.cerberus.port, null)
-            CHRONOS_PORT   = try(local.microservices.chronos.port, null)
-            CONNECT_PORT   = try(local.microservices.connect.port, null)
-            DASHBOARD_PORT = try(local.microservices.dashboard.port, null)
-            HADES_PORT     = try(local.microservices.hades.port, null)
-            HERCULES_PORT  = try(local.microservices.hercules.port, null)
-            HERMES_PORT    = try(local.microservices.hermes.port, null)
-            MINIO_PORT     = try(local.microservices.minio.port, null)
-            PASSPORT_PORT  = try(local.microservices.passport.port, null)
-            PHEME_PORT     = try(local.microservices.pheme.port, null)
-            PLATO_PORT     = try(local.microservices.plato.port, null)
-            RELEASE_PORT   = try(local.microservices.release.port, null)
-            ZEUS_PORT      = try(local.microservices.zeus.port, null)
+            ACCOUNT_PORT      = try(local.microservices.account.port, null)
+            CACHE_REPLAY_PORT = try(local.microservices["cache-replay"].port, null)
+            CERBERUS_PORT     = try(local.microservices.cerberus.port, null)
+            CHRONOS_PORT      = try(local.microservices.chronos.port, null)
+            CONNECT_PORT      = try(local.microservices.connect.port, null)
+            DASHBOARD_PORT    = try(local.microservices.dashboard.port, null)
+            HADES_PORT        = try(local.microservices.hades.port, null)
+            HERCULES_PORT     = try(local.microservices.hercules.port, null)
+            HERMES_PORT       = try(local.microservices.hermes.port, null)
+            MINIO_PORT        = try(local.microservices.minio.port, null)
+            PASSPORT_PORT     = try(local.microservices.passport.port, null)
+            PHEME_PORT        = try(local.microservices.pheme.port, null)
+            PLATO_PORT        = try(local.microservices.plato.port, null)
+            RELEASE_PORT      = try(local.microservices.release.port, null)
+            ZEUS_PORT         = try(local.microservices.zeus.port, null)
 
             WORKER_ACTIONKIT_PORT   = try(local.microservices["worker-actionkit"].port, null)
             WORKER_ACTIONS_PORT     = try(local.microservices["worker-actions"].port, null)
@@ -499,6 +499,7 @@ locals {
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
 
             ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
+            CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
             CERBERUS_PRIVATE_URL      = try("http://cerberus:${local.microservices.cerberus.port}", null)
             CHRONOS_PRIVATE_URL       = try("http://chronos:${local.microservices.chronos.port}", null)
             CLOUD_STORAGE_PRIVATE_URL = try("http://minio:${local.microservices.minio.port}", null)
@@ -524,6 +525,7 @@ locals {
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
 
+            FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
 
             MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
