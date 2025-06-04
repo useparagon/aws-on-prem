@@ -29,6 +29,26 @@ module "cloudtrail" {
   force_destroy               = var.disable_deletion_protection
 }
 
+module "kafka" {
+  source = "./kafka"
+  count  = var.managed_sync_enabled ? 1 : 0
+
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  aws_session_token     = var.aws_session_token
+
+  workspace                  = local.workspace
+  environment                = local.environment
+  force_destroy              = var.disable_deletion_protection
+  msk_kafka_version          = var.msk_kafka_version
+  msk_instance_type          = var.msk_instance_type
+  msk_kafka_num_broker_nodes = var.msk_kafka_num_broker_nodes
+
+  private_subnet = module.network.private_subnet
+  vpc_id         = module.network.vpc.id
+}
+
 module "postgres" {
   source = "./postgres"
 

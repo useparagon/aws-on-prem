@@ -116,6 +116,21 @@ resource "kubernetes_secret" "docker_login" {
   }
 }
 
+resource "kubernetes_secret" "paragon_secrets" {
+  metadata {
+    name      = "paragon-secrets"
+    namespace = kubernetes_namespace.paragon.id
+  }
+
+  type = "Opaque"
+
+  data = {
+    # Map global.env from helm_values into secret data
+    for key, value in nonsensitive(var.helm_values.global.env) :
+    key => value
+  }
+}
+
 # ingress controller; provisions load balancer
 resource "helm_release" "ingress" {
   name        = "ingress"
@@ -299,6 +314,7 @@ resource "helm_release" "paragon_on_prem" {
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login,
+    kubernetes_secret.paragon_secrets,
     kubernetes_storage_class_v1.gp3_encrypted,
     kubernetes_config_map.feature_flag_content
   ]
@@ -351,13 +367,23 @@ resource "helm_release" "paragon_logging" {
     value = var.aws_region
   }
 
-  set {
-    name  = "global.env.ZO_ROOT_USER_EMAIL"
+  set_sensitive {
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_EMAIL"
     value = local.openobserve_email
   }
 
   set_sensitive {
-    name  = "global.env.ZO_ROOT_USER_PASSWORD"
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_PASSWORD"
+    value = local.openobserve_password
+  }
+
+  set_sensitive {
+    name  = "openobserve.secrets.ZO_ROOT_USER_EMAIL"
+    value = local.openobserve_email
+  }
+
+  set_sensitive {
+    name  = "openobserve.secrets.ZO_ROOT_USER_PASSWORD"
     value = local.openobserve_password
   }
 

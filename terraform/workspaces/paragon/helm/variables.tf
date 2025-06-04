@@ -126,3 +126,13 @@ variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
 }
+
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+}
+
+variable "managed_sync_version" {
+  description = "The version of the Managed Sync helm chart to install."
+  type        = string
+}
