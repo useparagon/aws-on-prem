@@ -78,8 +78,13 @@ variable "multi_postgres" {
   type        = bool
 }
 
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+}
+
 locals {
-  postgres_instances = var.multi_postgres ? {
+  postgres_instances = var.multi_postgres ? merge({
     beethoven = {
       name         = "${var.workspace}-beethoven"
       size         = var.rds_instance_class
@@ -105,7 +110,20 @@ locals {
       db           = "zeus"
       storage_type = "gp2"
     }
-    } : {
+    }, var.managed_sync_enabled ? {
+    managed_sync = {
+      name         = "${var.workspace}-managed-sync"
+      size         = "db.t4g.small"
+      db           = "managed_sync"
+      storage_type = "gp2"
+    }
+    managed_sync_openfga = {
+      name         = "${var.workspace}-managed-sync-openfga"
+      size         = "db.t4g.small"
+      db           = "managed_sync_openfga"
+      storage_type = "gp2"
+    }
+    } : {}) : {
     paragon = {
       name         = "${var.workspace}"
       size         = var.rds_instance_class

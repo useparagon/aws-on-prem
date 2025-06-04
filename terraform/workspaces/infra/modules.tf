@@ -44,6 +44,7 @@ module "postgres" {
   rds_restore_from_snapshot   = var.rds_restore_from_snapshot
   rds_final_snapshot_enabled  = var.rds_final_snapshot_enabled
   disable_deletion_protection = var.disable_deletion_protection
+  managed_sync_enabled        = var.managed_sync_enabled
   multi_az_enabled            = var.multi_az_enabled
   multi_postgres              = var.multi_postgres
 
@@ -64,6 +65,7 @@ module "redis" {
   workspace             = local.workspace
   environment           = local.environment
   elasticache_node_type = var.elasticache_node_type
+  managed_sync_enabled  = var.managed_sync_enabled
   multi_az_enabled      = var.multi_az_enabled
   multi_redis           = var.multi_redis
 
@@ -80,9 +82,10 @@ module "s3" {
   aws_region            = var.aws_region
   aws_session_token     = var.aws_session_token
 
-  workspace          = local.workspace
-  environment        = local.environment
-  disable_cloudtrail = var.disable_cloudtrail
+  workspace            = local.workspace
+  environment          = local.environment
+  disable_cloudtrail   = var.disable_cloudtrail
+  managed_sync_enabled = var.managed_sync_enabled
 
   cloudtrail_s3_bucket  = var.disable_cloudtrail ? null : module.cloudtrail.s3.bucket
   force_destroy         = var.disable_deletion_protection

@@ -259,6 +259,32 @@ variable "create_autoscaling_linked_role" {
   default     = true
 }
 
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+  default     = false
+}
+
+variable "msk_kafka_version" {
+  description = "The Kafka version for the MSK cluster."
+  type        = string
+  // NOTE: to use a small instance type like `kafka.t3.small`, we need to use an older version that uses zookeeper
+  // we're default to an older version to keep costs low, but we can override this if we use a supported larger instance type
+  default = "3.6.0"
+}
+
+variable "msk_kafka_num_broker_nodes" {
+  description = "The number of broker nodes for the MSK cluster."
+  type        = number
+  default     = 2
+}
+
+variable "msk_instance_type" {
+  description = "The instance type for the MSK cluster."
+  type        = string
+  default     = "kafka.t3.small"
+}
+
 locals {
   workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"

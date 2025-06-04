@@ -68,10 +68,10 @@ resource "aws_elasticache_parameter_group" "redis" {
 ########################################
 
 resource "aws_elasticache_replication_group" "redis" {
-  count = var.multi_redis ? 1 : 0
+  count = var.multi_redis ? (var.managed_sync_enabled ? 2 : 1) : 0
 
-  replication_group_id = "${var.workspace}-redis-cache"
-  description          = "Redis cluster for caching & workflows."
+  replication_group_id = "${var.workspace}-redis-${count.index == 0 ? "cache" : "sync"}"
+  description          = count.index == 0 ? "Redis cluster for caching & workflows." : "Redis cluster for managed sync."
   apply_immediately    = true
   node_type            = local.redis_instances.cache.size
   engine_version       = local.redis_version
@@ -109,7 +109,7 @@ resource "aws_elasticache_replication_group" "redis" {
   }
 
   tags = {
-    Name    = "${var.workspace}-redis-cache"
+    Name    = "${var.workspace}-redis-${count.index == 0 ? "cache" : "sync"}"
     Cluster = "true"
   }
 }
@@ -166,9 +166,9 @@ resource "aws_cloudwatch_log_group" "redis" {
 ########################################
 
 resource "aws_appautoscaling_target" "cache" {
-  count = local.cache_autoscaling_enabled ? 1 : 0
+  for_each = local.cache_autoscaling_targets
 
-  resource_id        = "replication-group/${aws_elasticache_replication_group.redis[0].replication_group_id}"
+  resource_id        = each.value.resource_id
   service_namespace  = "elasticache"
   scalable_dimension = "elasticache:replication-group:NodeGroups"
   min_capacity       = 1
@@ -176,12 +176,12 @@ resource "aws_appautoscaling_target" "cache" {
 }
 
 resource "aws_appautoscaling_policy" "cache_memory" {
-  count = local.cache_autoscaling_enabled ? 1 : 0
+  for_each = local.cache_autoscaling_targets
 
-  resource_id        = aws_appautoscaling_target.cache[count.index].resource_id
-  service_namespace  = aws_appautoscaling_target.cache[count.index].service_namespace
-  scalable_dimension = aws_appautoscaling_target.cache[count.index].scalable_dimension
-  name               = "${var.workspace}-redis-cache-autoscaling-memory"
+  resource_id        = aws_appautoscaling_target.cache[each.key].resource_id
+  service_namespace  = aws_appautoscaling_target.cache[each.key].service_namespace
+  scalable_dimension = aws_appautoscaling_target.cache[each.key].scalable_dimension
+  name               = "${var.workspace}-redis-cache-autoscaling-memory-${each.key}"
   policy_type        = "TargetTrackingScaling"
 
   # adjust the number of nodes up or down to try to keep memory usage at target_value
@@ -197,12 +197,12 @@ resource "aws_appautoscaling_policy" "cache_memory" {
 }
 
 resource "aws_appautoscaling_policy" "cache_cpu" {
-  count = local.cache_autoscaling_enabled ? 1 : 0
+  for_each = local.cache_autoscaling_targets
 
-  resource_id        = aws_appautoscaling_target.cache[count.index].resource_id
-  service_namespace  = aws_appautoscaling_target.cache[count.index].service_namespace
-  scalable_dimension = aws_appautoscaling_target.cache[count.index].scalable_dimension
-  name               = "${var.workspace}-redis-cache-autoscaling-cpu"
+  resource_id        = aws_appautoscaling_target.cache[each.key].resource_id
+  service_namespace  = aws_appautoscaling_target.cache[each.key].service_namespace
+  scalable_dimension = aws_appautoscaling_target.cache[each.key].scalable_dimension
+  name               = "${var.workspace}-redis-cache-autoscaling-cpu-${each.key}"
   policy_type        = "TargetTrackingScaling"
 
   # adjust the number of nodes up or down to try to keep cpu usage at target_value
