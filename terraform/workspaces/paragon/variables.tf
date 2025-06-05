@@ -170,6 +170,18 @@ variable "openobserve_password" {
   default     = null
 }
 
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+  default     = false
+}
+
+variable "managed_sync_version" {
+  description = "The version of the Managed Sync helm chart to install."
+  type        = string
+  default     = "latest"
+}
+
 locals {
   raw_helm_env = jsondecode(base64decode(var.helm_env))
   raw_helm_values = try(yamldecode(
@@ -304,11 +316,24 @@ locals {
     }
   }
 
-  microservices = {
+  managed_sync_microservices = {
+    "api-sync" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["API_SYNC_HTTP_PORT"], 1800)
+      "public_url"       = try(local.base_helm_values.global.env["API_SYNC_PUBLIC_URL"], "https://ms-sync.${var.domain}")
+    }
+    "worker-sync" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["WORKER_SYNC_HTTP_PORT"], 1802)
+      "public_url"       = try(local.base_helm_values.global.env["WORKER_SYNC_PUBLIC_URL"], "https://ms-worker-sync.${var.domain}")
+    }
+  }
+
+  microservices = merge({
     for microservice, config in local._microservices :
     microservice => config
     if contains(var.supported_microservices, microservice)
-  }
+  }, var.managed_sync_enabled ? local.managed_sync_microservices : {})
 
   public_microservices = {
     for microservice, config in local.microservices :
@@ -561,7 +586,40 @@ locals {
             MONITOR_REDIS_INSIGHT_HOST         = "http://redis-insight"
             MONITOR_REDIS_INSIGHT_PORT         = try(local.monitors["redis-insight"].port, null)
         }) : key => value if !contains(local.helm_keys_to_remove, key) && value != null
-      })
+        }, var.managed_sync_enabled ? {
+        API_SYNC_HTTP_PORT    = try(local.managed_sync_microservices["api-sync"].port, null)
+        WORKER_SYNC_HTTP_PORT = try(local.managed_sync_microservices["worker-sync"].port, null)
+
+        CLOUD_STORAGE_MANAGED_SYNC_BUCKET = try(local.base_helm_values.global.env["MINIO_MANAGED_SYNC_BUCKET"], null)
+        CLOUD_STORAGE_PASS                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_PASS"], null)
+        CLOUD_STORAGE_USER                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_USER"], null)
+
+        MANAGED_SYNC_KAFKA_BROKER_URLS                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_BROKER_URLS"], null)
+        MANAGED_SYNC_KAFKA_SASL_USERNAME                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_USERNAME"], null)
+        MANAGED_SYNC_KAFKA_SASL_PASSWORD                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_PASSWORD"], null)
+        MANAGED_SYNC_KAFKA_SASL_MECHANISM                    = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_MECHANISM"], null)
+        MANAGED_SYNC_KAFKA_SSL_ENABLED                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SSL_ENABLED"], null)
+        MANAGED_SYNC_KAFKA_TOPICS_DEFAULT_REPLICATION_FACTOR = 1
+
+        MANAGED_SYNC_REDIS_URL             = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+        MANAGED_SYNC_REDIS_CLUSTER_ENABLED = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_CLUSTER_ENABLED"], "false")
+        MANAGED_SYNC_REDIS_TLS_ENABLED     = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_TLS_ENABLED"], "false")
+
+        OPENFGA_POSTGRES_HOST        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+        OPENFGA_POSTGRES_PORT        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+        OPENFGA_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+        OPENFGA_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+        OPENFGA_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+        OPENFGA_POSTGRES_SSL_ENABLED = true
+
+        OPENFGA_HTTP_PORT           = 6200
+        OPENFGA_GRPC_PORT           = 6201
+        OPENFGA_AUTH_METHOD         = "preshared",
+        OPENFGA_AUTH_PRESHARED_KEYS = sha256(try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"]))
+        OPENFGA_HTTP_URL            = "http://openfga:${6200}"
+
+        PARAGON_PROXY_BASE_URL = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
+      } : {})
     })
   })
 

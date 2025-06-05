@@ -55,8 +55,13 @@ variable "multi_redis" {
   type        = bool
 }
 
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+}
+
 locals {
-  redis_instances = var.multi_redis ? {
+  redis_instances = var.multi_redis ? merge({
     cache = {
       cluster = true
       size    = var.elasticache_node_type
@@ -69,7 +74,12 @@ locals {
       cluster = false
       size    = "cache.t3.micro"
     }
-    } : {
+    }, var.managed_sync_enabled ? {
+    managed_sync = {
+      cluster = true
+      size    = var.elasticache_node_type
+    }
+    } : {}) : {
     cache = {
       cluster = false
       size    = var.elasticache_node_type
@@ -82,6 +92,16 @@ locals {
   # only large, xlarge, and 2xlarge supported
   cache_autoscaling_supports_size = contains(["large", "xlarge", "2xlarge"], element(split(".", lower(var.elasticache_node_type)), 2))
   cache_autoscaling_enabled       = var.multi_redis && local.cache_autoscaling_supports_family && local.cache_autoscaling_supports_size
+
+  cache_autoscaling_targets = local.cache_autoscaling_enabled ? merge({
+    cache = {
+      resource_id = "replication-group/${aws_elasticache_replication_group.redis[0].replication_group_id}"
+    }
+    }, var.managed_sync_enabled && var.multi_redis ? {
+    managed_sync = {
+      resource_id = "replication-group/${aws_elasticache_replication_group.redis[1].replication_group_id}"
+    }
+  } : {}) : {}
 
   redis_instances_standalone = {
     for key, value in local.redis_instances :

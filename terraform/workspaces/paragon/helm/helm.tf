@@ -31,6 +31,26 @@ locals {
     }
   })
 
+  global_values = yamlencode(merge(
+    nonsensitive(var.helm_values),
+    {
+      global = merge(
+        nonsensitive(var.helm_values.global),
+        {
+          env = merge(
+            nonsensitive(var.helm_values.global.env),
+            {
+              HOST_ENV    = "AWS_K8"
+              k8s_version = var.k8_version
+              secretName  = "paragon-secrets"
+            }
+          ),
+          paragon_version = var.helm_values.global.env["VERSION"]
+        }
+      )
+    }
+  ))
+
   supported_microservices_values = <<EOF
 subchart:
   account:
@@ -113,6 +133,21 @@ resource "kubernetes_secret" "docker_login" {
         }
       }
     })
+  }
+}
+
+resource "kubernetes_secret" "paragon_secrets" {
+  metadata {
+    name      = "paragon-secrets"
+    namespace = kubernetes_namespace.paragon.id
+  }
+
+  type = "Opaque"
+
+  data = {
+    # Map global.env from helm_values into secret data
+    for key, value in nonsensitive(var.helm_values.global.env) :
+    key => value
   }
 }
 
@@ -208,23 +243,8 @@ resource "helm_release" "paragon_on_prem" {
   values = [
     local.supported_microservices_values,
     local.flipt_values,
-
-    // map `var.helm_values` but remove `global.env`, as we'll map it below
-    yamlencode(merge(nonsensitive(var.helm_values), {
-      global = merge(nonsensitive(var.helm_values).global, {
-        env = {}
-      })
-    }))
+    local.global_values,
   ]
-
-  # used to load environment variables into microservices
-  dynamic "set_sensitive" {
-    for_each = nonsensitive(merge(var.helm_values.global.env))
-    content {
-      name  = "global.env.${set_sensitive.key}"
-      value = set_sensitive.value
-    }
-  }
 
   # set version of paragon microservices
   set {
@@ -299,6 +319,7 @@ resource "helm_release" "paragon_on_prem" {
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login,
+    kubernetes_secret.paragon_secrets,
     kubernetes_storage_class_v1.gp3_encrypted,
     kubernetes_config_map.feature_flag_content
   ]
@@ -351,13 +372,23 @@ resource "helm_release" "paragon_logging" {
     value = var.aws_region
   }
 
-  set {
-    name  = "global.env.ZO_ROOT_USER_EMAIL"
+  set_sensitive {
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_EMAIL"
     value = local.openobserve_email
   }
 
   set_sensitive {
-    name  = "global.env.ZO_ROOT_USER_PASSWORD"
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_PASSWORD"
+    value = local.openobserve_password
+  }
+
+  set_sensitive {
+    name  = "openobserve.secrets.ZO_ROOT_USER_EMAIL"
+    value = local.openobserve_email
+  }
+
+  set_sensitive {
+    name  = "openobserve.secrets.ZO_ROOT_USER_PASSWORD"
     value = local.openobserve_password
   }
 
@@ -404,23 +435,8 @@ resource "helm_release" "paragon_monitoring" {
   timeout          = 900 # 15 minutes
 
   values = [
-
-    // map `var.helm_values` but remove `global.env`, as we'll map it below
-    yamlencode(merge(nonsensitive(var.helm_values), {
-      global = merge(nonsensitive(var.helm_values).global, {
-        env = {}
-      })
-    }))
+    local.global_values,
   ]
-
-  # used to load environment variables into microservices
-  dynamic "set_sensitive" {
-    for_each = nonsensitive(merge(var.helm_values.global.env))
-    content {
-      name  = "global.env.${set_sensitive.key}"
-      value = set_sensitive.value
-    }
-  }
 
   # set image tag to pull
   dynamic "set" {

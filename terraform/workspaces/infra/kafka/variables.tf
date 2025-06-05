@@ -1,5 +1,6 @@
 variable "workspace" {
   description = "The name of the workspace resources are being created in."
+  type        = string
 }
 
 variable "environment" {
@@ -22,8 +23,9 @@ variable "aws_session_token" {
   description = "AWS session token."
 }
 
-variable "cloudtrail_s3_bucket" {
-  description = "The S3 bucket created by cloudtrail"
+variable "vpc_id" {
+  description = "VPC ID where the MSK cluster will be created"
+  type        = string
 }
 
 variable "force_destroy" {
@@ -31,21 +33,21 @@ variable "force_destroy" {
   type        = bool
 }
 
-variable "app_bucket_expiration" {
-  description = "The number of days to retain S3 app data before deleting"
+variable "private_subnet" {
+  description = "The private subnets within the VPC."
 }
 
-variable "disable_cloudtrail" {
-  description = "Used to specify that Cloudtrail is disabled."
-  type        = bool
+variable "msk_instance_type" {
+  description = "The instance type for the MSK cluster."
+  type        = string
 }
 
-variable "disable_logs" {
-  description = "Whether to disable system level log gathering."
-  type        = bool
+variable "msk_kafka_version" {
+  description = "The Kafka version for the MSK cluster."
+  type        = string
 }
 
-variable "managed_sync_enabled" {
-  description = "Whether to enable managed sync."
-  type        = bool
+variable "msk_kafka_num_broker_nodes" {
+  description = "The number of broker nodes for the MSK cluster."
+  type        = number
 }
