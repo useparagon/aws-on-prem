@@ -73,7 +73,7 @@ resource "aws_elasticache_replication_group" "redis" {
   replication_group_id = "${var.workspace}-redis-${count.index == 0 ? "cache" : "sync"}"
   description          = count.index == 0 ? "Redis cluster for caching & workflows." : "Redis cluster for managed sync."
   apply_immediately    = true
-  node_type            = local.redis_instances.cache.size
+  node_type            = count.index == 0 ? local.redis_instances.cache.size : local.redis_instances.managed_sync.size
   engine_version       = local.redis_version
   port                 = 6379
   parameter_group_name = aws_elasticache_parameter_group.redis["cluster"].name

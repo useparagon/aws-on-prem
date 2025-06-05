@@ -13,7 +13,6 @@ resource "aws_kms_alias" "kafka_alias" {
 resource "random_string" "msk_username" {
   length           = 16
   special          = false
-  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "random_password" "msk_password" {

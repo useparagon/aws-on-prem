@@ -324,8 +324,8 @@ locals {
     }
     "worker-sync" = {
       "healthcheck_path" = "/healthz"
-      "port"             = try(local.base_helm_values.global.env["SYNC_WORKER_HTTP_PORT"], 1802)
-      "public_url"       = try(local.base_helm_values.global.env["SYNC_WORKER_PUBLIC_URL"], "https://ms-worker-sync.${var.domain}")
+      "port"             = try(local.base_helm_values.global.env["WORKER_SYNC_HTTP_PORT"], 1802)
+      "public_url"       = try(local.base_helm_values.global.env["WORKER_SYNC_PUBLIC_URL"], "https://ms-worker-sync.${var.domain}")
     }
   }
 
