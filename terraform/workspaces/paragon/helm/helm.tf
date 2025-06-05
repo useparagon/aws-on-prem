@@ -31,6 +31,26 @@ locals {
     }
   })
 
+  global_values = yamlencode(merge(
+    nonsensitive(var.helm_values),
+    {
+      global = merge(
+        nonsensitive(var.helm_values.global),
+        {
+          env = merge(
+            nonsensitive(var.helm_values.global.env),
+            {
+              HOST_ENV    = "AWS_K8"
+              k8s_version = var.k8_version
+              secretName  = "paragon-secrets"
+            }
+          ),
+          paragon_version = var.helm_values.global.env["VERSION"]
+        }
+      )
+    }
+  ))
+
   supported_microservices_values = <<EOF
 subchart:
   account:
@@ -223,23 +243,8 @@ resource "helm_release" "paragon_on_prem" {
   values = [
     local.supported_microservices_values,
     local.flipt_values,
-
-    // map `var.helm_values` but remove `global.env`, as we'll map it below
-    yamlencode(merge(nonsensitive(var.helm_values), {
-      global = merge(nonsensitive(var.helm_values).global, {
-        env = {}
-      })
-    }))
+    local.global_values,
   ]
-
-  # used to load environment variables into microservices
-  dynamic "set_sensitive" {
-    for_each = nonsensitive(merge(var.helm_values.global.env))
-    content {
-      name  = "global.env.${set_sensitive.key}"
-      value = set_sensitive.value
-    }
-  }
 
   # set version of paragon microservices
   set {
@@ -430,23 +435,8 @@ resource "helm_release" "paragon_monitoring" {
   timeout          = 900 # 15 minutes
 
   values = [
-
-    // map `var.helm_values` but remove `global.env`, as we'll map it below
-    yamlencode(merge(nonsensitive(var.helm_values), {
-      global = merge(nonsensitive(var.helm_values).global, {
-        env = {}
-      })
-    }))
+    local.global_values,
   ]
-
-  # used to load environment variables into microservices
-  dynamic "set_sensitive" {
-    for_each = nonsensitive(merge(var.helm_values.global.env))
-    content {
-      name  = "global.env.${set_sensitive.key}"
-      value = set_sensitive.value
-    }
-  }
 
   # set image tag to pull
   dynamic "set" {

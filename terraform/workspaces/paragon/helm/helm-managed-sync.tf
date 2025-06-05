@@ -13,6 +13,10 @@ resource "helm_release" "managed_sync" {
   verify           = false
   timeout          = 900 # 15 minutes
 
+  values = [
+    local.global_values,
+  ]
+
   dynamic "set" {
     for_each = var.microservices
 

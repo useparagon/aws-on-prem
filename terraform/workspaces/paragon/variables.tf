@@ -606,10 +606,10 @@ locals {
         MANAGED_SYNC_REDIS_TLS_ENABLED     = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_TLS_ENABLED"], "false")
 
         OPENFGA_POSTGRES_HOST        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-        OPENFGA_POSTGRES_PORT        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_HOST"])
-        OPENFGA_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_HOST"])
-        OPENFGA_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_HOST"])
-        OPENFGA_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_HOST"])
+        OPENFGA_POSTGRES_PORT        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+        OPENFGA_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+        OPENFGA_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+        OPENFGA_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
         OPENFGA_POSTGRES_SSL_ENABLED = true
 
         OPENFGA_HTTP_PORT           = 6200

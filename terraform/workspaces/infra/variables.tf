@@ -276,7 +276,7 @@ variable "msk_kafka_version" {
 variable "msk_kafka_num_broker_nodes" {
   description = "The number of broker nodes for the MSK cluster."
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "msk_instance_type" {
