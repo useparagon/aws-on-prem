@@ -565,27 +565,27 @@ locals {
             FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
 
-            MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
-            MONITOR_BULL_EXPORTER_PORT              = try(local.monitors["bull-exporter"].port, null)
-            MONITOR_GRAFANA_AWS_ACCESS_ID           = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
-            MONITOR_GRAFANA_AWS_SECRET_KEY          = var.monitors_enabled ? module.monitors[0].grafana_aws_secret_access_key : null
-            MONITOR_GRAFANA_SERVER_DOMAIN           = try(local.monitors["grafana"].public_url, null)
-            MONITOR_GRAFANA_SECURITY_ADMIN_USER     = var.monitors_enabled ? module.monitors[0].grafana_admin_email : null
-            MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
-            MONITOR_GRAFANA_HOST                    = "http://grafana"
-            MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
-            MONITOR_GRAFANA_UPTIME_WEBHOOK_URL      = module.uptime.webhook
-            MONITOR_GRAFANA_CUSTOMER_WEBHOOK_URL    = var.monitor_grafana_customer_webhook_url
+            MONITOR_BULL_EXPORTER_HOST                          = "http://bull-exporter"
+            MONITOR_BULL_EXPORTER_PORT                          = try(local.monitors["bull-exporter"].port, null)
+            MONITOR_GRAFANA_AWS_ACCESS_ID                       = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
+            MONITOR_GRAFANA_AWS_SECRET_KEY                      = var.monitors_enabled ? module.monitors[0].grafana_aws_secret_access_key : null
+            MONITOR_GRAFANA_SERVER_DOMAIN                       = try(local.monitors["grafana"].public_url, null)
+            MONITOR_GRAFANA_SECURITY_ADMIN_USER                 = var.monitors_enabled ? module.monitors[0].grafana_admin_email : null
+            MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD             = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
+            MONITOR_GRAFANA_HOST                                = "http://grafana"
+            MONITOR_GRAFANA_PORT                                = try(local.monitors["grafana"].port, null)
+            MONITOR_GRAFANA_UPTIME_WEBHOOK_URL                  = module.uptime.webhook
+            MONITOR_GRAFANA_CUSTOMER_WEBHOOK_URL                = var.monitor_grafana_customer_webhook_url
             MONITOR_GRAFANA_CUSTOMER_DEFINED_ALERTS_WEBHOOK_URL = var.monitor_grafana_customer_defined_alerts_webhook_url
-            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST = "http://jaegar"
-            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT = try(local.monitors["jaegar"].port, null)
-            MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
-            MONITOR_KUBE_STATE_METRICS_PORT         = try(local.monitors["kube-state-metrics"].port, null)
-            MONITOR_PGADMIN_HOST                    = "http://pgadmin"
-            MONITOR_PGADMIN_PORT                    = try(local.monitors["pgadmin"].port, null)
-            MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
-            MONITOR_PGADMIN_PASSWORD                = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
-            MONITOR_PGADMIN_SSL_MODE                = "disable"
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST             = "http://jaegar"
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT             = try(local.monitors["jaegar"].port, null)
+            MONITOR_KUBE_STATE_METRICS_HOST                     = "http://kube-state-metrics"
+            MONITOR_KUBE_STATE_METRICS_PORT                     = try(local.monitors["kube-state-metrics"].port, null)
+            MONITOR_PGADMIN_HOST                                = "http://pgadmin"
+            MONITOR_PGADMIN_PORT                                = try(local.monitors["pgadmin"].port, null)
+            MONITOR_PGADMIN_EMAIL                               = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
+            MONITOR_PGADMIN_PASSWORD                            = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
+            MONITOR_PGADMIN_SSL_MODE                            = "disable"
             MONITOR_QUEUE_REDIS_TARGET = replace(element(split(".", try(
               local.base_helm_values.global.env["REDIS_HOST"],
               local.base_helm_values.global.env["QUEUE_REDIS_URL"]
