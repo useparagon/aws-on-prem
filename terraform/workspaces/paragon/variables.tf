@@ -326,6 +326,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_WORKFLOWS_PUBLIC_URL", "https://worker-workflows.${var.domain}")
     }
+    "worker-eventlogs" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_EVENTLOGS_PORT", 1723)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_EVENTLOGS_PUBLIC_URL", "https://worker-eventlogs.${var.domain}")
+    }
   }
 
   managed_sync_microservices = {
@@ -445,6 +450,7 @@ locals {
           WORKER_PROXY_PUBLIC_URL       = try(local.microservices["worker-proxy"].public_url, null)
           WORKER_TRIGGERS_PUBLIC_URL    = try(local.microservices["worker-triggers"].public_url, null)
           WORKER_WORKFLOWS_PUBLIC_URL   = try(local.microservices["worker-workflows"].public_url, null)
+          WORKER_EVENTLOGS_PUBLIC_URL   = try(local.microservices["worker-eventlogs"].public_url, null)
 
           MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
@@ -534,6 +540,7 @@ locals {
             WORKER_PROXY_PORT       = try(local.microservices["worker-proxy"].port, null)
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
+            WORKER_EVENTLOGS_PORT   = try(local.microservices["worker-eventlogs"].port, null)
 
             ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
             CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
@@ -561,6 +568,7 @@ locals {
             WORKER_PROXY_PRIVATE_URL       = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
+            WORKER_EVENTLOGS_PRIVATE_URL   = try("http://worker-eventlogs:${local.microservices["worker-eventlogs"].port}", null)
 
             FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"

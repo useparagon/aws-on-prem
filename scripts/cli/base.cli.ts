@@ -361,6 +361,7 @@ credentials "app.terraform.io" {
         Microservice.WORKER_PROXY,
         Microservice.WORKER_TRIGGERS,
         Microservice.WORKER_WORKFLOWS,
+        Microservice.WORKER_EVENTLOGS,
       ];
       const hasWorkersV1: boolean =
         isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;

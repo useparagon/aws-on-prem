@@ -34,4 +34,5 @@ export enum Microservice {
   WORKER_PROXY = 'worker-proxy',
   WORKER_TRIGGERS = 'worker-triggers',
   WORKER_WORKFLOWS = 'worker-workflows',
+  WORKER_EVENTLOGS = 'worker-eventlogs',
 }
