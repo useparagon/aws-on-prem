@@ -90,6 +90,18 @@ variable "monitor_version" {
   default     = null
 }
 
+variable "monitor_grafana_customer_webhook_url" {
+  description = "The webhook URL for customer notifications in Grafana."
+  type        = string
+  default     = null
+}
+
+variable "monitor_grafana_customer_defined_alerts_webhook_url" {
+  description = "The webhook URL for customer-defined alerts in Grafana."
+  type        = string
+  default     = null
+}
+
 variable "supported_microservices" {
   description = "The microservices supported in the current Paragon version."
   type        = list(string)
@@ -563,6 +575,8 @@ locals {
             MONITOR_GRAFANA_HOST                    = "http://grafana"
             MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
             MONITOR_GRAFANA_UPTIME_WEBHOOK_URL      = module.uptime.webhook
+            MONITOR_GRAFANA_CUSTOMER_WEBHOOK_URL    = var.monitor_grafana_customer_webhook_url
+            MONITOR_GRAFANA_CUSTOMER_DEFINED_ALERTS_WEBHOOK_URL = var.monitor_grafana_customer_defined_alerts_webhook_url
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST = "http://jaegar"
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT = try(local.monitors["jaegar"].port, null)
             MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
