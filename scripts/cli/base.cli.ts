@@ -404,6 +404,13 @@ credentials "app.terraform.io" {
         return false;
       }
 
+      // `worker-eventlogs` was introduced in v2025.0310
+      const hasWorkerEventLogs: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2025.0310') >= 0;
+      if (!hasWorkerEventLogs && Microservice.WORKER_EVENTLOGS === microservice) {
+        return false;
+      }
+
       return true;
     });
   }
