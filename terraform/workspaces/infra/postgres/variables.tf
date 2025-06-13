@@ -110,6 +110,12 @@ locals {
       db           = "zeus"
       storage_type = "gp2"
     }
+    eventlogs = {
+      name         = "${var.workspace}-eventlogs"
+      size         = "db.t4g.small"
+      db           = "eventlogs"
+      storage_type = "gp2"
+    }
     }, var.managed_sync_enabled ? {
     managed_sync = {
       name         = "${var.workspace}-managed-sync"
