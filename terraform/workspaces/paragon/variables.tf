@@ -499,7 +499,7 @@ locals {
             EVENT_LOGS_POSTGRES_PORT          = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
             EVENT_LOGS_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
             EVENT_LOGS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            EVENT_LOGS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            EVENT_LOGS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
 
             REDIS_URL = try(
               local.base_helm_values.global.env["REDIS_URL"],
