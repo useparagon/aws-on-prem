@@ -326,6 +326,11 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_WORKFLOWS_PUBLIC_URL", "https://worker-workflows.${var.domain}")
     }
+    "worker-eventlogs" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_EVENT_LOGS_PORT", 1723)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_EVENT_LOGS_PUBLIC_URL", "https://worker-eventlogs.${var.domain}")
+    }
   }
 
   managed_sync_microservices = {
@@ -445,6 +450,7 @@ locals {
           WORKER_PROXY_PUBLIC_URL       = try(local.microservices["worker-proxy"].public_url, null)
           WORKER_TRIGGERS_PUBLIC_URL    = try(local.microservices["worker-triggers"].public_url, null)
           WORKER_WORKFLOWS_PUBLIC_URL   = try(local.microservices["worker-workflows"].public_url, null)
+          WORKER_EVENT_LOGS_PUBLIC_URL   = try(local.microservices["worker-eventlogs"].public_url, null)
 
           MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
@@ -490,6 +496,10 @@ locals {
             ZEUS_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
             ZEUS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
             ZEUS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            EVENT_LOGS_POSTGRES_PORT          = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            EVENT_LOGS_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            EVENT_LOGS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            EVENT_LOGS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
 
             REDIS_URL = try(
               local.base_helm_values.global.env["REDIS_URL"],
@@ -534,6 +544,7 @@ locals {
             WORKER_PROXY_PORT       = try(local.microservices["worker-proxy"].port, null)
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
+            WORKER_EVENT_LOGS_PORT   = try(local.microservices["worker-eventlogs"].port, null)
 
             ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
             CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
@@ -561,6 +572,7 @@ locals {
             WORKER_PROXY_PRIVATE_URL       = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
+            WORKER_EVENT_LOGS_PRIVATE_URL   = try("http://worker-eventlogs:${local.microservices["worker-eventlogs"].port}", null)
 
             FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
