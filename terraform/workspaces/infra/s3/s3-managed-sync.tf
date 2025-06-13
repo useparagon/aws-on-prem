@@ -1,15 +1,28 @@
 resource "aws_s3_bucket" "managed_sync" {
   count         = var.managed_sync_enabled ? 1 : 0
   bucket        = "${var.workspace}-managed-sync"
+  acl           = "private"
   force_destroy = var.force_destroy
-}
 
-resource "aws_s3_bucket_logging" "managed_sync" {
-  count  = var.managed_sync_enabled && !var.disable_cloudtrail && !var.disable_logs ? 1 : 0
-  bucket = aws_s3_bucket.managed_sync[0].id
+  dynamic "logging" {
+    for_each = var.disable_cloudtrail ? [] : ["true"]
+    content {
+      target_bucket = var.cloudtrail_s3_bucket
+      target_prefix = "${var.workspace}-managed-sync/"
+    }
+  }
 
-  target_bucket = aws_s3_bucket.logs[0].id
-  target_prefix = "${var.workspace}-managed-sync/"
+  versioning {
+    enabled = true
+  }
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["HEAD", "POST"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "managed_sync" {
@@ -39,16 +52,6 @@ resource "aws_s3_bucket_versioning" "managed_sync" {
   versioning_configuration {
     status = "Enabled"
   }
-}
-
-resource "aws_s3_bucket_acl" "managed_sync" {
-  count  = var.managed_sync_enabled ? 1 : 0
-  bucket = aws_s3_bucket.managed_sync[0].id
-  acl    = "private"
-
-  depends_on = [
-    aws_s3_bucket_ownership_controls.managed_sync[0]
-  ]
 }
 
 resource "aws_s3_bucket_public_access_block" "managed_sync" {
