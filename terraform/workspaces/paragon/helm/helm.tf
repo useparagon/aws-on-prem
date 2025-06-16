@@ -99,6 +99,8 @@ subchart:
     enabled: ${contains(keys(var.microservices), "worker-triggers")}
   worker-workflows:
     enabled: ${contains(keys(var.microservices), "worker-workflows")}
+  worker-eventlogs:
+    enabled: ${contains(keys(var.microservices), "worker-eventlogs")}
 EOF
 }
 
