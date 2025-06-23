@@ -375,22 +375,12 @@ resource "helm_release" "paragon_logging" {
   }
 
   set_sensitive {
-    name  = "fluent-bit.secrets.ZO_ROOT_USER_EMAIL"
+    name  = "global.env.ZO_ROOT_USER_EMAIL"
     value = local.openobserve_email
   }
 
   set_sensitive {
-    name  = "fluent-bit.secrets.ZO_ROOT_USER_PASSWORD"
-    value = local.openobserve_password
-  }
-
-  set_sensitive {
-    name  = "openobserve.secrets.ZO_ROOT_USER_EMAIL"
-    value = local.openobserve_email
-  }
-
-  set_sensitive {
-    name  = "openobserve.secrets.ZO_ROOT_USER_PASSWORD"
+    name  = "global.env.ZO_ROOT_USER_PASSWORD"
     value = local.openobserve_password
   }
 
