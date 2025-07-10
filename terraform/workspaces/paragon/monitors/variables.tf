@@ -27,6 +27,18 @@ variable "grafana_admin_password" {
   default     = null
 }
 
+variable "grafana_customer_webhook_url" {
+  description = "The webhook URL for customer notifications in Grafana."
+  type        = string
+  default     = null
+}
+
+variable "grafana_customer_defined_alerts_webhook_url" {
+  description = "The webhook URL for customer-defined alerts in Grafana."
+  type        = string
+  default     = null
+}
+
 variable "pgadmin_admin_email" {
   description = "PGAdmin admin login email."
   type        = string

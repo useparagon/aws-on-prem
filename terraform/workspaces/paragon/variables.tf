@@ -90,6 +90,18 @@ variable "monitor_version" {
   default     = null
 }
 
+variable "monitor_grafana_customer_webhook_url" {
+  description = "The webhook URL for customer notifications in Grafana."
+  type        = string
+  default     = null
+}
+
+variable "monitor_grafana_customer_defined_alerts_webhook_url" {
+  description = "The webhook URL for customer-defined alerts in Grafana."
+  type        = string
+  default     = null
+}
+
 variable "supported_microservices" {
   description = "The microservices supported in the current Paragon version."
   type        = list(string)
@@ -168,6 +180,18 @@ variable "openobserve_password" {
   description = "OpenObserve admin login password."
   type        = string
   default     = null
+}
+
+variable "managed_sync_enabled" {
+  description = "Whether to enable managed sync."
+  type        = bool
+  default     = false
+}
+
+variable "managed_sync_version" {
+  description = "The version of the Managed Sync helm chart to install."
+  type        = string
+  default     = "latest"
 }
 
 locals {
@@ -302,13 +326,31 @@ locals {
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_WORKFLOWS_PUBLIC_URL", "https://worker-workflows.${var.domain}")
     }
+    "worker-eventlogs" = {
+      "port"             = lookup(local.base_helm_values.global.env, "WORKER_EVENT_LOGS_PORT", 1723)
+      "healthcheck_path" = "/healthz"
+      "public_url"       = lookup(local.base_helm_values.global.env, "WORKER_EVENT_LOGS_PUBLIC_URL", "https://worker-eventlogs.${var.domain}")
+    }
   }
 
-  microservices = {
+  managed_sync_microservices = {
+    "api-sync" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["API_SYNC_HTTP_PORT"], 1800)
+      "public_url"       = try(local.base_helm_values.global.env["API_SYNC_PUBLIC_URL"], "https://ms-sync.${var.domain}")
+    }
+    "worker-sync" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["WORKER_SYNC_HTTP_PORT"], 1802)
+      "public_url"       = try(local.base_helm_values.global.env["WORKER_SYNC_PUBLIC_URL"], "https://ms-worker-sync.${var.domain}")
+    }
+  }
+
+  microservices = merge({
     for microservice, config in local._microservices :
     microservice => config
     if contains(var.supported_microservices, microservice)
-  }
+  }, var.managed_sync_enabled ? local.managed_sync_microservices : {})
 
   public_microservices = {
     for microservice, config in local.microservices :
@@ -408,6 +450,7 @@ locals {
           WORKER_PROXY_PUBLIC_URL       = try(local.microservices["worker-proxy"].public_url, null)
           WORKER_TRIGGERS_PUBLIC_URL    = try(local.microservices["worker-triggers"].public_url, null)
           WORKER_WORKFLOWS_PUBLIC_URL   = try(local.microservices["worker-workflows"].public_url, null)
+          WORKER_EVENT_LOGS_PUBLIC_URL  = try(local.microservices["worker-eventlogs"].public_url, null)
 
           MICROSERVICES_OPENTELEMETRY_ENABLED = false
           },
@@ -428,31 +471,36 @@ locals {
             ADMIN_BASIC_AUTH_USERNAME = local.base_helm_values.global.env["LICENSE"]
             ADMIN_BASIC_AUTH_PASSWORD = local.base_helm_values.global.env["LICENSE"]
 
-            BEETHOVEN_POSTGRES_HOST     = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-            BEETHOVEN_POSTGRES_PORT     = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-            BEETHOVEN_POSTGRES_USERNAME = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-            BEETHOVEN_POSTGRES_PASSWORD = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            BEETHOVEN_POSTGRES_DATABASE = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
-            CERBERUS_POSTGRES_HOST      = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-            CERBERUS_POSTGRES_PORT      = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-            CERBERUS_POSTGRES_USERNAME  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-            CERBERUS_POSTGRES_PASSWORD  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            CERBERUS_POSTGRES_DATABASE  = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
-            HERMES_POSTGRES_HOST        = try(local.base_helm_values.global.env["HERMES_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-            HERMES_POSTGRES_PORT        = try(local.base_helm_values.global.env["HERMES_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-            HERMES_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["HERMES_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-            HERMES_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["HERMES_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            HERMES_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["HERMES_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
-            PHEME_POSTGRES_HOST         = try(local.base_helm_values.global.env["PHEME_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-            PHEME_POSTGRES_PORT         = try(local.base_helm_values.global.env["PHEME_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-            PHEME_POSTGRES_USERNAME     = try(local.base_helm_values.global.env["PHEME_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-            PHEME_POSTGRES_PASSWORD     = try(local.base_helm_values.global.env["PHEME_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            PHEME_POSTGRES_DATABASE     = try(local.base_helm_values.global.env["PHEME_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
-            ZEUS_POSTGRES_HOST          = try(local.base_helm_values.global.env["ZEUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-            ZEUS_POSTGRES_PORT          = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-            ZEUS_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-            ZEUS_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-            ZEUS_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            BEETHOVEN_POSTGRES_HOST      = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            BEETHOVEN_POSTGRES_PORT      = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            BEETHOVEN_POSTGRES_USERNAME  = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            BEETHOVEN_POSTGRES_PASSWORD  = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            BEETHOVEN_POSTGRES_DATABASE  = try(local.base_helm_values.global.env["BEETHOVEN_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            CERBERUS_POSTGRES_HOST       = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            CERBERUS_POSTGRES_PORT       = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            CERBERUS_POSTGRES_USERNAME   = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            CERBERUS_POSTGRES_PASSWORD   = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            CERBERUS_POSTGRES_DATABASE   = try(local.base_helm_values.global.env["CERBERUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            HERMES_POSTGRES_HOST         = try(local.base_helm_values.global.env["HERMES_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            HERMES_POSTGRES_PORT         = try(local.base_helm_values.global.env["HERMES_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            HERMES_POSTGRES_USERNAME     = try(local.base_helm_values.global.env["HERMES_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            HERMES_POSTGRES_PASSWORD     = try(local.base_helm_values.global.env["HERMES_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            HERMES_POSTGRES_DATABASE     = try(local.base_helm_values.global.env["HERMES_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            PHEME_POSTGRES_HOST          = try(local.base_helm_values.global.env["PHEME_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            PHEME_POSTGRES_PORT          = try(local.base_helm_values.global.env["PHEME_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            PHEME_POSTGRES_USERNAME      = try(local.base_helm_values.global.env["PHEME_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            PHEME_POSTGRES_PASSWORD      = try(local.base_helm_values.global.env["PHEME_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            PHEME_POSTGRES_DATABASE      = try(local.base_helm_values.global.env["PHEME_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            ZEUS_POSTGRES_HOST           = try(local.base_helm_values.global.env["ZEUS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            ZEUS_POSTGRES_PORT           = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            ZEUS_POSTGRES_USERNAME       = try(local.base_helm_values.global.env["ZEUS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            ZEUS_POSTGRES_PASSWORD       = try(local.base_helm_values.global.env["ZEUS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            ZEUS_POSTGRES_DATABASE       = try(local.base_helm_values.global.env["ZEUS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+            EVENT_LOGS_POSTGRES_HOST     = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+            EVENT_LOGS_POSTGRES_PORT     = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+            EVENT_LOGS_POSTGRES_USERNAME = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+            EVENT_LOGS_POSTGRES_PASSWORD = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+            EVENT_LOGS_POSTGRES_DATABASE = try(local.base_helm_values.global.env["EVENT_LOGS_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
 
             REDIS_URL = try(
               local.base_helm_values.global.env["REDIS_URL"],
@@ -497,6 +545,7 @@ locals {
             WORKER_PROXY_PORT       = try(local.microservices["worker-proxy"].port, null)
             WORKER_TRIGGERS_PORT    = try(local.microservices["worker-triggers"].port, null)
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
+            WORKER_EVENT_LOGS_PORT  = try(local.microservices["worker-eventlogs"].port, null)
 
             ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
             CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
@@ -524,29 +573,32 @@ locals {
             WORKER_PROXY_PRIVATE_URL       = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
             WORKER_TRIGGERS_PRIVATE_URL    = try("http://worker-triggers:${local.microservices["worker-triggers"].port}", null)
             WORKER_WORKFLOWS_PRIVATE_URL   = try("http://worker-workflows:${local.microservices["worker-workflows"].port}", null)
+            WORKER_EVENT_LOGS_PRIVATE_URL  = try("http://worker-eventlogs:${local.microservices["worker-eventlogs"].port}", null)
 
             FEATURE_FLAG_PLATFORM_ENABLED  = "true"
             FEATURE_FLAG_PLATFORM_ENDPOINT = "http://flipt:${local.microservices.flipt.port}"
 
-            MONITOR_BULL_EXPORTER_HOST              = "http://bull-exporter"
-            MONITOR_BULL_EXPORTER_PORT              = try(local.monitors["bull-exporter"].port, null)
-            MONITOR_GRAFANA_AWS_ACCESS_ID           = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
-            MONITOR_GRAFANA_AWS_SECRET_KEY          = var.monitors_enabled ? module.monitors[0].grafana_aws_secret_access_key : null
-            MONITOR_GRAFANA_SERVER_DOMAIN           = try(local.monitors["grafana"].public_url, null)
-            MONITOR_GRAFANA_SECURITY_ADMIN_USER     = var.monitors_enabled ? module.monitors[0].grafana_admin_email : null
-            MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
-            MONITOR_GRAFANA_HOST                    = "http://grafana"
-            MONITOR_GRAFANA_PORT                    = try(local.monitors["grafana"].port, null)
-            MONITOR_GRAFANA_UPTIME_WEBHOOK_URL      = module.uptime.webhook
-            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST = "http://jaegar"
-            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT = try(local.monitors["jaegar"].port, null)
-            MONITOR_KUBE_STATE_METRICS_HOST         = "http://kube-state-metrics"
-            MONITOR_KUBE_STATE_METRICS_PORT         = try(local.monitors["kube-state-metrics"].port, null)
-            MONITOR_PGADMIN_HOST                    = "http://pgadmin"
-            MONITOR_PGADMIN_PORT                    = try(local.monitors["pgadmin"].port, null)
-            MONITOR_PGADMIN_EMAIL                   = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
-            MONITOR_PGADMIN_PASSWORD                = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
-            MONITOR_PGADMIN_SSL_MODE                = "disable"
+            MONITOR_BULL_EXPORTER_HOST                          = "http://bull-exporter"
+            MONITOR_BULL_EXPORTER_PORT                          = try(local.monitors["bull-exporter"].port, null)
+            MONITOR_GRAFANA_AWS_ACCESS_ID                       = var.monitors_enabled ? module.monitors[0].grafana_aws_access_key_id : null
+            MONITOR_GRAFANA_AWS_SECRET_KEY                      = var.monitors_enabled ? module.monitors[0].grafana_aws_secret_access_key : null
+            MONITOR_GRAFANA_SERVER_DOMAIN                       = try(local.monitors["grafana"].public_url, null)
+            MONITOR_GRAFANA_SECURITY_ADMIN_USER                 = var.monitors_enabled ? module.monitors[0].grafana_admin_email : null
+            MONITOR_GRAFANA_SECURITY_ADMIN_PASSWORD             = var.monitors_enabled ? module.monitors[0].grafana_admin_password : null
+            MONITOR_GRAFANA_HOST                                = "http://grafana"
+            MONITOR_GRAFANA_PORT                                = try(local.monitors["grafana"].port, null)
+            MONITOR_GRAFANA_UPTIME_WEBHOOK_URL                  = module.uptime.webhook
+            MONITOR_GRAFANA_CUSTOMER_WEBHOOK_URL                = var.monitor_grafana_customer_webhook_url
+            MONITOR_GRAFANA_CUSTOMER_DEFINED_ALERTS_WEBHOOK_URL = var.monitor_grafana_customer_defined_alerts_webhook_url
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST             = "http://jaegar"
+            MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT             = try(local.monitors["jaegar"].port, null)
+            MONITOR_KUBE_STATE_METRICS_HOST                     = "http://kube-state-metrics"
+            MONITOR_KUBE_STATE_METRICS_PORT                     = try(local.monitors["kube-state-metrics"].port, null)
+            MONITOR_PGADMIN_HOST                                = "http://pgadmin"
+            MONITOR_PGADMIN_PORT                                = try(local.monitors["pgadmin"].port, null)
+            MONITOR_PGADMIN_EMAIL                               = var.monitors_enabled ? module.monitors[0].pgadmin_admin_email : null
+            MONITOR_PGADMIN_PASSWORD                            = var.monitors_enabled ? module.monitors[0].pgadmin_admin_password : null
+            MONITOR_PGADMIN_SSL_MODE                            = "disable"
             MONITOR_QUEUE_REDIS_TARGET = replace(element(split(".", try(
               local.base_helm_values.global.env["REDIS_HOST"],
               local.base_helm_values.global.env["QUEUE_REDIS_URL"]
@@ -561,7 +613,40 @@ locals {
             MONITOR_REDIS_INSIGHT_HOST         = "http://redis-insight"
             MONITOR_REDIS_INSIGHT_PORT         = try(local.monitors["redis-insight"].port, null)
         }) : key => value if !contains(local.helm_keys_to_remove, key) && value != null
-      })
+        }, var.managed_sync_enabled ? {
+        API_SYNC_HTTP_PORT    = try(local.managed_sync_microservices["api-sync"].port, null)
+        WORKER_SYNC_HTTP_PORT = try(local.managed_sync_microservices["worker-sync"].port, null)
+
+        CLOUD_STORAGE_MANAGED_SYNC_BUCKET = try(local.base_helm_values.global.env["MINIO_MANAGED_SYNC_BUCKET"], null)
+        CLOUD_STORAGE_PASS                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_PASS"], null)
+        CLOUD_STORAGE_USER                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_USER"], null)
+
+        MANAGED_SYNC_KAFKA_BROKER_URLS                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_BROKER_URLS"], null)
+        MANAGED_SYNC_KAFKA_SASL_USERNAME                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_USERNAME"], null)
+        MANAGED_SYNC_KAFKA_SASL_PASSWORD                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_PASSWORD"], null)
+        MANAGED_SYNC_KAFKA_SASL_MECHANISM                    = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_MECHANISM"], null)
+        MANAGED_SYNC_KAFKA_SSL_ENABLED                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SSL_ENABLED"], null)
+        MANAGED_SYNC_KAFKA_TOPICS_DEFAULT_REPLICATION_FACTOR = 1
+
+        MANAGED_SYNC_REDIS_URL             = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
+        MANAGED_SYNC_REDIS_CLUSTER_ENABLED = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_CLUSTER_ENABLED"], "false")
+        MANAGED_SYNC_REDIS_TLS_ENABLED     = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_TLS_ENABLED"], "false")
+
+        OPENFGA_POSTGRES_HOST        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
+        OPENFGA_POSTGRES_PORT        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
+        OPENFGA_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
+        OPENFGA_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
+        OPENFGA_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
+        OPENFGA_POSTGRES_SSL_ENABLED = true
+
+        OPENFGA_HTTP_PORT           = 6200
+        OPENFGA_GRPC_PORT           = 6201
+        OPENFGA_AUTH_METHOD         = "preshared",
+        OPENFGA_AUTH_PRESHARED_KEYS = sha256(try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"]))
+        OPENFGA_HTTP_URL            = "http://openfga:${6200}"
+
+        PARAGON_PROXY_BASE_URL = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
+      } : {})
     })
   })
 

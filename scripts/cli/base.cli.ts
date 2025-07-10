@@ -361,6 +361,7 @@ credentials "app.terraform.io" {
         Microservice.WORKER_PROXY,
         Microservice.WORKER_TRIGGERS,
         Microservice.WORKER_WORKFLOWS,
+        Microservice.WORKER_EVENT_LOGS,
       ];
       const hasWorkersV1: boolean =
         isLatest || compareVersions(sanitizedParagonVersion, 'v2.77.0') >= 0;
@@ -400,6 +401,13 @@ credentials "app.terraform.io" {
       const hasCacheReplay: boolean =
         isLatest || compareVersions(sanitizedParagonVersion, 'v2025.0404.0017') >= 0;
       if (!hasCacheReplay && Microservice.CACHE_REPLAY === microservice) {
+        return false;
+      }
+
+      // `worker-eventlogs` was introduced in v2025.0310
+      const hasWorkerEventLogs: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2025.0310') >= 0;
+      if (!hasWorkerEventLogs && Microservice.WORKER_EVENT_LOGS === microservice) {
         return false;
       }
 

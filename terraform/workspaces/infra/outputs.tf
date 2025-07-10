@@ -26,6 +26,36 @@ output "logs_bucket" {
   sensitive   = true
 }
 
+output "kafka_broker_urls" {
+  description = "The broker URLs for Kafka."
+  value       = var.managed_sync_enabled ? module.kafka[0].cluster_bootstrap_brokers_sasl_scram : ""
+  sensitive   = true
+}
+
+output "kafka_sasl_username" {
+  description = "The SASL username for Kafka."
+  value       = var.managed_sync_enabled ? module.kafka[0].kafka_credentials.username : ""
+  sensitive   = true
+}
+
+output "kafka_sasl_password" {
+  description = "The SASL password for Kafka."
+  value       = var.managed_sync_enabled ? module.kafka[0].kafka_credentials.password : ""
+  sensitive   = true
+}
+
+output "kafka_sasl_mechanism" {
+  description = "The SASL mechanism for Kafka."
+  value       = var.managed_sync_enabled ? module.kafka[0].kafka_credentials.mechanism : ""
+  sensitive   = true
+}
+
+output "kafka_tls_enabled" {
+  description = "Whether TLS is enabled for Kafka."
+  value       = var.managed_sync_enabled ? module.kafka[0].cluster_tls_enabled : ""
+  sensitive   = true
+}
+
 output "minio_root_user" {
   description = "The root username for Minio service."
   value       = module.s3.s3.access_key_id
@@ -62,6 +92,12 @@ output "minio_private_bucket" {
   sensitive   = true
 }
 
+output "minio_managed_sync_bucket" {
+  description = "The managed sync bucket used by Minio."
+  value       = var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""
+  sensitive   = true
+}
+
 output "bastion_public_dns" {
   description = "The URL for the bastion server."
   value       = module.bastion.connection.bastion_dns
@@ -93,6 +129,13 @@ output "paragon_config" {
     MINIO_MICROSERVICE_PASS: ${module.s3.s3.minio_microservice_pass}
     MINIO_PUBLIC_BUCKET: ${module.s3.s3.public_bucket}
     MINIO_SYSTEM_BUCKET: ${module.s3.s3.private_bucket}
+    MINIO_MANAGED_SYNC_BUCKET: ${var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""}
+
+    KAFKA_BROKER_URLS: ${var.managed_sync_enabled ? module.kafka[0].cluster_bootstrap_brokers_sasl_scram : ""}
+    KAFKA_SASL_USERNAME: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.username : ""}
+    KAFKA_SASL_PASSWORD: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.password : ""}
+    KAFKA_SASL_MECHANISM: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.mechanism : ""}
+    KAFKA_SSL_ENABLED: ${var.managed_sync_enabled ? module.kafka[0].cluster_tls_enabled : ""}
 
     POSTGRES_HOST: ${local.db_info.host}
     POSTGRES_PORT: ${local.db_info.port}
