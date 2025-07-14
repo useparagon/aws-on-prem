@@ -123,12 +123,6 @@ locals {
       db           = "managed_sync"
       storage_type = "gp3"
     }
-    managed_sync_openfga = {
-      name         = "${var.workspace}-managed-sync-openfga"
-      size         = "db.t4g.small"
-      db           = "managed_sync_openfga"
-      storage_type = "gp2"
-    }
     } : {}) : {
     paragon = {
       name         = "${var.workspace}"
