@@ -426,7 +426,8 @@ credentials "app.terraform.io" {
     const upgrade: boolean = options.args.includes('-upgrade');
     console.log('ℹ️  Executing `terraform init`...');
     await execAsync(
-      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init${upgrade ? ' -upgrade' : ''
+      `terraform -chdir=${TERRAFORM_WORKSPACES_DIR}/${this.workspace} init${
+        upgrade ? ' -upgrade' : ''
       }`,
       this.terraformEnv(options.debug),
     );
