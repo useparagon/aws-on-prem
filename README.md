@@ -8,6 +8,29 @@
   </b>
 </p>
 
+## ⚠️ DEPRECATION NOTICE ⚠️
+
+**This repository has been deprecated and is no longer actively maintained.**
+
+**For new deployments, please use the new [Paragon Enterprise repository](https://github.com/useparagon/enterprise) instead.**
+
+The AWS-specific functionality from this repository has been moved to the `./aws` folder in the new enterprise repository. The new repository provides:
+
+- Multi-cloud support (AWS, GCP, Azure)
+- Improved infrastructure management
+- Better security and monitoring
+- Active maintenance and updates
+
+**If you're starting a new Paragon deployment, please use:**
+- **Repository:** https://github.com/useparagon/enterprise
+- **AWS Documentation:** https://github.com/useparagon/enterprise/tree/main/aws
+
+We will also be proactively reaching out to known users of this repository to assist with the migration process.
+
+This repository will remain available for reference but will not receive updates or security patches.
+
+---
+
 ## Overview
 
 This repository is a set of tools to help you run Paragon on your own AWS infrastructure. Paragon comes bundled with a set of docker images, meaning you can run it on AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity. It’s most resilient when running in Kubernetes.
