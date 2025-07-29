@@ -85,12 +85,6 @@ variable "managed_sync_enabled" {
 
 locals {
   postgres_instances = var.multi_postgres ? merge({
-    beethoven = {
-      name         = "${var.workspace}-beethoven"
-      size         = var.rds_instance_class
-      db           = "beethoven"
-      storage_type = "gp2"
-    }
     cerberus = {
       name         = "${var.workspace}-cerberus"
       size         = "db.t4g.micro"
