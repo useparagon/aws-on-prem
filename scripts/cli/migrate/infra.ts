@@ -358,25 +358,61 @@ class InfraMigrateCLI extends BaseCLI {
                 }
                 // Add more module renames as needed
 
-                // Update provider references
+                // Update resource types for renamed resources
+                let newType = resource.type;
+                let newName = resource.name;
+
+                // Handle Cloudflare resource type changes
+                if (newType === 'cloudflare_access_application') {
+                    newType = 'cloudflare_zero_trust_access_application';
+                } else if (newType === 'cloudflare_access_group') {
+                    newType = 'cloudflare_zero_trust_access_group';
+                } else if (newType === 'cloudflare_tunnel') {
+                    newType = 'cloudflare_zero_trust_tunnel_cloudflared';
+                }
+
+                // Update provider references - ensure ALL AWS provider references use the top-level provider
                 let newProvider = resource.provider;
                 if (newProvider) {
+                    // For AWS resources, always use the top-level AWS provider
                     if (newProvider.includes("registry.terraform.io/hashicorp/aws")) {
-                        // Use top level AWS provider instead of redefining the module provider
+                        // Always use the top-level AWS provider for all AWS resources
                         newProvider = 'provider["registry.terraform.io/hashicorp/aws"]';
-                    } else if (newProvider.includes('module.s3.provider') && newModule === 'module.storage') {
-                        // Update provider references to match new module names
-                        newProvider = newProvider.replace('module.s3.provider', 'module.storage.provider');
                     }
-                    // Keep all other provider references as they are
+                    // Keep all other provider references as they are (helm, kubernetes, cloudflare, etc.)
                 }
+
+                // Update instances with dependency fixes
+                const newInstances = resource.instances?.map((instance: any) => {
+                    if (instance.dependencies) {
+                        const updatedDependencies = instance.dependencies.map((dep: string) => {
+                            // Update Cloudflare resource type references in dependencies
+                            if (dep.includes('cloudflare_tunnel.tunnel')) {
+                                return dep.replace('cloudflare_tunnel.tunnel', 'cloudflare_zero_trust_tunnel_cloudflared.tunnel');
+                            } else if (dep.includes('cloudflare_access_application.tunnel')) {
+                                return dep.replace('cloudflare_access_application.tunnel', 'cloudflare_zero_trust_access_application.tunnel');
+                            } else if (dep.includes('cloudflare_access_group.tunnel')) {
+                                return dep.replace('cloudflare_access_group.tunnel', 'cloudflare_zero_trust_access_group.tunnel');
+                            }
+                            return dep;
+                        });
+                        return {
+                            ...instance,
+                            dependencies: updatedDependencies
+                        };
+                    }
+                    return instance;
+                });
 
                 // Create new resource without provider_config_key
                 const { provider_config_key, ...resourceWithoutKey } = resource;
                 return {
                     ...resourceWithoutKey,
                     module: newModule,
-                    provider: newProvider
+                    type: newType,
+                    name: newName,
+                    provider: newProvider,
+                    instances: newInstances
                 };
             });
 
@@ -415,7 +451,8 @@ class InfraMigrateCLI extends BaseCLI {
         content.split('\n').forEach(line => {
             line = line.trim();
             if (line && !line.startsWith('#')) {
-                const match = line.match(/^([^=]+)=["']([^"']*)["']$/);
+                // Updated regex to handle spaces around equals sign and different quote styles
+                const match = line.match(/^([^=]+)\s*=\s*["']([^"']*)["']$/);
                 if (match) {
                     const [, key, value] = match;
                     vars[key.trim()] = value.trim();

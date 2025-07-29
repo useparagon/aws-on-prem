@@ -134,7 +134,7 @@ locals {
       name         = "${var.workspace}"
       size         = var.rds_instance_class
       db           = "postgres"
-      storage_type = "gp2"
+      storage_type = "gp3"
     }
   }
 }

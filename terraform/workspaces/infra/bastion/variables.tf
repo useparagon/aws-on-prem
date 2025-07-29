@@ -89,8 +89,16 @@ variable "default_tags" {
   type        = map(string)
 }
 
+variable "enabled" {
+  description = "Whether to enable the bastion."
+  type        = bool
+  default     = true
+}
+
 locals {
   resource_group = "${var.app_name}-bastion"
+
+  cloudflare_tunnel_enabled = var.cloudflare_tunnel_enabled && var.enabled
 
   default_tags = merge(var.default_tags, {
     Name          = local.resource_group

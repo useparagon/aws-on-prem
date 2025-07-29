@@ -285,6 +285,12 @@ variable "msk_instance_type" {
   default     = "kafka.t3.small"
 }
 
+variable "migration_prep" {
+  description = "Whether to enable migration prep."
+  type        = bool
+  default     = false
+}
+
 locals {
   workspace   = "paragon-enterprise-${var.organization != null ? var.organization : random_string.app[0].result}"
   environment = "enterprise"

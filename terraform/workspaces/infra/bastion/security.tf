@@ -49,11 +49,14 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_policy" "bastion_infra_read_only" {
+  count = var.enabled ? 1 : 0
+
   name   = "${local.resource_group}-bastion-infra-read-only"
   policy = data.aws_iam_policy_document.bastion_infra_read_only.json
 }
 
 resource "aws_iam_policy" "assume_role" {
+  count  = var.enabled ? 1 : 0
   name   = "${local.resource_group}-assume-role"
   policy = data.aws_iam_policy_document.assume_role.json
 
@@ -63,11 +66,15 @@ resource "aws_iam_policy" "assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_infra_read_only" {
-  policy_arn = aws_iam_policy.bastion_infra_read_only.arn
+  count = var.enabled ? 1 : 0
+
+  policy_arn = aws_iam_policy.bastion_infra_read_only[0].arn
   role       = local.resource_group
 }
 
 resource "aws_iam_role_policy_attachment" "assume_role" {
-  policy_arn = aws_iam_policy.assume_role.arn
+  count = var.enabled ? 1 : 0
+
+  policy_arn = aws_iam_policy.assume_role[0].arn
   role       = local.resource_group
 }

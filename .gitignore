@@ -38,5 +38,8 @@ main.tf
 terraform/workspaces/paragon/charts
 !terraform/workspaces/paragon/charts/.gitkeep
 
+# Migration
+terraform/workspaces/*/state-backup-*.json
+
 *.tfvars
 *.tfstate

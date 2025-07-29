@@ -165,4 +165,7 @@ module "bastion" {
   cloudflare_tunnel_zone_id      = var.cloudflare_tunnel_zone_id
   cloudflare_tunnel_account_id   = var.cloudflare_tunnel_account_id
   cloudflare_tunnel_email_domain = var.cloudflare_tunnel_email_domain
+
+  # the enterprise repo uses different providers for bastion and cloudflare so easier to delete those prior to migration
+  enabled = !var.migration_prep
 }
