@@ -51,6 +51,15 @@ locals {
     }
   ))
 
+  global_values_minus_env = yamlencode(merge(
+    nonsensitive(var.helm_values),
+    {
+      global = merge(nonsensitive(var.helm_values).global, { env = {
+        HOST_ENV = "AWS_K8"
+      } })
+    }
+  ))
+
   supported_microservices_values = <<EOF
 subchart:
   account:
@@ -139,8 +148,16 @@ resource "kubernetes_secret" "docker_login" {
 }
 
 resource "kubernetes_secret" "paragon_secrets" {
+  for_each = toset(
+    var.managed_sync_enabled ? [
+      "paragon-secrets",
+      "paragon-managed-sync-secrets"
+      ] : [
+      "paragon-secrets"
+    ]
+  )
   metadata {
-    name      = "paragon-secrets"
+    name      = each.value
     namespace = kubernetes_namespace.paragon.id
   }
 
@@ -384,6 +401,16 @@ resource "helm_release" "paragon_logging" {
     value = local.openobserve_password
   }
 
+  set_sensitive {
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_EMAIL"
+    value = local.openobserve_email
+  }
+
+  set_sensitive {
+    name  = "fluent-bit.secrets.ZO_ROOT_USER_PASSWORD"
+    value = local.openobserve_password
+  }
+
   depends_on = [
     helm_release.ingress,
     kubernetes_secret.docker_login,
@@ -401,14 +428,6 @@ module "helm_hash_monitoring" {
 
   source          = "../helm-hash"
   chart_directory = "./charts/paragon-monitoring"
-}
-
-# reference to load balancer created by k8 ingress
-data "aws_lb" "load_balancer" {
-  name = var.aws_workspace
-
-  # requires ingress for the controller and then logging/on-prem to deploy pods that trigger LB creation
-  depends_on = [helm_release.ingress, helm_release.paragon_logging, helm_release.paragon_on_prem]
 }
 
 # monitors deployment

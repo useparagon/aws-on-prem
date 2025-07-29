@@ -337,12 +337,22 @@ locals {
     "api-sync" = {
       "healthcheck_path" = "/healthz"
       "port"             = try(local.base_helm_values.global.env["API_SYNC_HTTP_PORT"], 1800)
-      "public_url"       = try(local.base_helm_values.global.env["API_SYNC_PUBLIC_URL"], "https://ms-sync.${var.domain}")
+      "public_url"       = try(local.base_helm_values.global.env["API_SYNC_PUBLIC_URL"], "https://sync.${var.domain}")
+    }
+    "api-project" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["API_PROJECT_HTTP_PORT"], 1804)
+      "public_url"       = null
     }
     "worker-sync" = {
       "healthcheck_path" = "/healthz"
       "port"             = try(local.base_helm_values.global.env["WORKER_SYNC_HTTP_PORT"], 1802)
-      "public_url"       = try(local.base_helm_values.global.env["WORKER_SYNC_PUBLIC_URL"], "https://ms-worker-sync.${var.domain}")
+      "public_url"       = null
+    }
+    "queue-exporter" = {
+      "healthcheck_path" = "/healthz"
+      "port"             = try(local.base_helm_values.global.env["MONITOR_QUEUE_EXPORTER_HTTP_PORT"], 1806)
+      "public_url"       = null
     }
   }
 
@@ -370,6 +380,10 @@ locals {
     "grafana" = {
       "port"       = 4500
       "public_url" = lookup(local.base_helm_values.global.env, "MONITOR_GRAFANA_SERVER_DOMAIN", "https://grafana.${var.domain}")
+    }
+    "kafka-exporter" = {
+      "port"       = 9308
+      "public_url" = null
     }
     "kube-state-metrics" = {
       "port"       = 2550
@@ -592,6 +606,8 @@ locals {
             MONITOR_GRAFANA_CUSTOMER_DEFINED_ALERTS_WEBHOOK_URL = var.monitor_grafana_customer_defined_alerts_webhook_url
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_HOST             = "http://jaegar"
             MONITOR_JAEGER_COLLECTOR_OTLP_GRPC_PORT             = try(local.monitors["jaegar"].port, null)
+            MONITOR_KAFKA_EXPORTER_HOST                         = "http://kafka-exporter"
+            MONITOR_KAFKA_EXPORTER_PORT                         = try(local.monitors["kafka-exporter"].port, null)
             MONITOR_KUBE_STATE_METRICS_HOST                     = "http://kube-state-metrics"
             MONITOR_KUBE_STATE_METRICS_PORT                     = try(local.monitors["kube-state-metrics"].port, null)
             MONITOR_PGADMIN_HOST                                = "http://pgadmin"
@@ -613,40 +629,7 @@ locals {
             MONITOR_REDIS_INSIGHT_HOST         = "http://redis-insight"
             MONITOR_REDIS_INSIGHT_PORT         = try(local.monitors["redis-insight"].port, null)
         }) : key => value if !contains(local.helm_keys_to_remove, key) && value != null
-        }, var.managed_sync_enabled ? {
-        API_SYNC_HTTP_PORT    = try(local.managed_sync_microservices["api-sync"].port, null)
-        WORKER_SYNC_HTTP_PORT = try(local.managed_sync_microservices["worker-sync"].port, null)
-
-        CLOUD_STORAGE_MANAGED_SYNC_BUCKET = try(local.base_helm_values.global.env["MINIO_MANAGED_SYNC_BUCKET"], null)
-        CLOUD_STORAGE_PASS                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_PASS"], null)
-        CLOUD_STORAGE_USER                = try(local.base_helm_values.global.env["MINIO_MICROSERVICE_USER"], null)
-
-        MANAGED_SYNC_KAFKA_BROKER_URLS                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_BROKER_URLS"], null)
-        MANAGED_SYNC_KAFKA_SASL_USERNAME                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_USERNAME"], null)
-        MANAGED_SYNC_KAFKA_SASL_PASSWORD                     = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_PASSWORD"], null)
-        MANAGED_SYNC_KAFKA_SASL_MECHANISM                    = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SASL_MECHANISM"], null)
-        MANAGED_SYNC_KAFKA_SSL_ENABLED                       = try(local.base_helm_values.global.env["MANAGED_SYNC_KAFKA_SSL_ENABLED"], null)
-        MANAGED_SYNC_KAFKA_TOPICS_DEFAULT_REPLICATION_FACTOR = 1
-
-        MANAGED_SYNC_REDIS_URL             = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_URL"], "${local.base_helm_values.global.env["REDIS_HOST"]}:${local.base_helm_values.global.env["REDIS_PORT"]}/0")
-        MANAGED_SYNC_REDIS_CLUSTER_ENABLED = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_CLUSTER_ENABLED"], "false")
-        MANAGED_SYNC_REDIS_TLS_ENABLED     = try(local.base_helm_values.global.env["MANAGED_SYNC_REDIS_TLS_ENABLED"], "false")
-
-        OPENFGA_POSTGRES_HOST        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_HOST"], local.base_helm_values.global.env["POSTGRES_HOST"])
-        OPENFGA_POSTGRES_PORT        = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PORT"], local.base_helm_values.global.env["POSTGRES_PORT"])
-        OPENFGA_POSTGRES_USERNAME    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_USERNAME"], local.base_helm_values.global.env["POSTGRES_USER"])
-        OPENFGA_POSTGRES_PASSWORD    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"])
-        OPENFGA_POSTGRES_DATABASE    = try(local.base_helm_values.global.env["OPENFGA_POSTGRES_DATABASE"], local.base_helm_values.global.env["POSTGRES_DATABASE"])
-        OPENFGA_POSTGRES_SSL_ENABLED = true
-
-        OPENFGA_HTTP_PORT           = 6200
-        OPENFGA_GRPC_PORT           = 6201
-        OPENFGA_AUTH_METHOD         = "preshared",
-        OPENFGA_AUTH_PRESHARED_KEYS = sha256(try(local.base_helm_values.global.env["OPENFGA_POSTGRES_PASSWORD"], local.base_helm_values.global.env["POSTGRES_PASSWORD"]))
-        OPENFGA_HTTP_URL            = "http://openfga:${6200}"
-
-        PARAGON_PROXY_BASE_URL = try("http://worker-proxy:${local.microservices["worker-proxy"].port}", null)
-      } : {})
+      }, var.managed_sync_enabled ? module.managed_sync_config[0].config : {})
     })
   })
 
