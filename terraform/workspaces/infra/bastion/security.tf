@@ -29,6 +29,8 @@ data "aws_iam_policy_document" "bastion_infra_read_only" {
 }
 
 data "aws_iam_role" "bastion" {
+  count = var.enabled ? 1 : 0
+
   name = local.resource_group
 
   depends_on = [

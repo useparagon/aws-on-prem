@@ -17,5 +17,5 @@ output "security_group" {
 }
 
 output "bastion_role_arn" {
-  value = var.enabled ? data.aws_iam_role.bastion.arn : ""
+  value = var.enabled ? data.aws_iam_role.bastion[0].arn : ""
 }
