@@ -46,7 +46,7 @@ variable "vpc_cidr_newbits" {
 variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
   type        = string
-  default     = "db.t3.small"
+  default     = "db.t4g.small"
 }
 
 variable "rds_restore_from_snapshot" {
@@ -70,7 +70,7 @@ variable "elasticache_node_type" {
 variable "postgres_version" {
   description = "Postgres version for the database."
   type        = string
-  default     = "12.7"
+  default     = "16"
 }
 
 variable "multi_postgres" {
@@ -136,19 +136,19 @@ variable "multi_redis" {
 variable "k8_version" {
   description = "The version of Kubernetes to run in the cluster."
   type        = string
-  default     = "1.31"
+  default     = "1.32"
 }
 
 variable "k8_ondemand_node_instance_type" {
   description = "The compute instance type to use for Kubernetes nodes."
   type        = string
-  default     = "t3a.medium,t3.medium"
+  default     = "m6a.xlarge"
 }
 
 variable "k8_spot_node_instance_type" {
   description = "The compute instance type to use for Kubernetes spot nodes."
   type        = string
-  default     = "t3a.medium,t3.medium"
+  default     = "t3a.xlarge,t3.xlarge,m5a.xlarge,m5.xlarge,m6a.xlarge,m6i.xlarge,m7a.xlarge,m7i.xlarge,r5a.xlarge,m4.xlarge"
 }
 
 variable "k8_spot_instance_percent" {
@@ -164,7 +164,7 @@ variable "k8_spot_instance_percent" {
 variable "k8_min_node_count" {
   description = "The minimum number of nodes to run in the Kubernetes cluster."
   type        = number
-  default     = 12
+  default     = 4
 }
 
 variable "k8_max_node_count" {
