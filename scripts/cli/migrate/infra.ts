@@ -36,66 +36,68 @@ class InfraMigrateCLI extends BaseCLI {
 
         // Default values from source workspace
         const defaultValues: Record<string, string> = {
-            'k8_version': '1.31',
-            'k8_ondemand_node_instance_type': 't3a.medium,t3.medium',
-            'k8_spot_node_instance_type': 't3a.medium,t3.medium',
-            'k8_spot_instance_percent': '75',
-            'k8_min_node_count': '12',
-            'k8_max_node_count': '20',
-            'postgres_version': '12.7',
-            'multi_postgres': 'false',
-            'multi_redis': 'false',
-            'multi_az_enabled': 'true',
-            'rds_instance_class': 'db.t3.small',
-            'elasticache_node_type': 'cache.r6g.large',
+            'app_bucket_expiration': '365',
             'az_count': '2',
-            'vpc_cidr': '10.0.0.0/16',
-            'vpc_cidr_newbits': '8',
+            'create_autoscaling_linked_role': 'true',
             'disable_cloudtrail': 'false',
             'disable_deletion_protection': 'false',
-            'app_bucket_expiration': '365',
             'eks_addon_ebs_csi_driver_enabled': 'true',
-            'create_autoscaling_linked_role': 'true'
+            'elasticache_node_type': 'cache.r6g.large',
+            'k8_max_node_count': '20',
+            'k8_min_node_count': '4',
+            'k8_ondemand_node_instance_type': 'm6a.xlarge',
+            'k8_spot_instance_percent': '75',
+            'k8_spot_node_instance_type': 't3a.xlarge,t3.xlarge,m5a.xlarge,m5.xlarge,m6a.xlarge,m6i.xlarge,m7a.xlarge,m7i.xlarge,r5a.xlarge,m4.xlarge',
+            'k8_version': '1.32',
+            'migration_prep': 'true',
+            'multi_az_enabled': 'true',
+            'multi_postgres': 'false',
+            'multi_redis': 'false',
+            'postgres_version': '16',
+            'rds_instance_class': 'db.t4g.small',
+            'vpc_cidr_newbits': '8',
+            'vpc_cidr': '10.0.0.0/16'
         };
 
         // 1:1 mappings with different names
         const mappings: Record<string, string> = {
-            'k8_version': 'k8s_version',
-            'k8_ondemand_node_instance_type': 'eks_ondemand_node_instance_type',
-            'k8_spot_node_instance_type': 'eks_spot_node_instance_type',
-            'k8_spot_instance_percent': 'eks_spot_instance_percent',
-            'k8_min_node_count': 'eks_min_node_count',
             'k8_max_node_count': 'eks_max_node_count',
-            'postgres_version': 'rds_postgres_version',
+            'k8_min_node_count': 'eks_min_node_count',
+            'k8_ondemand_node_instance_type': 'eks_ondemand_node_instance_type',
+            'k8_spot_instance_percent': 'eks_spot_instance_percent',
+            'k8_spot_node_instance_type': 'eks_spot_node_instance_type',
+            'k8_version': 'k8s_version',
+            'multi_az_enabled': 'rds_multi_az',
             'multi_postgres': 'rds_multiple_instances',
             'multi_redis': 'elasticache_multiple_instances',
-            'multi_az_enabled': 'rds_multi_az'
+            'postgres_version': 'rds_postgres_version'
         };
 
         // Direct 1:1 mappings (no name change)
         const directMappings = [
-            'aws_region',
+            'app_bucket_expiration',
             'aws_access_key_id',
+            'aws_region',
             'aws_secret_access_key',
             'aws_session_token',
-            'organization',
             'az_count',
-            'vpc_cidr',
-            'vpc_cidr_newbits',
-            'rds_instance_class',
-            'elasticache_node_type',
-            'master_guardduty_account_id',
-            'mfa_enabled',
-            'ssh_whitelist',
-            'disable_cloudtrail',
-            'disable_deletion_protection',
-            'app_bucket_expiration',
             'cloudflare_api_token',
+            'cloudflare_tunnel_account_id',
+            'cloudflare_tunnel_email_domain',
             'cloudflare_tunnel_enabled',
             'cloudflare_tunnel_subdomain',
             'cloudflare_tunnel_zone_id',
-            'cloudflare_tunnel_account_id',
-            'cloudflare_tunnel_email_domain'
+            'disable_cloudtrail',
+            'disable_deletion_protection',
+            'elasticache_node_type',
+            'master_guardduty_account_id',
+            'mfa_enabled',
+            'migration_prep',
+            'organization',
+            'rds_instance_class',
+            'ssh_whitelist',
+            'vpc_cidr_newbits',
+            'vpc_cidr'
         ];
 
         // Handle renamed variables
@@ -196,20 +198,6 @@ class InfraMigrateCLI extends BaseCLI {
             // Reshape outputs
             const outputs = stateData.outputs;
             const reshapedOutputs = {
-                bastion: {
-                    value: {
-                        private_key: outputs.bastion_private_key.value,
-                        public_dns: outputs.bastion_public_dns.value
-                    },
-                    type: [
-                        "object",
-                        {
-                            private_key: "string",
-                            public_dns: "string"
-                        }
-                    ],
-                    sensitive: true
-                },
                 cluster_name: outputs.cluster_name,
                 logs_bucket: outputs.logs_bucket,
                 minio: {
@@ -246,6 +234,16 @@ class InfraMigrateCLI extends BaseCLI {
                         "object",
                         {
                             cerberus: [
+                                "object",
+                                {
+                                    database: "string",
+                                    host: "string",
+                                    password: "string",
+                                    port: "number",
+                                    user: "string"
+                                }
+                            ],
+                            eventlogs: [
                                 "object",
                                 {
                                     database: "string",
@@ -314,7 +312,7 @@ class InfraMigrateCLI extends BaseCLI {
                 };
             } else {
                 // Multiple databases case - map existing databases to target databases
-                const targetDbs = ['cerberus', 'hermes', 'zeus'];
+                const targetDbs = ['cerberus', 'eventlogs', 'hermes', 'zeus'];
 
                 // Map existing databases to target databases, cycling through if we have fewer existing databases
                 targetDbs.forEach((targetDb, index) => {
@@ -384,6 +382,11 @@ class InfraMigrateCLI extends BaseCLI {
 
                 // Update instances with dependency fixes
                 const newInstances = resource.instances?.map((instance: any) => {
+                    // remove egress_all ipv6 cidr blocks - causes duplicate security group rules
+                    if (instance.index_key === 'egress_all' && instance.attributes?.ipv6_cidr_blocks) {
+                        delete instance.attributes.ipv6_cidr_blocks;
+                    }
+
                     if (instance.dependencies) {
                         const updatedDependencies = instance.dependencies.map((dep: string) => {
                             // Update Cloudflare resource type references in dependencies
@@ -428,11 +431,14 @@ class InfraMigrateCLI extends BaseCLI {
 
             console.log(`Modified state saved to ${statePath}`);
             console.log(`New tfvars saved to ${newTfvarsPath}`);
-            console.log('You can apply these changes with:');
-            console.log('1. terraform state push migrated.tfstate');
-            console.log('2. mv migrated.tfvars vars.auto.tfvars');
-            console.log('3. terraform plan');
-            console.log('4. terraform apply');
+            console.log('Next Steps (if not already done):');
+            console.log('1. ./migrate.sh');
+            console.log('2. upgrade Terraform to 1.9.6 in Terraform Cloud');
+            console.log('3. terraform state push migrated.tfstate');
+            console.log('4. mv migrated.tfvars <enterprise-repo>/aws/workspaces/infra/vars.auto.tfvars');
+            console.log('5. cd <enterprise-repo>/aws/workspaces/infra');
+            console.log('6. terraform plan');
+            console.log('7. terraform apply');
 
             console.log('✅ Executed runMigration.');
         } catch (error: unknown) {
