@@ -10,6 +10,21 @@ module "eks" {
   cluster_endpoint_public_access = true
   create_aws_auth_configmap      = true
 
+  cluster_addons = {
+    coredns = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+    kube-proxy = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+    vpc-cni = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+  }
+
   aws_auth_roles = concat([
     {
       rolearn  = aws_iam_role.node_role.arn
