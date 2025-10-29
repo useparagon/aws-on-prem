@@ -391,6 +391,11 @@ resource "helm_release" "paragon_logging" {
     value = var.aws_region
   }
 
+  set {
+    name  = "global.env.ZO_QUICK_MODE_FORCE_ENABLED"
+    value = "false"
+  }
+
   set_sensitive {
     name  = "global.env.ZO_ROOT_USER_EMAIL"
     value = local.openobserve_email
