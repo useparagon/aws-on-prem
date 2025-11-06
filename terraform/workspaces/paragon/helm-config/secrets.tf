@@ -51,12 +51,14 @@ locals {
     HOST_ENV  = "AWS_K8"
     LOG_LEVEL = try(var.base_helm_values.global.env["LOG_LEVEL"], "debug")
 
-    CLOUD_STORAGE_TYPE                = try(var.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "MINIO")
-    CLOUD_STORAGE_PUBLIC_BUCKET       = coalesce(try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], null), try(var.base_helm_values.global.env["MINIO_PUBLIC_BUCKET"], null), null)
-    CLOUD_STORAGE_USER                = try(var.base_helm_values.global.env["MINIO_MICROSERVICE_USER"], null)
-    CLOUD_STORAGE_PASS                = try(var.base_helm_values.global.env["MINIO_MICROSERVICE_PASS"], null)
-    CLOUD_STORAGE_MANAGED_SYNC_BUCKET = coalesce(try(var.base_helm_values.global.env["MINIO_MANAGED_SYNC_BUCKET"], null), "managed-sync")
-    CLOUD_STORAGE_PUBLIC_URL          = coalesce(try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), try(var.base_helm_values.global.env["MINIO_PUBLIC_URL"], null), "https://s3.${var.aws_region}.amazonaws.com")
+    CLOUD_STORAGE_REGION              = var.aws_region
+    CLOUD_STORAGE_TYPE                = try(var.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "S3")
+    CLOUD_STORAGE_PUBLIC_BUCKET       = try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], module.s3.s3.public_bucket)
+    CLOUD_STORAGE_USER                = try(var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"], module.s3.s3.access_key_id)
+    CLOUD_STORAGE_PASS                = try(var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"], module.s3.s3.access_key_secret)
+    CLOUD_STORAGE_MANAGED_SYNC_BUCKET = try(var.base_helm_values.global.env["CLOUD_STORAGE_MANAGED_SYNC_BUCKET"], try(module.s3.s3.managed_sync_bucket, null))
+    CLOUD_STORAGE_PUBLIC_URL          = try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], "https://s3.${var.aws_region}.amazonaws.com")
+    CLOUD_STORAGE_PRIVATE_URL         = coalesce(try(var.base_helm_values.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], "https://s3.${var.aws_region}.amazonaws.com"))
 
     // TODO: make `MANAGED_SYNC_URL` communicate via private DNS instead of open internet
     MANAGED_SYNC_URL       = try(var.base_helm_values.global.env["MANAGED_SYNC_URL"], "https://sync.${var.domain}")

@@ -56,48 +56,6 @@ output "kafka_tls_enabled" {
   sensitive   = true
 }
 
-output "minio_root_user" {
-  description = "The root username for Minio service."
-  value       = module.s3.s3.access_key_id
-  sensitive   = true
-}
-
-output "minio_root_password" {
-  description = "The root password for Minio service."
-  value       = module.s3.s3.access_key_secret
-  sensitive   = true
-}
-
-output "minio_microservice_user" {
-  description = "The username for the microservices to connect to Minio."
-  value       = module.s3.s3.minio_microservice_user
-  sensitive   = true
-}
-
-output "minio_microservice_pass" {
-  description = "The pass for the microservices to connect to Minio."
-  value       = module.s3.s3.minio_microservice_pass
-  sensitive   = true
-}
-
-output "minio_public_bucket" {
-  description = "The public bucket used by Minio."
-  value       = module.s3.s3.public_bucket
-  sensitive   = true
-}
-
-output "minio_private_bucket" {
-  description = "The private bucket used by Minio."
-  value       = module.s3.s3.private_bucket
-  sensitive   = true
-}
-
-output "minio_managed_sync_bucket" {
-  description = "The managed sync bucket used by Minio."
-  value       = var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""
-  sensitive   = true
-}
-
 output "bastion_public_dns" {
   description = "The URL for the bastion server."
   value       = module.bastion.connection.bastion_dns
@@ -123,14 +81,6 @@ output "paragon_config" {
   description = "Required configuration for Paragon deployment"
   sensitive   = true
   value       = <<OUTPUT
-    MINIO_ROOT_USER: ${module.s3.s3.access_key_id}
-    MINIO_ROOT_PASSWORD: ${module.s3.s3.access_key_secret}
-    MINIO_MICROSERVICE_USER: ${module.s3.s3.minio_microservice_user}
-    MINIO_MICROSERVICE_PASS: ${module.s3.s3.minio_microservice_pass}
-    MINIO_PUBLIC_BUCKET: ${module.s3.s3.public_bucket}
-    MINIO_SYSTEM_BUCKET: ${module.s3.s3.private_bucket}
-    MINIO_MANAGED_SYNC_BUCKET: ${var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""}
-
     KAFKA_BROKER_URLS: ${var.managed_sync_enabled ? module.kafka[0].cluster_bootstrap_brokers_sasl_scram : ""}
     KAFKA_SASL_USERNAME: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.username : ""}
     KAFKA_SASL_PASSWORD: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.password : ""}

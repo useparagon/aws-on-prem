@@ -270,12 +270,6 @@ These variables should be pulled from the `infra` workspace.
 
 **Required (from `paragon_config` output variable in infra workspace)**
 
-- `MINIO_MICROSERVICE_PASS`: from `minio_microservice_pass` output
-- `MINIO_MICROSERVICE_USER`: from `minio_microservice_user` output
-- `MINIO_PUBLIC_BUCKET`: from `minio_public_bucket` output
-- `MINIO_ROOT_PASSWORD`: from `minio_root_password` output
-- `MINIO_ROOT_USER`: from `minio_root_user` output
-- `MINIO_SYSTEM_BUCKET`: from `minio_private_bucket` output
 - `POSTGRES_DATABASE`: from `postgres` output
 - `POSTGRES_HOST`: from `postgres` output
 - `POSTGRES_PASSWORD`: from `postgres` output

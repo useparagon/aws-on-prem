@@ -80,8 +80,6 @@ subchart:
     enabled: ${contains(keys(var.microservices), "hercules")}
   hermes:
     enabled: ${contains(keys(var.microservices), "hermes")}
-  minio:
-    enabled: ${contains(keys(var.microservices), "minio")}
   passport:
     enabled: ${contains(keys(var.microservices), "passport")}
   plato:
