@@ -53,10 +53,10 @@ locals {
 
     CLOUD_STORAGE_REGION              = var.aws_region
     CLOUD_STORAGE_TYPE                = try(var.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "S3")
-    CLOUD_STORAGE_PUBLIC_BUCKET       = try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], module.s3.s3.public_bucket)
-    CLOUD_STORAGE_USER                = try(var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"], module.s3.s3.access_key_id)
-    CLOUD_STORAGE_PASS                = try(var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"], module.s3.s3.access_key_secret)
-    CLOUD_STORAGE_MANAGED_SYNC_BUCKET = try(var.base_helm_values.global.env["CLOUD_STORAGE_MANAGED_SYNC_BUCKET"], try(module.s3.s3.managed_sync_bucket, null))
+    CLOUD_STORAGE_PUBLIC_BUCKET       = var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"]
+    CLOUD_STORAGE_USER                = var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"]
+    CLOUD_STORAGE_PASS                = var.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"]
+    CLOUD_STORAGE_MANAGED_SYNC_BUCKET = var.base_helm_values.global.env["CLOUD_STORAGE_MANAGED_SYNC_BUCKET"]
     CLOUD_STORAGE_PUBLIC_URL          = try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], "https://s3.${var.aws_region}.amazonaws.com")
     CLOUD_STORAGE_PRIVATE_URL         = coalesce(try(var.base_helm_values.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(var.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], "https://s3.${var.aws_region}.amazonaws.com"))
 

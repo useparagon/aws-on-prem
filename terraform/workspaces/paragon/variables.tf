@@ -437,13 +437,13 @@ locals {
 
           # Cloud Storage configurations
           CLOUD_STORAGE_TYPE              = local.cloud_storage_type
-          CLOUD_STORAGE_PUBLIC_BUCKET     = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], null), try(module.s3.s3.public_bucket, null), null)
-          CLOUD_STORAGE_SYSTEM_BUCKET     = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_SYSTEM_BUCKET"], null), try(module.s3.s3.private_bucket, null), null)
-          CLOUD_STORAGE_MICROSERVICE_PASS = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"], null), try(module.s3.s3.access_key_secret, null), null)
-          CLOUD_STORAGE_MICROSERVICE_USER = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"], null), try(module.s3.s3.access_key_id, null), null)
+          CLOUD_STORAGE_PUBLIC_BUCKET     = local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"]
+          CLOUD_STORAGE_SYSTEM_BUCKET     = local.base_helm_values.global.env["CLOUD_STORAGE_SYSTEM_BUCKET"]
+          CLOUD_STORAGE_MICROSERVICE_PASS = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"]
+          CLOUD_STORAGE_MICROSERVICE_USER = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"]
           CLOUD_STORAGE_REGION            = var.aws_region
           CLOUD_STORAGE_PUBLIC_URL        = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
-          CLOUD_STORAGE_PRIVATE_URL       = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
+          CLOUD_STORAGE_PRIVATE_URL       = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
 
           ACCOUNT_PUBLIC_URL   = try(local.microservices.account.public_url, null)
           CERBERUS_PUBLIC_URL  = try(local.microservices.cerberus.public_url, null)
