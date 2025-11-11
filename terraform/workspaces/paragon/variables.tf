@@ -205,6 +205,8 @@ locals {
     })
   })
 
+  cloud_storage_type = lookup(local.base_helm_values.global.env, "CLOUD_STORAGE_TYPE", "S3")
+
   _microservices = {
     "account" = {
       "port"             = lookup(local.base_helm_values.global.env, "ACCOUNT_PORT", 1708)
@@ -255,11 +257,6 @@ locals {
       "port"             = lookup(local.base_helm_values.global.env, "HERMES_PORT", 1702)
       "healthcheck_path" = "/healthz"
       "public_url"       = lookup(local.base_helm_values.global.env, "HERMES_PUBLIC_URL", "https://hermes.${var.domain}")
-    }
-    "minio" = {
-      "port"             = lookup(local.base_helm_values.global.env, "MINIO_PORT", 9000)
-      "healthcheck_path" = "/minio/health/live"
-      "public_url"       = lookup(local.base_helm_values.global.env, "MINIO_PUBLIC_URL", "https://minio.${var.domain}")
     }
     "passport" = {
       "port"             = lookup(local.base_helm_values.global.env, "PASSPORT_PORT", 1706)
@@ -436,25 +433,30 @@ locals {
           PLATFORM_ENV           = "enterprise"
           BRANCH                 = "master"
           EMAIL_DELIVERY_SERVICE = "none"
+          AWS_REGION             = var.aws_region
 
-          CLOUD_STORAGE_TYPE          = try(local.base_helm_values.global.env["CLOUD_STORAGE_TYPE"], "MINIO")
-          CLOUD_STORAGE_PUBLIC_BUCKET = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"], null), try(local.base_helm_values.global.env["MINIO_PUBLIC_BUCKET"], null), null)
-          CLOUD_STORAGE_SYSTEM_BUCKET = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_SYSTEM_BUCKET"], null), try(local.base_helm_values.global.env["MINIO_SYSTEM_BUCKET"], null), null)
+          # Cloud Storage configurations
+          CLOUD_STORAGE_TYPE              = local.cloud_storage_type
+          CLOUD_STORAGE_PUBLIC_BUCKET     = local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_BUCKET"]
+          CLOUD_STORAGE_SYSTEM_BUCKET     = local.base_helm_values.global.env["CLOUD_STORAGE_SYSTEM_BUCKET"]
+          CLOUD_STORAGE_MICROSERVICE_PASS = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"]
+          CLOUD_STORAGE_MICROSERVICE_USER = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"]
+          CLOUD_STORAGE_REGION            = var.aws_region
+          CLOUD_STORAGE_PUBLIC_URL        = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
+          CLOUD_STORAGE_PRIVATE_URL       = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
 
-          ACCOUNT_PUBLIC_URL       = try(local.microservices.account.public_url, null)
-          CERBERUS_PUBLIC_URL      = try(local.microservices.cerberus.public_url, null)
-          CHRONOS_PUBLIC_URL       = try(local.microservices.chronos.public_url, null)
-          CLOUD_STORAGE_PUBLIC_URL = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), try(local.base_helm_values.global.env["MINIO_PUBLIC_URL"], null), "https://s3.${var.aws_region}.amazonaws.com")
-          CONNECT_PUBLIC_URL       = try(local.microservices.connect.public_url, null)
-          DASHBOARD_PUBLIC_URL     = try(local.microservices.dashboard.public_url, null)
-          HADES_PUBLIC_URL         = try(local.microservices.hades.public_url, null)
-          HERCULES_PUBLIC_URL      = try(local.microservices.hercules.public_url, null)
-          HERMES_PUBLIC_URL        = try(local.microservices.hermes.public_url, null)
-          MINIO_PUBLIC_URL         = try(local.microservices.minio.public_url, null)
-          PASSPORT_PUBLIC_URL      = try(local.microservices.passport.public_url, null)
-          PHEME_PUBLIC_URL         = try(local.microservices.pheme.public_url, null)
-          PLATO_PUBLIC_URL         = try(local.microservices.plato.public_url, null)
-          ZEUS_PUBLIC_URL          = try(local.microservices.zeus.public_url, null)
+          ACCOUNT_PUBLIC_URL   = try(local.microservices.account.public_url, null)
+          CERBERUS_PUBLIC_URL  = try(local.microservices.cerberus.public_url, null)
+          CHRONOS_PUBLIC_URL   = try(local.microservices.chronos.public_url, null)
+          CONNECT_PUBLIC_URL   = try(local.microservices.connect.public_url, null)
+          DASHBOARD_PUBLIC_URL = try(local.microservices.dashboard.public_url, null)
+          HADES_PUBLIC_URL     = try(local.microservices.hades.public_url, null)
+          HERCULES_PUBLIC_URL  = try(local.microservices.hercules.public_url, null)
+          HERMES_PUBLIC_URL    = try(local.microservices.hermes.public_url, null)
+          PASSPORT_PUBLIC_URL  = try(local.microservices.passport.public_url, null)
+          PHEME_PUBLIC_URL     = try(local.microservices.pheme.public_url, null)
+          PLATO_PUBLIC_URL     = try(local.microservices.plato.public_url, null)
+          ZEUS_PUBLIC_URL      = try(local.microservices.zeus.public_url, null)
 
           WORKER_ACTIONKIT_PUBLIC_URL   = try(local.microservices["worker-actionkit"].public_url, null)
           WORKER_ACTIONS_PUBLIC_URL     = try(local.microservices["worker-actions"].public_url, null)
@@ -529,12 +531,6 @@ locals {
             QUEUE_REDIS_CLUSTER_ENABLED    = try(local.base_helm_values.global.env["QUEUE_REDIS_CLUSTER_ENABLED"], "false")
             WORKFLOW_REDIS_CLUSTER_ENABLED = try(local.base_helm_values.global.env["WORKFLOW_REDIS_CLUSTER_ENABLED"], "false")
 
-            MINIO_BROWSER        = "off"
-            MINIO_NGINX_PROXY    = "on"
-            MINIO_MODE           = "gateway-s3"
-            MINIO_INSTANCE_COUNT = "1"
-            MINIO_REGION         = var.aws_region
-
             ACCOUNT_PORT      = try(local.microservices.account.port, null)
             CACHE_REPLAY_PORT = try(local.microservices["cache-replay"].port, null)
             CERBERUS_PORT     = try(local.microservices.cerberus.port, null)
@@ -544,7 +540,6 @@ locals {
             HADES_PORT        = try(local.microservices.hades.port, null)
             HERCULES_PORT     = try(local.microservices.hercules.port, null)
             HERMES_PORT       = try(local.microservices.hermes.port, null)
-            MINIO_PORT        = try(local.microservices.minio.port, null)
             PASSPORT_PORT     = try(local.microservices.passport.port, null)
             PHEME_PORT        = try(local.microservices.pheme.port, null)
             PLATO_PORT        = try(local.microservices.plato.port, null)
@@ -561,23 +556,21 @@ locals {
             WORKER_WORKFLOWS_PORT   = try(local.microservices["worker-workflows"].port, null)
             WORKER_EVENT_LOGS_PORT  = try(local.microservices["worker-eventlogs"].port, null)
 
-            ACCOUNT_PRIVATE_URL       = try("http://account:${local.microservices.account.port}", null)
-            CACHE_REPLAY_PRIVATE_URL  = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
-            CERBERUS_PRIVATE_URL      = try("http://cerberus:${local.microservices.cerberus.port}", null)
-            CHRONOS_PRIVATE_URL       = try("http://chronos:${local.microservices.chronos.port}", null)
-            CLOUD_STORAGE_PRIVATE_URL = try("http://minio:${local.microservices.minio.port}", null)
-            CONNECT_PRIVATE_URL       = try("http://connect:${local.microservices.connect.port}", null)
-            DASHBOARD_PRIVATE_URL     = try("http://dashboard:${local.microservices.dashboard.port}", null)
-            EMBASSY_PRIVATE_URL       = "http://embassy:1705"
-            HADES_PRIVATE_URL         = try("http://hades:${local.microservices.hades.port}", null)
-            HERCULES_PRIVATE_URL      = try("http://hercules:${local.microservices.hercules.port}", null)
-            HERMES_PRIVATE_URL        = try("http://hermes:${local.microservices.hermes.port}", null)
-            MINIO_PRIVATE_URL         = try("http://minio:${local.microservices.minio.port}", null)
-            PASSPORT_PRIVATE_URL      = try("http://passport:${local.microservices.passport.port}", null)
-            PHEME_PRIVATE_URL         = try("http://pheme:${local.microservices.pheme.port}", null)
-            PLATO_PRIVATE_URL         = try("http://plato:${local.microservices.plato.port}", null)
-            RELEASE_PRIVATE_URL       = try("http://release:${local.microservices.release.port}", null)
-            ZEUS_PRIVATE_URL          = try("http://zeus:${local.microservices.zeus.port}", null)
+            ACCOUNT_PRIVATE_URL      = try("http://account:${local.microservices.account.port}", null)
+            CACHE_REPLAY_PRIVATE_URL = try("http://cache-replay:${local.microservices["cache-replay"].port}", null)
+            CERBERUS_PRIVATE_URL     = try("http://cerberus:${local.microservices.cerberus.port}", null)
+            CHRONOS_PRIVATE_URL      = try("http://chronos:${local.microservices.chronos.port}", null)
+            CONNECT_PRIVATE_URL      = try("http://connect:${local.microservices.connect.port}", null)
+            DASHBOARD_PRIVATE_URL    = try("http://dashboard:${local.microservices.dashboard.port}", null)
+            EMBASSY_PRIVATE_URL      = "http://embassy:1705"
+            HADES_PRIVATE_URL        = try("http://hades:${local.microservices.hades.port}", null)
+            HERCULES_PRIVATE_URL     = try("http://hercules:${local.microservices.hercules.port}", null)
+            HERMES_PRIVATE_URL       = try("http://hermes:${local.microservices.hermes.port}", null)
+            PASSPORT_PRIVATE_URL     = try("http://passport:${local.microservices.passport.port}", null)
+            PHEME_PRIVATE_URL        = try("http://pheme:${local.microservices.pheme.port}", null)
+            PLATO_PRIVATE_URL        = try("http://plato:${local.microservices.plato.port}", null)
+            RELEASE_PRIVATE_URL      = try("http://release:${local.microservices.release.port}", null)
+            ZEUS_PRIVATE_URL         = try("http://zeus:${local.microservices.zeus.port}", null)
 
             WORKER_ACTIONKIT_PRIVATE_URL   = try("http://worker-actionkit:${local.microservices["worker-actionkit"].port}", null)
             WORKER_ACTIONS_PRIVATE_URL     = try("http://worker-actions:${local.microservices["worker-actions"].port}", null)

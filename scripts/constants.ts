@@ -23,7 +23,6 @@ export enum Microservice {
   HADES = 'hades',
   HERCULES = 'hercules',
   HERMES = 'hermes',
-  MINIO = 'minio',
   PASSPORT = 'passport',
   PHEME = 'pheme',
   PLATO = 'plato',
