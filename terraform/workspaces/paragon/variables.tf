@@ -442,8 +442,8 @@ locals {
           CLOUD_STORAGE_MICROSERVICE_PASS = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_PASS"]
           CLOUD_STORAGE_MICROSERVICE_USER = local.base_helm_values.global.env["CLOUD_STORAGE_MICROSERVICE_USER"]
           CLOUD_STORAGE_REGION            = var.aws_region
-          CLOUD_STORAGE_PUBLIC_URL        = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
-          CLOUD_STORAGE_PRIVATE_URL       = coalesce(try(local.helm_vars.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(local.helm_vars.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
+          CLOUD_STORAGE_PUBLIC_URL        = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
+          CLOUD_STORAGE_PRIVATE_URL       = coalesce(try(local.base_helm_values.global.env["CLOUD_STORAGE_PRIVATE_URL"], null), try(local.base_helm_values.global.env["CLOUD_STORAGE_PUBLIC_URL"], null), local.cloud_storage_type == "S3" ? "https://s3.${var.aws_region}.amazonaws.com" : null, null)
 
           ACCOUNT_PUBLIC_URL   = try(local.microservices.account.public_url, null)
           CERBERUS_PUBLIC_URL  = try(local.microservices.cerberus.public_url, null)
