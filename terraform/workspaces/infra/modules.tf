@@ -94,8 +94,8 @@ module "redis" {
   private_subnet = module.network.private_subnet
 }
 
-module "s3" {
-  source = "./s3"
+module "storage" {
+  source = "./storage"
 
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
