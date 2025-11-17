@@ -94,3 +94,35 @@ moved {
   from = module.s3.data.aws_iam_policy_document.logs_bucket_policy[0]
   to   = module.storage.data.aws_iam_policy_document.logs_bucket_policy[0]
 }
+moved {
+  from = module.s3.aws_s3_bucket.managed_sync[0]
+  to   = module.storage.aws_s3_bucket.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_ownership_controls.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_ownership_controls.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_server_side_encryption_configuration.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_server_side_encryption_configuration.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_versioning.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_versioning.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_public_access_block.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_public_access_block.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_lifecycle_configuration.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_lifecycle_configuration.managed_sync[0]
+}
+moved {
+  from = module.s3.data.aws_iam_policy_document.managed_sync[0]
+  to   = module.storage.data.aws_iam_policy_document.managed_sync[0]
+}
+moved {
+  from = module.s3.aws_s3_bucket_policy.managed_sync[0]
+  to   = module.storage.aws_s3_bucket_policy.managed_sync[0]
+}
