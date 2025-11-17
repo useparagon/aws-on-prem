@@ -94,11 +94,3 @@ moved {
   from = module.s3.data.aws_iam_policy_document.logs_bucket_policy[0]
   to   = module.storage.data.aws_iam_policy_document.logs_bucket_policy[0]
 }
-moved {
-  from = module.s3.random_string.minio_microservice_pass
-  to   = module.storage.random_string.minio_microservice_pass
-}
-moved {
-  from = module.s3.random_string.minio_microservice_user
-  to   = module.storage.random_string.minio_microservice_user
-}
