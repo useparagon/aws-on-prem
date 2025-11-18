@@ -4,19 +4,19 @@ resource "random_id" "tunnel_secret" {
 }
 
 data "cloudflare_zone" "zone" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id = var.cloudflare_tunnel_zone_id
 }
 
 locals {
-  tunnel_domain = var.cloudflare_tunnel_enabled ? "${var.cloudflare_tunnel_subdomain}.${data.cloudflare_zone.zone[0].name}" : ""
+  tunnel_domain = local.cloudflare_tunnel_enabled ? "${var.cloudflare_tunnel_subdomain}.${data.cloudflare_zone.zone[0].name}" : ""
   tunnel_secret = random_id.tunnel_secret.b64_std
 }
 
 # Creates a new locally-managed tunnel for the bastion
 resource "cloudflare_tunnel" "tunnel" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   account_id = var.cloudflare_tunnel_account_id
   name       = local.tunnel_domain
@@ -24,19 +24,19 @@ resource "cloudflare_tunnel" "tunnel" {
 
   lifecycle {
     precondition {
-      condition     = !var.cloudflare_tunnel_enabled || (length(var.cloudflare_api_token) > 0 && length(var.cloudflare_tunnel_subdomain) > 0 && length(var.cloudflare_tunnel_zone_id) > 0 && length(var.cloudflare_tunnel_account_id) > 0 && length(var.cloudflare_tunnel_email_domain) > 0)
+      condition     = !local.cloudflare_tunnel_enabled || (length(var.cloudflare_api_token) > 0 && length(var.cloudflare_tunnel_subdomain) > 0 && length(var.cloudflare_tunnel_zone_id) > 0 && length(var.cloudflare_tunnel_account_id) > 0 && length(var.cloudflare_tunnel_email_domain) > 0)
       error_message = "cloudflare_api_token, cloudflare_tunnel_account_id, cloudflare_tunnel_email_domain, cloudflare_tunnel_subdomain and cloudflare_tunnel_zone_id are required when cloudflare_tunnel_enabled"
     }
   }
 }
 
 locals {
-  tunnel_id = var.cloudflare_tunnel_enabled ? cloudflare_tunnel.tunnel[0].id : ""
+  tunnel_id = local.cloudflare_tunnel_enabled ? cloudflare_tunnel.tunnel[0].id : ""
 }
 
 # Creates the CNAME record that routes domain to the tunnel
 resource "cloudflare_record" "tunnel" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id = var.cloudflare_tunnel_zone_id
   name    = var.cloudflare_tunnel_subdomain
@@ -47,7 +47,7 @@ resource "cloudflare_record" "tunnel" {
 
 # Creates an Access application to control who can connect
 resource "cloudflare_access_application" "tunnel" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id          = var.cloudflare_tunnel_zone_id
   name             = local.tunnel_domain
@@ -57,7 +57,7 @@ resource "cloudflare_access_application" "tunnel" {
 
 # Creates an Access group for the application
 resource "cloudflare_access_group" "tunnel" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   zone_id = var.cloudflare_tunnel_zone_id
   name    = local.tunnel_domain
@@ -69,7 +69,7 @@ resource "cloudflare_access_group" "tunnel" {
 
 # Creates an Access policy for the application
 resource "cloudflare_access_policy" "tunnel" {
-  count = var.cloudflare_tunnel_enabled ? 1 : 0
+  count = local.cloudflare_tunnel_enabled ? 1 : 0
 
   application_id = cloudflare_access_application.tunnel[0].id
   zone_id        = var.cloudflare_tunnel_zone_id

@@ -38,13 +38,12 @@ module "eks" {
       rolearn  = aws_iam_role.super_admin.arn,
       username = aws_iam_role.super_admin.name,
       groups   = ["system:masters"]
-    },
-    {
+    }
+    ], !var.migration_prep && var.bastion_role_arn != "" ? [{
       rolearn  = var.bastion_role_arn
       username = "system:node:{{EC2PrivateDNSName}}",
       groups   = ["system:masters"]
-    }
-  ], var.eks_admin_role_arns)
+  }] : [], var.eks_admin_role_arns)
 
   # If these aren't available when the cluster is first initialized, it'll have to be manually created
   # https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html

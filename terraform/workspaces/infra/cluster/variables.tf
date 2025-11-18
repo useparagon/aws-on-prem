@@ -36,6 +36,14 @@ variable "private_subnet" {
 
 variable "bastion_role_arn" {
   description = "IAM role arn of bastion instance"
+  type        = string
+  default     = ""
+}
+
+variable "migration_prep" {
+  description = "Whether to prepare for migration to enterprise."
+  type        = bool
+  default     = false
 }
 
 variable "eks_addon_ebs_csi_driver_enabled" {
@@ -132,7 +140,7 @@ locals {
   }
 
   cluster_autoscaler_label_tags = merge([
-    for name, group in module.eks.eks_managed_node_groups : {
+    for name, group in module.eks_managed_node_group : {
       for label_name, label_value in coalesce(group.node_group_labels, {}) : "${name}|label|${label_name}" => {
         autoscaling_group = group.node_group_autoscaling_group_names[0],
         key               = "k8s.io/cluster-autoscaler/node-template/label/${label_name}",
@@ -142,7 +150,7 @@ locals {
   ]...)
 
   cluster_autoscaler_taint_tags = merge([
-    for name, group in module.eks.eks_managed_node_groups : {
+    for name, group in module.eks_managed_node_group : {
       for taint in coalesce(group.node_group_taints, []) : "${name}|taint|${taint.key}" => {
         autoscaling_group = group.node_group_autoscaling_group_names[0],
         key               = "k8s.io/cluster-autoscaler/node-template/taint/${taint.key}"
