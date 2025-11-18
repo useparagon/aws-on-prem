@@ -107,8 +107,12 @@ module "eks" {
     attach_cluster_primary_security_group = true
   }
 
-  cluster_tags = {
-    Name = var.workspace
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
+
+  iam_role_tags = {
+    Name = "${var.workspace}-eks"
   }
 }
 
@@ -120,6 +124,10 @@ resource "aws_eks_addon" "aws_ebs_csi_driver" {
   addon_version            = "v1.45.0-eksbuild.2"
   resolve_conflicts        = "OVERWRITE"
   service_account_role_arn = module.aws_ebs_csi_driver_iam_role[0].iam_role_arn
+
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
 
   depends_on = [
     module.eks_managed_node_group
@@ -194,6 +202,10 @@ module "eks_managed_node_group" {
         delete_on_termination = true
       }
     }
+  }
+
+  tags = {
+    Name = "${var.workspace}-eks"
   }
 
   depends_on = [
