@@ -21,6 +21,17 @@ curl \
   https://app.terraform.io/api/v2/workspaces/<workspace id>
 ```
 
+## Remove Incompatible Resources
+
 Set `migration_prep = true` in [vars.auto.tfvars](./terraform/workspaces/infra/vars.auto.tfvars). This will destroy the bastion and cloudflare tunnel. These modules are incompatible with those used in the `enterprise` repo and too complex to attempt to migrate piecemeal. So they will be destroyed and recreated.
 
 Run `terraform apply`.
+
+## Fix State Conflicts
+
+There will be several resources in AWS that the `enterprise` repo will attempt to recreate that result in conflicts. These can be addressed prior to applying the `enterprise` workspace with this script.
+
+```
+cd terraform/workspaces/infra
+./migration-prep.sh
+```
