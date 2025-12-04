@@ -10,21 +10,6 @@ module "eks" {
   cluster_endpoint_public_access = true
   create_aws_auth_configmap      = true
 
-  cluster_addons = {
-    coredns = {
-      most_recent       = true
-      resolve_conflicts = "OVERWRITE"
-    }
-    kube-proxy = {
-      most_recent       = true
-      resolve_conflicts = "OVERWRITE"
-    }
-    vpc-cni = {
-      most_recent       = true
-      resolve_conflicts = "OVERWRITE"
-    }
-  }
-
   aws_auth_roles = concat([
     {
       rolearn  = aws_iam_role.node_role.arn
@@ -114,24 +99,6 @@ module "eks" {
   iam_role_tags = {
     Name = "${var.workspace}-eks"
   }
-}
-
-resource "aws_eks_addon" "aws_ebs_csi_driver" {
-  count = var.eks_addon_ebs_csi_driver_enabled ? 1 : 0
-
-  cluster_name             = var.workspace
-  addon_name               = "aws-ebs-csi-driver"
-  addon_version            = "v1.45.0-eksbuild.2"
-  resolve_conflicts        = "OVERWRITE"
-  service_account_role_arn = module.aws_ebs_csi_driver_iam_role[0].iam_role_arn
-
-  tags = {
-    Name = "${var.workspace}-eks"
-  }
-
-  depends_on = [
-    module.eks_managed_node_group
-  ]
 }
 
 resource "random_string" "node_group" {
