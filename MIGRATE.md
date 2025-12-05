@@ -20,3 +20,7 @@ curl \
   }' \
   https://app.terraform.io/api/v2/workspaces/<workspace id>
 ```
+
+Set `migration_prep = true` in [vars.auto.tfvars](./terraform/workspaces/infra/vars.auto.tfvars). This will destroy the bastion and cloudflare tunnel. These modules are incompatible with those used in the `enterprise` repo and too complex to attempt to migrate piecemeal. So they will be destroyed and recreated.
+
+Run `terraform apply`.
