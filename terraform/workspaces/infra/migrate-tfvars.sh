@@ -1,25 +1,53 @@
 #!/bin/bash
 
-# This script is used to prepare AWS and the Terraform state for migration to the enterprise workspace.
-# It attempts to manually address state issues that will cause the migration to fail.
-
-# The enterprise workspace will attempt to create duplicate egress rules for 0.0.0.0/0 and ::/0.
-# This script removes the duplicate rules they can be recreated without errors like below.
+# This script is used to generate a vars.auto.tfvars file for the enterprise workspace migration.
+# It extracts values from tthis workspace's vars.auto.tfvars and Terraform state to create a new 
+# vars-migrated.auto.tfvars file for the enterprise workspace.
 #
-# │ Error: [WARN] A duplicate Security Group rule was found on (sg-0112ab8daab4d6f33). This may be
-# │ a side effect of a now-fixed Terraform issue causing two security groups with
-# │ identical attributes but different source_security_group_ids to overwrite each
-# │ other in the state. See https://github.com/hashicorp/terraform/pull/2376 for more
-# │ information and instructions for recovery.
+# IMPORTANT: This script must be run in this workspace directory where the resources currently exist.
+# The script reads from the current workspace's Terraform state and vars.auto.tfvars file.
 
-set -e
+# Helper function to extract value from vars.auto.tfvars
+extract_var() {
+    local var_name="$1"
+    local default_value="${2:-}"
+    local value=$(grep -E "^\s*${var_name}\s*=" "$VARS_FILE" | awk -F'"' '{print $2}' || echo "")
+    if [ -z "$value" ]; then
+        echo "$default_value"
+    else
+        echo "$value"
+    fi
+}
+
+# Helper function to extract value from terraform state
+extract_state() {
+    local resource_path="$1"
+    local attribute="$2"
+    local default_value="${3:-}"
+    terraform state show "$resource_path" 2>/dev/null | grep -E "^\s+${attribute}\s+=" | awk '{print $3}' | tr -d '"' || echo "$default_value"
+}
+
+# Helper function to extract all database passwords from terraform output
+# Returns a newline-separated list of "database_name=password" pairs
+extract_all_database_passwords() {
+    # Get terraform output as JSON
+    local output_json=$(terraform output -json 2>/dev/null)
+    
+    if [ -z "$output_json" ]; then
+        return
+    fi
+    
+    # Extract all database names and their passwords
+    # jq will output: "database_name=password" for each database
+    echo "$output_json" | jq -r '.postgres.value | to_entries[] | "\(.key)=\(.value.password)"' 2>/dev/null
+}
 
 # Get script directory to locate vars.auto.tfvars
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VARS_FILE="${SCRIPT_DIR}/vars.auto.tfvars"
 
 if [ ! -f "$VARS_FILE" ]; then
-  echo "Error: Could not find vars.auto.tfvars at ${VARS_FILE}"
+  echo "✗ ERROR: Could not find vars.auto.tfvars at ${VARS_FILE}"
   exit 1
 fi
 
@@ -42,82 +70,7 @@ REGION="${REGION:-${AWS_REGION:-us-east-1}}"
 
 export AWS_PAGER=""
 
-# Security group cleanup section (non-fatal - will continue even if this fails)
-echo "Attempting to clean up security group rules..."
-SG_CLEANUP_SUCCESS=true
-
-# Get security group ID from command line argument or extract from Terraform state
-if [ -n "$1" ]; then
-  SG_ID="$1"
-  echo "Using provided security group ID: ${SG_ID}"
-else
-  echo "Extracting security group ID from Terraform state..."
-  SG_ID=$(terraform state show 'module.cluster.module.eks.aws_security_group_rule.node["egress_all"]' 2>/dev/null | grep -E '^\s+security_group_id\s+=' | awk '{print $3}' | tr -d '"')
-  
-  if [ -z "$SG_ID" ]; then
-    echo "  ⚠ Could not determine security group ID from Terraform state (skipping security group cleanup)"
-    SG_CLEANUP_SUCCESS=false
-  fi
-fi
-
-if [ "$SG_CLEANUP_SUCCESS" = true ]; then
-  # Query AWS directly for IPv4 (0.0.0.0/0) and IPv6 egress rules for this security group
-  echo "Querying AWS for IPv4 (0.0.0.0/0) and IPv6 egress security group rules in ${SG_ID}..."
-
-  RULE_IDS=$(aws ec2 describe-security-group-rules \
-    --filters "Name=group-id,Values=${SG_ID}" \
-    --query "SecurityGroupRules[?IsEgress == \`true\` && (CidrIpv6 != null || CidrIpv4 == \`0.0.0.0/0\`)].SecurityGroupRuleId" \
-    --output text \
-    --region "${REGION}" 2>/dev/null || true)
-
-  if [ -z "$RULE_IDS" ]; then
-    echo "  ⚠ Could not find any matching security group rule IDs in AWS (skipping security group cleanup)"
-    SG_CLEANUP_SUCCESS=false
-  else
-    echo "Found group-id: ${SG_ID}, security-group-rule-ids: ${RULE_IDS}"
-    echo ""
-
-    # Convert space-separated rule IDs to array and revoke all rules at once
-    read -ra RULE_ID_ARRAY <<< "$RULE_IDS"
-
-    if aws ec2 revoke-security-group-egress \
-        --group-id "${SG_ID}" \
-        --security-group-rule-ids "${RULE_ID_ARRAY[@]}" \
-        --region "${REGION}" \
-        --output json >/dev/null 2>&1; then
-        echo "  ✓ Successfully deleted all rules from ${SG_ID}"
-    else
-        echo "  ✗ Failed to delete rules from AWS (they might have been deleted already or don't exist)"
-        SG_CLEANUP_SUCCESS=false
-    fi
-
-    echo ""
-    echo "Removing rule from Terraform state..."
-    if terraform state rm 'module.cluster.module.eks.aws_security_group_rule.node["egress_all"]' 2>/dev/null; then
-        echo "  ✓ Successfully removed from Terraform state"
-        echo ""
-    else
-        echo "  ✗ Failed to remove from Terraform state (it might have been removed already)"
-        SG_CLEANUP_SUCCESS=false
-    fi
-  fi
-fi
-
-if [ "$SG_CLEANUP_SUCCESS" = false ]; then
-  echo "  ⚠ Security group cleanup skipped or failed, continuing with EKS access entry import..."
-  echo ""
-fi
-
-echo ""
-echo "Extracting caller ARN and cluster name for EKS access entry import..."
-CALLER_ARN=$(aws sts get-caller-identity --query Arn --output text --region "${REGION}")
-
-if [ -z "$CALLER_ARN" ]; then
-  echo "Error: Could not determine caller ARN from AWS STS."
-  exit 1
-fi
-
-# Get cluster name from Terraform state
+# Get cluster name from Terraform state (needed for migrated_workspace variable)
 CLUSTER_NAME=$(terraform state show 'module.cluster.module.eks.aws_eks_cluster.this[0]' 2>/dev/null | grep -E '^\s+name\s+=' | awk '{print $3}' | tr -d '"')
 
 if [ -z "$CLUSTER_NAME" ]; then
@@ -125,50 +78,12 @@ if [ -z "$CLUSTER_NAME" ]; then
   ORGANIZATION=$(grep -E '^\s*organization\s*=' "$VARS_FILE" | awk -F'"' '{print $2}')
   if [ -n "$ORGANIZATION" ]; then
     CLUSTER_NAME="paragon-enterprise-${ORGANIZATION}"
-    echo "  Using cluster name from organization: ${CLUSTER_NAME}"
-  else
-    echo "Error: Could not determine cluster name from Terraform state or vars.auto.tfvars."
-    exit 1
+    echo "✓ Using cluster name from organization: ${CLUSTER_NAME}"
   fi
 fi
 
-echo "Found caller-arn: ${CALLER_ARN}, cluster-name: ${CLUSTER_NAME}"
-
 echo ""
-echo "Importing EKS access entry into Terraform state..."
-if terraform import "module.cluster.module.eks.aws_eks_access_entry.this[\"${CALLER_ARN}\"]" "${CLUSTER_NAME}:${CALLER_ARN}" 2>/dev/null; then
-    echo "  ✓ Successfully imported EKS access entry"
-    echo ""
-else
-    echo "  ✗ Failed to import EKS access entry (it might have been imported already or doesn't exist)"
-    exit 1
-fi
-
-echo ""
-echo "================================================================================"
 echo "Generating vars.auto.tfvars for the new enterprise workspace..."
-echo "================================================================================"
-echo ""
-
-# Helper function to extract value from vars.auto.tfvars
-extract_var() {
-    local var_name="$1"
-    local default_value="${2:-}"
-    local value=$(grep -E "^\s*${var_name}\s*=" "$VARS_FILE" | awk -F'"' '{print $2}' || echo "")
-    if [ -z "$value" ]; then
-        echo "$default_value"
-    else
-        echo "$value"
-    fi
-}
-
-# Helper function to extract value from terraform state
-extract_state() {
-    local resource_path="$1"
-    local attribute="$2"
-    local default_value="${3:-}"
-    terraform state show "$resource_path" 2>/dev/null | grep -E "^\s+${attribute}\s+=" | awk '{print $3}' | tr -d '"' || echo "$default_value"
-}
 
 # Extract 1:1 mappings from vars.auto.tfvars
 AWS_ACCESS_KEY_ID=$(extract_var "aws_access_key_id")
@@ -248,20 +163,29 @@ if [ -z "$ELASTICACHE_NODE_TYPE" ]; then
 fi
 ELASTICACHE_MULTIPLE_INSTANCES=$(extract_var "multi_redis" "false")
 
-# Extract workspace name
-MIGRATED_WORKSPACE="$CLUSTER_NAME"
+# Extract MSK values from vars.auto.tfvars or use defaults
+MANAGED_SYNC_ENABLED=$(extract_var "managed_sync_enabled" "false")
+MSK_KAFKA_VERSION=$(extract_var "msk_kafka_version" "3.6.0")
+MSK_KAFKA_NUM_BROKER_NODES=$(extract_var "msk_kafka_num_broker_nodes" "2")
+MSK_AUTOSCALING_ENABLED=$(extract_var "msk_autoscaling_enabled" "true")
+MSK_INSTANCE_TYPE=$(extract_var "msk_instance_type" "kafka.t3.small")
 
-# Extract passwords from terraform state
-# Try to extract postgres password
-POSTGRES_PASSWORD=$(extract_state "module.postgres.random_string.postgres_root_password[\"postgres\"]" "result" "")
-# Note: minio and paragon passwords may need to be manually set or extracted from secrets/helm values
-MINIO_PASSWORD=""
-PARAGON_PASSWORD=""
+# Extract workspace name (use cluster name if available, otherwise use organization)
+if [ -n "$CLUSTER_NAME" ]; then
+    MIGRATED_WORKSPACE="$CLUSTER_NAME"
+else
+    # Fallback to organization-based name
+    MIGRATED_WORKSPACE="paragon-enterprise-${ORGANIZATION}"
+fi
 
-# Try to extract minio password from terraform state (if it exists)
-MINIO_PASSWORD=$(extract_state "module.storage.random_string.minio_root_password" "result" "")
+# Extract passwords from terraform output (sensitive values are available in output JSON)
+# Extract all database passwords (supports multiple databases)
+DATABASE_PASSWORDS=$(extract_all_database_passwords)
 
-# Output the vars.auto.tfvars content
+# Output the vars.auto.tfvars content to file
+OUTPUT_FILE="${SCRIPT_DIR}/vars-migrated.auto.tfvars"
+
+{
 echo ""
 echo "# Generated vars.auto.tfvars for enterprise workspace migration"
 echo "# Generated on: $(date)"
@@ -291,20 +215,37 @@ echo "eks_spot_node_instance_type     = \"${K8_SPOT_NODE_INSTANCE_TYPE}\""
 echo "elasticache_multiple_instances  = \"${ELASTICACHE_MULTIPLE_INSTANCES}\""
 echo "elasticache_node_type           = \"${ELASTICACHE_NODE_TYPE}\""
 echo "k8s_version                     = \"${K8_VERSION}\""
-echo "migrated_passwords = {"
+echo "managed_sync_enabled             = ${MANAGED_SYNC_ENABLED}"
+echo "msk_autoscaling_enabled          = ${MSK_AUTOSCALING_ENABLED}"
+echo "msk_instance_type                = \"${MSK_INSTANCE_TYPE}\""
+echo "msk_kafka_num_broker_nodes       = ${MSK_KAFKA_NUM_BROKER_NODES}"
+echo "msk_kafka_version                = \"${MSK_KAFKA_VERSION}\""
 
 # Output passwords section
-if [ -n "$MINIO_PASSWORD" ] || [ -n "$PARAGON_PASSWORD" ] || [ -n "$POSTGRES_PASSWORD" ]; then
-    echo "  \"minio\" : \"${MINIO_PASSWORD:-<MANUALLY_SET>}\","
-    echo "  \"paragon\" : \"${PARAGON_PASSWORD:-<MANUALLY_SET>}\""
-    if [ -n "$POSTGRES_PASSWORD" ]; then
-        echo "  # Note: postgres password extracted from state: ${POSTGRES_PASSWORD:0:4}..."
-    fi
+echo "migrated_passwords = {"
+if [ -n "$DATABASE_PASSWORDS" ]; then
+    # Count total entries to handle trailing comma
+    total_entries=$(echo "$DATABASE_PASSWORDS" | grep -c '=' || echo "0")
+    current_entry=0
+    
+    # Iterate through each database=password pair
+    while IFS='=' read -r db_name db_password; do
+        if [ -n "$db_name" ] && [ -n "$db_password" ]; then
+            current_entry=$((current_entry + 1))
+            if [ "$current_entry" -eq "$total_entries" ]; then
+                # Last entry, no trailing comma
+                echo "  \"${db_name}\" : \"${db_password}\""
+            else
+                # Not last entry, include comma
+                echo "  \"${db_name}\" : \"${db_password}\","
+            fi
+        fi
+    done <<< "$DATABASE_PASSWORDS"
 else
-    echo "  \"minio\" : \"<MANUALLY_SET>\","
-    echo "  \"paragon\" : \"<MANUALLY_SET>\""
+    echo "  # No database passwords found"
 fi
 echo "}"
+
 echo "migrated_workspace     = \"${MIGRATED_WORKSPACE}\""
 echo "organization           = \"${ORGANIZATION}\""
 echo "rds_instance_class     = \"${RDS_INSTANCE_CLASS}\""
@@ -313,4 +254,8 @@ echo "rds_multiple_instances = \"${RDS_MULTIPLE_INSTANCES}\""
 echo "rds_postgres_version   = \"${RDS_POSTGRES_VERSION}\""
 echo "vpc_cidr               = \"${VPC_CIDR}\""
 echo "vpc_cidr_newbits       = \"${VPC_CIDR_NEWBITS}\""
+echo ""
+} > "$OUTPUT_FILE"
+
+echo "✓ Generated vars-migrated.auto.tfvars at ${OUTPUT_FILE}"
 echo ""
