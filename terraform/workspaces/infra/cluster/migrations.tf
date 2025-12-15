@@ -18,10 +18,3 @@ moved {
   from = module.eks.aws_eks_addon.this["vpc-cni"]
   to   = aws_eks_addon.addons["vpc-cni"]
 }
-
-# Move EBS CSI driver addon from standalone resource to unified addons map
-# Only if it exists (when eks_addon_ebs_csi_driver_enabled is true)
-moved {
-  from = aws_eks_addon.aws_ebs_csi_driver[0]
-  to   = aws_eks_addon.addons["aws-ebs-csi-driver"]
-}

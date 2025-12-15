@@ -8,14 +8,41 @@
 # The script reads from the current workspace's Terraform state and vars.auto.tfvars file.
 
 # Helper function to extract value from vars.auto.tfvars
+# Handles both simple string values and list values (e.g., ["val1", "val2"])
 extract_var() {
     local var_name="$1"
     local default_value="${2:-}"
-    local value=$(grep -E "^\s*${var_name}\s*=" "$VARS_FILE" | awk -F'"' '{print $2}' || echo "")
-    if [ -z "$value" ]; then
+    
+    # Find the line number with the variable assignment
+    local start_line=$(grep -n -E "^\s*${var_name}\s*=" "$VARS_FILE" | head -1 | cut -d: -f1)
+    
+    if [ -z "$start_line" ]; then
         echo "$default_value"
+        return
+    fi
+    
+    # Get the first line and check if it's a list
+    local first_line=$(sed -n "${start_line}p" "$VARS_FILE")
+    local value_part=$(echo "$first_line" | sed 's/^[^=]*=\s*//')
+    
+    # Check if it's a list (starts with [)
+    if echo "$value_part" | grep -q '^\['; then
+        # If list closes on same line, use that; otherwise find closing bracket
+        if echo "$value_part" | grep -q '\]'; then
+            # Single-line list
+            echo "$value_part" | grep -o '"[^"]*"' | sed 's/"//g' | tr '\n' ',' | sed 's/,$//'
+        else
+            # Multiline list: read until we find closing bracket
+            local end_line=$(awk -v start="$start_line" 'NR >= start && /\]/ {print NR; exit}' "$VARS_FILE")
+            if [ -n "$end_line" ]; then
+                sed -n "${start_line},${end_line}p" "$VARS_FILE" | grep -o '"[^"]*"' | sed 's/"//g' | tr '\n' ',' | sed 's/,$//'
+            else
+                echo "$default_value"
+            fi
+        fi
     else
-        echo "$value"
+        # Simple string value: extract quoted value
+        echo "$value_part" | sed 's/^"//;s/"$//'
     fi
 }
 
