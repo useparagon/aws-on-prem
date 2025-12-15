@@ -40,6 +40,10 @@ resource "aws_iam_role" "node_role" {
       }
     ]
   })
+
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
 }
 
 resource "aws_iam_policy" "eks_worker_policy" {
@@ -77,6 +81,10 @@ resource "aws_iam_policy" "aws_ebs_csi_driver" {
 
   name_prefix = "${var.workspace}-ebs"
   policy      = data.aws_iam_policy_document.aws_ebs_csi_driver[0].json
+
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
 }
 
 data "aws_iam_policy_document" "aws_ebs_csi_driver" {
@@ -286,4 +294,8 @@ module "aws_ebs_csi_driver_iam_role" {
   oidc_fully_qualified_subjects = [
     "system:serviceaccount:kube-system:ebs-csi-controller-sa"
   ]
+
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
 }

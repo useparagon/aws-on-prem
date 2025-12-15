@@ -177,4 +177,8 @@ resource "aws_db_instance" "postgres" {
   enabled_cloudwatch_logs_exports       = ["postgresql", "upgrade"]
 
   apply_immediately = true
+
+  tags = {
+    Name = "${var.workspace}-postgres"
+  }
 }

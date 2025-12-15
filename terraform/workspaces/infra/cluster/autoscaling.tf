@@ -24,6 +24,10 @@ module "cluster_autoscaler" {
   cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
   irsa_role_name_prefix            = "${var.workspace}-irsa"
 
+  irsa_tags = {
+    Name = "${var.workspace}-eks"
+  }
+
   depends_on = [
     module.eks,
     module.eks_managed_node_group
