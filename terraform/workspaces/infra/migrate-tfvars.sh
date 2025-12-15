@@ -51,7 +51,12 @@ extract_state() {
     local resource_path="$1"
     local attribute="$2"
     local default_value="${3:-}"
-    terraform state show "$resource_path" 2>/dev/null | grep -E "^\s+${attribute}\s+=" | awk '{print $3}' | tr -d '"' || echo "$default_value"
+    local result=$(terraform state show "$resource_path" 2>/dev/null | grep -E "^\s+${attribute}\s+=" | awk '{print $3}' | tr -d '"')
+    if [ -z "$result" ]; then
+        echo "$default_value"
+    else
+        echo "$result"
+    fi
 }
 
 # Helper function to extract all database passwords from terraform output
@@ -220,26 +225,26 @@ echo ""
 echo "aws_access_key_id              = \"${AWS_ACCESS_KEY_ID}\""
 echo "aws_region                     = \"${AWS_REGION}\""
 echo "aws_secret_access_key          = \"${AWS_SECRET_ACCESS_KEY}\""
-echo "az_count                       = \"${AZ_COUNT}\""
+echo "az_count                       = ${AZ_COUNT}"
 echo "cloudflare_api_token           = \"${CLOUDFLARE_API_TOKEN}\""
 echo "cloudflare_tunnel_account_id   = \"${CLOUDFLARE_TUNNEL_ACCOUNT_ID}\""
 echo "cloudflare_tunnel_email_domain = \"${CLOUDFLARE_TUNNEL_EMAIL_DOMAIN}\""
-echo "cloudflare_tunnel_enabled      = \"${CLOUDFLARE_TUNNEL_ENABLED}\""
+echo "cloudflare_tunnel_enabled      = ${CLOUDFLARE_TUNNEL_ENABLED}"
 echo "cloudflare_tunnel_subdomain    = \"${CLOUDFLARE_TUNNEL_SUBDOMAIN}\""
 echo "cloudflare_tunnel_zone_id      = \"${CLOUDFLARE_TUNNEL_ZONE_ID}\""
-echo "disable_cloudtrail             = \"${DISABLE_CLOUDTRAIL}\""
-echo "disable_deletion_protection    = \"${DISABLE_DELETION_PROTECTION}\""
+echo "disable_cloudtrail             = ${DISABLE_CLOUDTRAIL}"
+echo "disable_deletion_protection    = ${DISABLE_DELETION_PROTECTION}"
 echo "eks_admin_arns = ["
 if [ -n "$EKS_ADMIN_ROLE_ARNS_RAW" ]; then
     echo "$EKS_ADMIN_ROLE_ARNS_RAW" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed 's/^/  "/;s/$/"/'
 fi
 echo "]"
-echo "eks_max_node_count              = \"${K8_MAX_NODE_COUNT}\""
-echo "eks_min_node_count              = \"${K8_MIN_NODE_COUNT}\""
+echo "eks_max_node_count              = ${K8_MAX_NODE_COUNT}"
+echo "eks_min_node_count              = ${K8_MIN_NODE_COUNT}"
 echo "eks_ondemand_node_instance_type = \"${K8_ONDEMAND_NODE_INSTANCE_TYPE}\""
-echo "eks_spot_instance_percent       = \"${K8_SPOT_INSTANCE_PERCENT}\""
+echo "eks_spot_instance_percent       = ${K8_SPOT_INSTANCE_PERCENT}"
 echo "eks_spot_node_instance_type     = \"${K8_SPOT_NODE_INSTANCE_TYPE}\""
-echo "elasticache_multiple_instances  = \"${ELASTICACHE_MULTIPLE_INSTANCES}\""
+echo "elasticache_multiple_instances  = ${ELASTICACHE_MULTIPLE_INSTANCES}"
 echo "elasticache_node_type           = \"${ELASTICACHE_NODE_TYPE}\""
 echo "k8s_version                     = \"${K8_VERSION}\""
 echo "managed_sync_enabled             = ${MANAGED_SYNC_ENABLED}"
@@ -276,11 +281,11 @@ echo "}"
 echo "migrated_workspace     = \"${MIGRATED_WORKSPACE}\""
 echo "organization           = \"${ORGANIZATION}\""
 echo "rds_instance_class     = \"${RDS_INSTANCE_CLASS}\""
-echo "rds_multi_az           = \"${RDS_MULTI_AZ}\""
-echo "rds_multiple_instances = \"${RDS_MULTIPLE_INSTANCES}\""
+echo "rds_multi_az           = ${RDS_MULTI_AZ}"
+echo "rds_multiple_instances = ${RDS_MULTIPLE_INSTANCES}"
 echo "rds_postgres_version   = \"${RDS_POSTGRES_VERSION}\""
 echo "vpc_cidr               = \"${VPC_CIDR}\""
-echo "vpc_cidr_newbits       = \"${VPC_CIDR_NEWBITS}\""
+echo "vpc_cidr_newbits       = ${VPC_CIDR_NEWBITS}"
 echo ""
 } > "$OUTPUT_FILE"
 
