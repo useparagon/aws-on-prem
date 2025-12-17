@@ -110,6 +110,12 @@ locals {
       db           = "eventlogs"
       storage_type = "gp2"
     }
+    triggerkit = {
+      name         = "${var.workspace}-triggerkit"
+      size         = "db.t4g.micro"
+      db           = "triggerkit"
+      storage_type = "gp3"
+    }
     }, var.managed_sync_enabled ? {
     managed_sync = {
       name         = "${var.workspace}-managed-sync"
