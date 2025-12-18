@@ -82,7 +82,7 @@ sudo usermod -a -G docker ubuntu
 # service docker start
 
 # install cloudflare zero trust and register tunnel
-# see https://bwriteLog.cloudflare.com/automating-cloudflare-tunnel-with-terraform/
+# see https://blog.cloudflare.com/automating-cloudflare-tunnel-with-terraform/
 if [[ ! -z "${tunnel_id}" ]]; then
     writeLog "installing cloudflare tunnel"
     curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
@@ -117,6 +117,44 @@ EOF
 else
     writeLog "skipped cloudflare tunnel"
 fi
+
+# Create and configure aliases file
+writeLog "configuring aliases for ubuntu"
+cat > /home/ubuntu/.bash_aliases << 'EOF'
+# Kubernetes aliases
+alias k=kubectl
+alias kd="kubectl describe"
+alias kev="kubectl get events --sort-by='.lastTimestamp'"
+alias kex="kubectl exec -it"
+alias kg="kubectl get"
+alias kl="kubectl logs"
+alias krr="kubectl get deployments --no-headers -o custom-columns=\":metadata.name\" | xargs -I {} kubectl rollout restart deployment/{}"
+alias kw="watch kubectl get pods"
+alias kwf="watch -- 'kubectl get pods | grep -v fluent | grep -v node-exporter'"
+
+kls() {
+  local name=$1
+  if [ -z "$name" ]; then
+    echo "Usage: kls <service-name>"
+    return 1
+  fi
+  shift
+  kubectl logs -n paragon -l app.kubernetes.io/name="$name" --all-containers=true --prefix=true "$@"
+}
+
+ksec() {
+  local name=$${1:-paragon-secrets}
+  kubectl get secret $name -o jsonpath='{.data}' | jq -r 'to_entries[] | "\(.key): \(.value | @base64d)"' | sort
+}
+
+# Common aliases
+alias ll="ls -Ahl"
+alias hi="history | grep"
+EOF
+
+# Ensure proper permissions
+chown ubuntu:ubuntu /home/ubuntu/.bash_aliases
+chmod 644 /home/ubuntu/.bash_aliases
 
 # configure aws, eksctl and kubectl
 # note that cluster may be still CREATING so wait up to 5 min for that to complete
