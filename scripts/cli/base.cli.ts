@@ -411,6 +411,13 @@ credentials "app.terraform.io" {
         return false;
       }
 
+      // `triggerkit` was introduced in v2026.0101
+      const hasTriggerKit: boolean =
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2026.0101') >= 0;
+      if (!hasTriggerKit && (Microservice.API_TRIGGERKIT === microservice || Microservice.WORKER_TRIGGERKIT === microservice)) {
+        return false;
+      }
+      
       return true;
     });
   }
