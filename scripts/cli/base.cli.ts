@@ -411,17 +411,10 @@ credentials "app.terraform.io" {
         return false;
       }
 
-      // `api-triggerkit` was introduced in v2026.0107
+      // `triggerkit` was introduced in v2026.0101
       const hasTriggerKit: boolean =
-        isLatest || compareVersions(sanitizedParagonVersion, 'v2026.0107') >= 0;
-      if (!hasTriggerKit && Microservice.API_TRIGGERKIT === microservice) {
-        return false;
-      }
-
-      // `worker-triggerkit` was introduced in v2026.0107
-      const hasWorkerTriggerKit: boolean =
-        isLatest || compareVersions(sanitizedParagonVersion, 'v2026.0107') >= 0;
-      if (!hasWorkerTriggerKit && Microservice.WORKER_TRIGGERKIT === microservice) {
+        isLatest || compareVersions(sanitizedParagonVersion, 'v2026.0101') >= 0;
+      if (!hasTriggerKit && (Microservice.API_TRIGGERKIT === microservice || Microservice.WORKER_TRIGGERKIT === microservice)) {
         return false;
       }
       
