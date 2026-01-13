@@ -14,6 +14,7 @@ export const PARAGON_WORKSPACE_DIR: string = `${TERRAFORM_WORKSPACES_DIR}/parago
  */
 export enum Microservice {
   ACCOUNT = 'account',
+  API_TRIGGERKIT = 'api-triggerkit',
   CACHE_REPLAY = 'cache-replay',
   CERBERUS = 'cerberus',
   CHRONOS = 'chronos',
@@ -35,6 +36,7 @@ export enum Microservice {
   WORKER_DEPLOYMENTS = 'worker-deployments',
   WORKER_PROXY = 'worker-proxy',
   WORKER_TRIGGERS = 'worker-triggers',
+  WORKER_TRIGGERKIT = 'worker-triggerkit',
   WORKER_WORKFLOWS = 'worker-workflows',
   WORKER_EVENT_LOGS = 'worker-eventlogs',
 }
