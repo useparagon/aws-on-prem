@@ -25,13 +25,20 @@ curl \
 
 Set `migration_prep = true` in [vars.auto.tfvars](./terraform/workspaces/infra/vars.auto.tfvars). This will destroy the bastion and cloudflare tunnel. These modules are incompatible with those used in the `enterprise` repo and too complex to attempt to migrate piecemeal. So they will be destroyed and recreated.
 
-Run `terraform apply`.
+```
+cd terraform/workspaces/infra
+terraform init
+terraform plan
+terraform apply
+```
 
 *NOTE: this will result in a new bastion private key and instance so any previous connections will have to be recreated.*
 
+The bastion log bucket may have to be manually emptied and deleted if Terraform fails to do that.
+
 ## Create Variables for `enterprise`
 
-The tfvars file that the `enterprise` infra workspace uses should be created from this repo to ensure that all of the configurations match. This will produce a `vars-migrated.auto.tfvars` that should be copied to `enterprise/aws/workspaces/infra/vars.auto.tfvars`.
+The tfvars file that the `enterprise` infra workspace uses should be created from this repo to ensure that all of the configurations match. This will produce a `vars.auto.tfvars-migrated` that should be moved to `enterprise/aws/workspaces/infra/vars.auto.tfvars`.
 
 ```
 cd terraform/workspaces/infra

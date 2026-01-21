@@ -30,7 +30,7 @@ sudo ./aws/install
 aws --version
 
 # install kubectl
-KUBECTL_MINOR=1.31
+KUBECTL_MINOR=1.32
 writeLog "installing kubectl $KUBECTL_MINOR"
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v$KUBECTL_MINOR/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes.gpg] https://pkgs.k8s.io/core:/stable:/v$KUBECTL_MINOR/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -45,8 +45,8 @@ eksctl version
 
 # install helm
 writeLog "installing helm"
-curl -fsSL https://baltocdn.com/helm/signing.asc | sudo apt-key add -
-echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | sudo gpg --dearmor -o /etc/apt/keyrings/helm.gpg
+echo "deb [signed-by=/etc/apt/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
 sudo apt-get update -y
 sudo apt-get install -y helm
 
@@ -65,7 +65,7 @@ writeLog "installing terraform"
 curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/hashicorp.gpg
 echo "deb [signed-by=/etc/apt/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt-get update -y
-sudo apt-get install -y terraform=1.2.4
+sudo apt-get install -y terraform
 
 # install docker
 writeLog "installing docker"
@@ -78,8 +78,6 @@ sudo apt-get install -y \
     docker-ce-cli \
     docker-compose-plugin
 sudo usermod -a -G docker ubuntu
-# systemctl enable containerd.service
-# service docker start
 
 # install cloudflare zero trust and register tunnel
 # see https://blog.cloudflare.com/automating-cloudflare-tunnel-with-terraform/

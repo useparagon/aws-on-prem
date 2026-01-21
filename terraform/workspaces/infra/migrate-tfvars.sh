@@ -215,7 +215,7 @@ fi
 DATABASE_PASSWORDS=$(extract_all_database_passwords)
 
 # Output the vars.auto.tfvars content to file
-OUTPUT_FILE="${SCRIPT_DIR}/vars-migrated.auto.tfvars"
+OUTPUT_FILE="${SCRIPT_DIR}/vars.auto.tfvars-migrated"
 
 {
 echo ""
@@ -289,5 +289,5 @@ echo "vpc_cidr_newbits       = ${VPC_CIDR_NEWBITS}"
 echo ""
 } > "$OUTPUT_FILE"
 
-echo "✓ Generated vars-migrated.auto.tfvars at ${OUTPUT_FILE}"
+echo "✓ Generated migrated variables file at ${OUTPUT_FILE}"
 echo ""
