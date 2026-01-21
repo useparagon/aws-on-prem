@@ -238,7 +238,7 @@ metadata:
   name: $NEW_PVC
   namespace: $NAMESPACE
   labels:
-    app.kubernetes.io/name: openobserve
+    app.kubernetes.io/name: ${STATEFULSET_NAME}
     app.kubernetes.io/instance: ${RELEASE_NAME}
     migrated-from: ${OLD_VOLUME_NAME}-${STATEFULSET_NAME}-${ORDINAL}
 spec:
@@ -258,7 +258,7 @@ metadata:
   name: $NEW_PVC
   namespace: $NAMESPACE
   labels:
-    app.kubernetes.io/name: openobserve
+    app.kubernetes.io/name: ${STATEFULSET_NAME}
     app.kubernetes.io/instance: ${RELEASE_NAME}
     migrated-from: ${OLD_VOLUME_NAME}-${STATEFULSET_NAME}-${ORDINAL}
 spec:
