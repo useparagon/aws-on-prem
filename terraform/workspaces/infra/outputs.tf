@@ -22,7 +22,7 @@ output "redis" {
 
 output "logs_bucket" {
   description = "The bucket used to store system logs."
-  value       = module.s3.s3.logs_bucket
+  value       = module.storage.s3.logs_bucket
   sensitive   = true
 }
 
@@ -58,31 +58,31 @@ output "kafka_tls_enabled" {
 
 output "cloud_storage_user" {
   description = "The username for cloud storage."
-  value       = module.s3.s3.access_key_id
+  value       = module.storage.s3.access_key_id
   sensitive   = true
 }
 
 output "cloud_storage_password" {
   description = "The password for cloud storage."
-  value       = module.s3.s3.access_key_secret
+  value       = module.storage.s3.access_key_secret
   sensitive   = true
 }
 
 output "cloud_storage_public_bucket" {
   description = "The public bucket used by cloud storage."
-  value       = module.s3.s3.public_bucket
+  value       = module.storage.s3.public_bucket
   sensitive   = true
 }
 
 output "cloud_storage_private_bucket" {
   description = "The private bucket used by cloud storage."
-  value       = module.s3.s3.private_bucket
+  value       = module.storage.s3.private_bucket
   sensitive   = true
 }
 
 output "cloud_storage_managed_sync_bucket" {
   description = "The managed sync bucket used by cloud storage."
-  value       = var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""
+  value       = var.managed_sync_enabled ? module.storage.s3.managed_sync_bucket : ""
   sensitive   = true
 }
 
@@ -111,11 +111,11 @@ output "paragon_config" {
   description = "Required configuration for Paragon deployment"
   sensitive   = true
   value       = <<OUTPUT
-    CLOUD_STORAGE_MICROSERVICE_USER: ${module.s3.s3.access_key_id}
-    CLOUD_STORAGE_MICROSERVICE_PASS: ${module.s3.s3.access_key_secret}
-    CLOUD_STORAGE_PUBLIC_BUCKET: ${module.s3.s3.public_bucket}
-    CLOUD_STORAGE_SYSTEM_BUCKET: ${module.s3.s3.private_bucket}
-    CLOUD_STORAGE_MANAGED_SYNC_BUCKET: ${var.managed_sync_enabled ? module.s3.s3.managed_sync_bucket : ""}
+    CLOUD_STORAGE_MICROSERVICE_USER: ${module.storage.s3.access_key_id}
+    CLOUD_STORAGE_MICROSERVICE_PASS: ${module.storage.s3.access_key_secret}
+    CLOUD_STORAGE_PUBLIC_BUCKET: ${module.storage.s3.public_bucket}
+    CLOUD_STORAGE_SYSTEM_BUCKET: ${module.storage.s3.private_bucket}
+    CLOUD_STORAGE_MANAGED_SYNC_BUCKET: ${var.managed_sync_enabled ? module.storage.s3.managed_sync_bucket : ""}
 
     KAFKA_BROKER_URLS: ${var.managed_sync_enabled ? module.kafka[0].cluster_bootstrap_brokers_sasl_scram : ""}
     KAFKA_SASL_USERNAME: ${var.managed_sync_enabled ? module.kafka[0].kafka_credentials.username : ""}

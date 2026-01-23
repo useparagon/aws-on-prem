@@ -48,3 +48,4 @@ terraform/workspaces/paragon/charts
 
 *.tfvars
 *.tfstate
+*.tfvars-migrated

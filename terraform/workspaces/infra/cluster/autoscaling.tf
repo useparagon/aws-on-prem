@@ -9,6 +9,10 @@ resource "aws_autoscaling_group_tag" "cluster_autoscaler_label_tags" {
 
     propagate_at_launch = false
   }
+
+  depends_on = [
+    module.eks_managed_node_group
+  ]
 }
 
 module "cluster_autoscaler" {
@@ -19,6 +23,10 @@ module "cluster_autoscaler" {
   cluster_identity_oidc_issuer     = module.eks.cluster_oidc_issuer_url
   cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
   irsa_role_name_prefix            = "${var.workspace}-irsa"
+
+  irsa_tags = {
+    Name = "${var.workspace}-eks"
+  }
 
   depends_on = [
     module.eks,

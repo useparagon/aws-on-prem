@@ -28,13 +28,17 @@ locals {
 }
 
 resource "tls_private_key" "bastion" {
+  count = var.enabled ? 1 : 0
+
   algorithm = "RSA"
   rsa_bits  = "4096"
 }
 
 resource "aws_key_pair" "bastion" {
+  count = var.enabled ? 1 : 0
+
   key_name   = "${local.resource_group}-key"
-  public_key = tls_private_key.bastion.public_key_openssh
+  public_key = tls_private_key.bastion[0].public_key_openssh
 
   tags = {
     Name = "${local.resource_group}-key-pair"
@@ -50,12 +54,15 @@ resource "random_string" "bastion_id" {
 }
 
 module "bastion" {
+  count = var.enabled ? 1 : 0
+
   source = "github.com/useparagon/terraform-aws-bastion"
 
   # logging
-  bucket_name     = local.resource_group
-  log_auto_clean  = true
-  log_expiry_days = 365
+  bucket_name          = local.resource_group
+  bucket_force_destroy = true
+  log_auto_clean       = true
+  log_expiry_days      = 365
 
   # networking
   associate_public_ip_address = false
@@ -73,7 +80,7 @@ module "bastion" {
   # instance
   allow_ssh_commands           = true
   bastion_ami                  = data.aws_ami.bastion.id
-  bastion_host_key_pair        = aws_key_pair.bastion.id
+  bastion_host_key_pair        = aws_key_pair.bastion[0].id
   bastion_iam_policy_name      = local.resource_group
   bastion_iam_role_name        = local.resource_group
   bastion_launch_template_name = substr(local.bastion_name, 0, 22)
@@ -95,6 +102,8 @@ module "bastion" {
 
 # allow SSM Connect access
 resource "aws_iam_role_policy_attachment" "ssm_role_policy" {
+  count = var.enabled ? 1 : 0
+
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = local.resource_group
 

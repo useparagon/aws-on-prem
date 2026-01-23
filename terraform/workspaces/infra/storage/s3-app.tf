@@ -3,6 +3,10 @@ resource "aws_s3_bucket" "app" {
   acl           = "private"
   force_destroy = var.force_destroy
 
+  tags = {
+    Name = "${var.workspace}-s3"
+  }
+
   dynamic "logging" {
     for_each = var.disable_cloudtrail ? [] : ["true"]
     content {

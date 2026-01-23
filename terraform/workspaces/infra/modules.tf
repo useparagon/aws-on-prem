@@ -94,8 +94,8 @@ module "redis" {
   private_subnet = module.network.private_subnet
 }
 
-module "s3" {
-  source = "./s3"
+module "storage" {
+  source = "./storage"
 
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
@@ -138,7 +138,8 @@ module "cluster" {
   vpc              = module.network.vpc
   public_subnet    = module.network.public_subnet
   private_subnet   = module.network.private_subnet
-  bastion_role_arn = module.bastion.bastion_role_arn
+  bastion_role_arn = var.migration_prep ? "" : module.bastion.bastion_role_arn
+  migration_prep   = var.migration_prep
 }
 
 module "bastion" {
@@ -157,7 +158,7 @@ module "bastion" {
   vpc_id           = module.network.vpc.id
   public_subnet    = module.network.public_subnet
   private_subnet   = module.network.private_subnet
-  eks_cluster_name = module.cluster.eks_cluster.name
+  eks_cluster_name = local.workspace
 
   cloudflare_api_token           = var.cloudflare_api_token
   cloudflare_tunnel_enabled      = var.cloudflare_tunnel_enabled
@@ -165,4 +166,7 @@ module "bastion" {
   cloudflare_tunnel_zone_id      = var.cloudflare_tunnel_zone_id
   cloudflare_tunnel_account_id   = var.cloudflare_tunnel_account_id
   cloudflare_tunnel_email_domain = var.cloudflare_tunnel_email_domain
+
+  # the enterprise repo uses different providers for bastion and cloudflare so easier to delete those prior to migration
+  enabled = !var.migration_prep
 }

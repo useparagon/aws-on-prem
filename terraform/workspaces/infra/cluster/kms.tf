@@ -39,6 +39,10 @@ module "ebs_kms_key" {
   computed_aliases = {
     ebs = { name = "eks/${var.workspace}/ebs" }
   }
+
+  tags = {
+    Name = "${var.workspace}-eks"
+  }
 }
 
 ########################################
@@ -61,5 +65,9 @@ module "cluster_kms_key" {
   ]
   computed_aliases = {
     cluster = { name = "eks/${var.workspace}/cluster" }
+  }
+
+  tags = {
+    Name = "${var.workspace}-eks"
   }
 }
