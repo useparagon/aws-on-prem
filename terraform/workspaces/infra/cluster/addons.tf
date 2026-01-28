@@ -2,18 +2,18 @@ locals {
   cluster_addons = merge(
     {
       coredns = {
-        version = "v1.11.4-eksbuild.14"
+        # version = "v1.11.4-eksbuild.14" # use latest version for enterprise compatibility
       }
       kube-proxy = {
-        version = "v1.31.10-eksbuild.2"
+        # version = "v1.31.10-eksbuild.2" # use latest version for enterprise compatibility
       }
       vpc-cni = {
-        version = "v1.19.6-eksbuild.7"
+        # version = "v1.19.6-eksbuild.7" # use latest version for enterprise compatibility
       }
     },
     var.eks_addon_ebs_csi_driver_enabled ? {
       aws-ebs-csi-driver = {
-        version = "v1.45.0-eksbuild.2"
+        # version = "v1.45.0-eksbuild.2" # use latest version for enterprise compatibility
       }
     } : {}
   )
