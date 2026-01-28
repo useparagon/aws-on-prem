@@ -1,6 +1,8 @@
 # Enterprise Migration Instructions for `infra`
 
-## Upgrade Terraform
+## Preparation
+
+### Upgrade Terraform
 
 `aws-on-prem` used Terraform 1.2.4 but `enterprise` uses 1.9.6. This must generally be done on Terraform Cloud either through the UI settings for the workspace or via an API call like below. It requires a Terraform API key as the bearer and the workspace ID.
 
@@ -21,13 +23,32 @@ curl \
   https://app.terraform.io/api/v2/workspaces/<workspace id>
 ```
 
-## Remove Incompatible Resources
+### Apply Latest Infrastructure
+
+Ensure that the infrastructure is up to date with latest Terraform configs. This will minimize any non-migration related changes later on in the process that could cause issues.
+
+The manual `terraform state mv` steps are required to avoid `Cross-package move statement` errors.
+
+```
+git pull
+make deploy-infra apply=false
+cd terraform/workspaces/infra
+terraform init
+terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["coredns"]' 'module.cluster.aws_eks_addon.addons["coredns"]'
+terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["kube-proxy"]' 'module.cluster.aws_eks_addon.addons["kube-proxy"]'
+terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["vpc-cni"]' 'module.cluster.aws_eks_addon.addons["vpc-cni"]'
+terraform plan
+terraform apply
+```
+
+## Migration
+
+### Remove Incompatible Resources
 
 Set `migration_prep = true` in [vars.auto.tfvars](./terraform/workspaces/infra/vars.auto.tfvars). This will destroy the bastion and cloudflare tunnel. These modules are incompatible with those used in the `enterprise` repo and too complex to attempt to migrate piecemeal. So they will be destroyed and recreated.
 
 ```
 cd terraform/workspaces/infra
-terraform init
 terraform plan
 terraform apply
 ```
@@ -36,7 +57,7 @@ terraform apply
 
 The bastion log bucket may have to be manually emptied and deleted if Terraform fails to do that.
 
-## Create Variables for `enterprise`
+### Create Variables for `enterprise`
 
 The tfvars file that the `enterprise` infra workspace uses should be created from this repo to ensure that all of the configurations match. This will produce a `vars.auto.tfvars-migrated` that should be moved to `enterprise/aws/workspaces/infra/vars.auto.tfvars`.
 
@@ -45,11 +66,11 @@ cd terraform/workspaces/infra
 ./migrate-tfvars.sh
 ```
 
-## Switch to enterprise repo
+### Switch to enterprise repo
 
 The remaining steps should be executed in the `enterprise/aws/workspaces/infra` workspace.
 
-## Fix State Conflicts
+### Fix State Conflicts
 
 There will be several resources in AWS that the `enterprise` repo will attempt to recreate that result in conflicts. These can be addressed prior to applying the `enterprise` workspace with this script.
 
@@ -59,7 +80,7 @@ terraform init
 ./migrate-state.sh
 ```
 
-## Apply Changes
+### Apply Changes
 
 Plan and apply Terraform as normal.
 
