@@ -68,7 +68,7 @@ cd terraform/workspaces/infra
 
 ### Switch to enterprise repo
 
-The remaining steps should be executed in the `enterprise/aws/workspaces/infra` workspace.
+The remaining steps should be executed in the `enterprise/aws/workspaces/infra` workspace. This repo will have to be cloned separately and use the same remote settings in `main.tf`.
 
 ### Fix State Conflicts
 
