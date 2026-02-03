@@ -68,7 +68,7 @@ cd terraform/workspaces/infra
 
 ### Switch to enterprise repo
 
-The remaining steps should be executed in the `enterprise/aws/workspaces/infra` workspace. This repo will have to be cloned separately and use the same remote settings in `main.tf`.
+The remaining steps should be executed in the `enterprise/aws/workspaces/infra` workspace. This repo will have to be cloned separately and use the same remote settings in `main.tf` as `aws-on-prem`'s `infra` workspace.
 
 ### Fix State Conflicts
 
@@ -82,12 +82,21 @@ terraform init
 
 ### Apply Changes
 
-Plan and apply Terraform as normal.
+Plan and apply Terraform as normal. The `apply` step can be retried if there are initial failures.
 
 ```
 cd aws/workspaces/infra
 terraform plan
 terraform apply
+```
+
+### Prepare for `paragon` Migration
+
+```
+./prepare.sh -p aws -t <PARAGON_VERSION>
+
+cd aws/workspaces/infra
+terraform output -json > ../paragon/.secure/infra-output.json
 ```
 
 ---
@@ -114,3 +123,42 @@ curl \
   }' \
   https://app.terraform.io/api/v2/workspaces/<workspace id>
 ```
+
+### Switch to enterprise repo
+
+The remaining steps should be executed in the `enterprise/aws/workspaces/paragon` workspace. This use the same remote settings in `main.tf` as `aws-on-prem`'s `paragon` workspace.
+
+### Create Variables for `paragon`
+
+Copy the `aws-on-prem/.secure/values.yaml` to `enterprise/aws/workspaces/paragon/.secure/values.yaml`.
+
+Copy the `aws-on-prem/terraform/workspaces/paragon/vars.auto.tfvars` to `enterprise/aws/workspaces/paragon/vars.auto.tfvars` and remove these deprecated variables:
+- aws_workspace
+- cluster_name
+- disable_docker_verification
+- helm_env
+- helm_values
+- logs_bucket
+- supported_microservices
+- tf_organization
+- tf_token
+- tf_workspace
+
+### Verify Bastion Connectivity
+
+The `enterprise/aws/workspaces/paragon/.secure/infra-output.json` file contains connection information for the updated bastion. Verify that you can connect to it.
+
+Create an executable `migrate-pvc.sh` file on the bastion with the contents from [terraform/workspaces/paragon/migrate-pvc.sh](terraform/workspaces/paragon/migrate-pvc.sh).
+
+### Apply Changes
+
+Plan and apply Terraform as normal.
+
+```
+cd aws/workspaces/infra
+terraform init
+terraform plan
+terraform apply
+```
+
+While the database migrations are running the `migrate-pvc.sh` script can be executed to update the PVC settings that cannot be modified with Helm.
