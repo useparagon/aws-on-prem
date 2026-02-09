@@ -350,7 +350,9 @@ done
     log_info ""
     log_info "Next steps for $STATEFULSET_NAME:"
     log_info "  1. Deploy the new Helm chart to use the new volumeClaimTemplate name: '$NEW_VOLUME_NAME'"
-    log_info "  2. The StatefulSet will be recreated and will bind to the existing new PVCs"
+    log_info "  2. Scale the StatefulSet back up to its prior replica count"
+    log_info "     Example: kubectl scale statefulset $STATEFULSET_NAME -n $NAMESPACE --replicas=1"
+    log_info "  3. The StatefulSet will be recreated and will bind to the existing new PVCs"
 }
 
 # Main execution
@@ -378,6 +380,7 @@ echo "  4. Delete old PVCs (PVs will be released but NOT deleted)"
 echo "  5. Clear claimRef from released PVs"
 echo "  6. Create new PVCs with new naming pattern"
 echo "  7. New PVCs will automatically bind to the existing PVs"
+echo "  8. You may need to scale the StatefulSets back up after deploying the new chart"
 echo ""
 echo "Note: If a StatefulSet doesn't exist (e.g., after a failed upgrade),"
 echo "      the script will skip StatefulSet operations and proceed with PVC migration."
