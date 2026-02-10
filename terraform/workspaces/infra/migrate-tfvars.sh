@@ -23,7 +23,7 @@ extract_var() {
     
     # Get the first line and check if it's a list
     local first_line=$(sed -n "${start_line}p" "$VARS_FILE")
-    local value_part=$(echo "$first_line" | sed 's/^[^=]*=\s*//')
+    local value_part=$(echo "$first_line" | sed -E 's/^[^=]*=[[:space:]]*//')
     
     # Check if it's a list (starts with [)
     if echo "$value_part" | grep -q '^\['; then
@@ -41,8 +41,8 @@ extract_var() {
             fi
         fi
     else
-        # Simple string value: extract quoted value
-        echo "$value_part" | sed 's/^"//;s/"$//'
+        # Simple string value: trim whitespace and extract quoted value if present
+        echo "$value_part" | sed -E 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"//;s/"$//'
     fi
 }
 
@@ -57,6 +57,11 @@ extract_state() {
     else
         echo "$result"
     fi
+}
+
+# Helper function to find the postgres DB instance resource path
+find_postgres_resource_path() {
+    terraform state list 2>/dev/null | grep -E '^module\.postgres\.aws_db_instance\.postgres(\[.+\])?$' | head -1
 }
 
 # Helper function to extract all database passwords from terraform output
@@ -151,28 +156,31 @@ K8_SPOT_NODE_INSTANCE_TYPE=$(extract_var "k8_spot_node_instance_type" "t3a.xlarg
 K8_SPOT_INSTANCE_PERCENT=$(extract_var "k8_spot_instance_percent" "75")
 
 # Extract RDS values from terraform state or use defaults
-RDS_INSTANCE_CLASS=$(extract_state "module.postgres.aws_db_instance.postgres[\"postgres\"]" "instance_class" "")
-# Try alternative resource path if first one fails
-if [ -z "$RDS_INSTANCE_CLASS" ]; then
-    RDS_INSTANCE_CLASS=$(extract_state "module.postgres.aws_db_instance.postgres[0]" "instance_class" "")
+POSTGRES_RESOURCE_PATH=$(find_postgres_resource_path)
+if [ -n "$POSTGRES_RESOURCE_PATH" ]; then
+    RDS_INSTANCE_CLASS=$(extract_state "$POSTGRES_RESOURCE_PATH" "instance_class" "")
+else
+    RDS_INSTANCE_CLASS=""
 fi
 # Fallback to default if not found
 if [ -z "$RDS_INSTANCE_CLASS" ]; then
     RDS_INSTANCE_CLASS="db.t4g.small"
 fi
 
-RDS_POSTGRES_VERSION=$(extract_state "module.postgres.aws_db_instance.postgres[\"postgres\"]" "engine_version" "")
-if [ -z "$RDS_POSTGRES_VERSION" ]; then
-    RDS_POSTGRES_VERSION=$(extract_state "module.postgres.aws_db_instance.postgres[0]" "engine_version" "")
+if [ -n "$POSTGRES_RESOURCE_PATH" ]; then
+    RDS_POSTGRES_VERSION=$(extract_state "$POSTGRES_RESOURCE_PATH" "engine_version" "")
+else
+    RDS_POSTGRES_VERSION=""
 fi
 # Extract from vars file as fallback
 if [ -z "$RDS_POSTGRES_VERSION" ]; then
     RDS_POSTGRES_VERSION=$(extract_var "postgres_version" "16")
 fi
 
-RDS_MULTI_AZ=$(extract_state "module.postgres.aws_db_instance.postgres[\"postgres\"]" "multi_az" "")
-if [ -z "$RDS_MULTI_AZ" ]; then
-    RDS_MULTI_AZ=$(extract_state "module.postgres.aws_db_instance.postgres[0]" "multi_az" "")
+if [ -n "$POSTGRES_RESOURCE_PATH" ]; then
+    RDS_MULTI_AZ=$(extract_state "$POSTGRES_RESOURCE_PATH" "multi_az" "")
+else
+    RDS_MULTI_AZ=""
 fi
 # Convert boolean to string, default to true if not found
 if [ -z "$RDS_MULTI_AZ" ]; then

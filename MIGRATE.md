@@ -150,15 +150,24 @@ The `enterprise/aws/workspaces/paragon/.secure/infra-output.json` file contains 
 
 Create an executable `migrate-pvc.sh` file on the bastion with the contents from [terraform/workspaces/paragon/migrate-pvc.sh](terraform/workspaces/paragon/migrate-pvc.sh).
 
+```
+vi migrate-pvc.sh
+chmod +x migrate-pvc.sh
+```
+
 ### Apply Changes
 
 Plan and apply Terraform as normal.
 
 ```
-cd aws/workspaces/infra
+cd aws/workspaces/paragon
 terraform init
 terraform plan
 terraform apply
 ```
 
-While the database migrations are running the `migrate-pvc.sh` script can be executed to update the PVC settings that cannot be modified with Helm.
+As soon as `kubectl get storageclass` shows a `gp3 (default)` entry then the `migrate-pvc.sh` script can be executed on the bastion to update the PVC settings that cannot be modified with Helm.
+
+```
+./migrate-pvc.sh
+```
