@@ -90,6 +90,19 @@ terraform plan
 terraform apply
 ```
 
+If EKS access entries fail with this error:
+
+```
+│ Error: creating EKS Access Entry (<ACCESS_ENTRY_KEY>): operation error EKS: CreateAccessEntry, https response error StatusCode: 409, RequestID: <uuid>, ResourceInUseException: The specified access entry resource is already in use on this cluster.
+```
+
+Then the entry can be fixed by running the `enterprise/aws/workspaces/infra/migrate-state.sh <ACCESS_ENTRY_KEY>` like below.
+
+```
+cd aws/workspaces/infra
+./migrate-state.sh 'paragon-enterprise:arn:aws:iam::024680246802:role/paragon-installer'
+```
+
 ### Prepare for `paragon` Migration
 
 ```
