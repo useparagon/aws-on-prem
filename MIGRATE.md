@@ -49,8 +49,8 @@ Set `migration_prep = true` in [vars.auto.tfvars](./terraform/workspaces/infra/v
 
 ```
 cd terraform/workspaces/infra
-terraform plan
-terraform apply
+terraform plan -target=module.bastion
+terraform apply -target=module.bastion
 ```
 
 *NOTE: this will result in a new bastion private key and instance so any previous connections will have to be recreated.*
