@@ -27,16 +27,11 @@ curl \
 
 Ensure that the infrastructure is up to date with latest Terraform configs. This will minimize any non-migration related changes later on in the process that could cause issues.
 
-The manual `terraform state mv` steps are required to avoid `Cross-package move statement` errors.
-
 ```
 git pull
 make deploy-infra apply=false
 cd terraform/workspaces/infra
 terraform init
-terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["coredns"]' 'module.cluster.aws_eks_addon.addons["coredns"]'
-terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["kube-proxy"]' 'module.cluster.aws_eks_addon.addons["kube-proxy"]'
-terraform state mv 'module.cluster.module.eks.aws_eks_addon.this["vpc-cni"]' 'module.cluster.aws_eks_addon.addons["vpc-cni"]'
 terraform plan
 terraform apply
 ```
